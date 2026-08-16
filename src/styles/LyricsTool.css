@@ -1,0 +1,178 @@
+.lyrics-tool-page {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.copy-success-toast {
+  position: absolute;
+  top: -40px;
+  right: 20px;
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.3s ease-in, fadeOut 0.3s ease-out 1.2s forwards;
+  z-index: 1000;
+}
+
+.lyrics-tool-page > h2 {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 40px;
+}
+
+.lyrics-tool-container {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 40px;
+}
+
+.lyrics-editor {
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 16px;
+  padding: 32px;
+}
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.editor-header h3 {
+  font-size: 22px;
+  color: #fff;
+}
+
+.editor-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.tool-btn {
+  padding: 10px 20px;
+  background-color: #252525;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tool-btn:hover {
+  background-color: #333;
+  border-color: #444;
+}
+
+.lyrics-textarea {
+  width: 100%;
+  padding: 20px;
+  background-color: #252525;
+  border: 1px solid #333;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 15px;
+  font-family: 'Courier New', monospace;
+  line-height: 1.8;
+  resize: vertical;
+  outline: none;
+}
+
+.lyrics-textarea:focus {
+  border-color: #667eea;
+}
+
+.lyrics-card-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-header h3 {
+  font-size: 20px;
+  color: #fff;
+}
+
+.lyrics-card-preview {
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 16px;
+  padding: 24px;
+  min-height: 600px;
+}
+
+.card-preview-content {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 40px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-song-info {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.card-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.card-artist {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.card-lyrics-preview {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #fff;
+}
+
+.card-lyrics-preview p {
+  margin-bottom: 8px;
+}
+
+.card-watermark {
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 24px;
+  font-weight: 600;
+}

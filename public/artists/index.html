@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>欧美五大新专介绍</title>
+    <style>
+        /* 全局样式重置与基础设置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "微软雅黑", sans-serif;
+            background-color: #e6f2f8;
+            line-height: 1.6;
+        }
+
+        /* 全局容器 */
+        .page-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* 顶部 banner 区域 */
+        .banner {
+            width: 100%;
+            margin: 0 auto 20px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .banner img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* 导航栏样式 */
+        .nav {
+            background-color: #0099cc;
+            text-align: center;
+            padding: 12px 0;
+            margin-bottom: 25px;
+            border-radius: 6px;
+        }
+        .nav a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 18px;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+        .nav a:hover {
+            color: #e6f0ff;
+            text-decoration: underline;
+        }
+
+        /* 主体内容容器 */
+        .container {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 30px;
+            align-items: flex-start;
+        }
+
+        /* 左侧菜单区域 */
+        .menu-left {
+            width: 28%;
+            background-color: #66ccff;
+            padding: 18px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .menu-left h3 {
+            text-align: center;
+            margin-bottom: 18px;
+            color: #224466;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #99ddff;
+        }
+
+        /* 表样式 */
+        .price-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 22px;
+        }
+        .price-table th, .price-table td {
+            border: 1px solid #99ddff;
+            padding: 8px 5px;
+            text-align: center;
+            font-size: 14px;
+            color: #333;
+        }
+        .price-table th {
+            background-color: #99ddff;
+        }
+
+        /* 左侧图片列表 */
+        .left-images {
+            display: flex;
+            flex-direction: column;
+            gap: 12px; 
+            padding: 10px 0;
+    
+            width: 80%;
+            margin: 0 auto; 
+        }
+        .left-images .img-container {
+            width: 100%;
+            border-radius: 4px;
+            border: 2px solid #fff; 
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.08); 
+            overflow: hidden;
+            transform: rotate(-2deg);
+            transition: transform 0.3s;
+        }
+        .left-images .img-container:nth-child(even) {
+            transform: rotate(2deg);
+        }
+        .left-images .img-container:hover {
+            transform: rotate(0deg) scale(1.08); 
+        }
+        .left-images img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* 右侧详情区域 */
+        .menu-right {
+            flex: 1; 
+            background-color: #ccf2ff;
+            padding: 18px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .coffee-item {
+            display: flex;
+            gap: 25px; 
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed #99ddff;
+            align-items: flex-start;
+        }
+        .coffee-item:last-child {
+            border-bottom: none;
+            margin-bottom: 25px;
+        }
+        /* 右侧图片容器 */
+        .coffee-item .img-box {
+            width: 180px; 
+            border-radius: 4px;
+            border: 2px dashed #6699cc;
+            overflow: hidden;
+        }
+        .coffee-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        /* 右侧文字区域 */
+        .coffee-desc {
+            flex: 1;
+        }
+        .coffee-desc h4 {
+            margin-bottom: 12px;
+            color: #2d5b8c;
+            font-size: 19px;
+        }
+        .coffee-desc p {
+            color: #445566;
+            font-size: 15px;
+            margin-bottom: 10px; 
+            line-height: 1.7;
+        }
+        .coffee-desc p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 右侧底部图片样式 */
+        .right-bottom-img {
+            width: 100%;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 2px dashed #6699cc;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            margin-top: 10px;
+        }
+        .right-bottom-img img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* 底部说明区域 */
+        .footer {
+            background-color: #0099cc;
+            color: #fff;
+            text-align: center;
+            padding: 15px 0;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- 顶部 banner 区域 -->
+        <div class="banner">
+            <img src="images/banner.jpg" alt="新专大比特比 banner">
+        </div>
+
+        <!-- 导航栏区域 -->
+        <div class="nav">
+            <a href="#">一身五病</a>
+            <a href="#">84路公交</a>
+            <a href="#">大树之母</a>
+            <a href="#">流行猪尊</a>
+            <a href="#">包包多斯</a>
+        </div>
+
+        <!-- 主体内容区域 -->
+        <div class="container">
+            <!-- 左侧菜单 -->
+            <div class="menu-left">
+                <h3>新专大比特比</h3>
+                <table class="price-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>尖</th>
+                            <th>交</th>
+                            <th>粿</th>
+                            <th>猪</th>
+                            <th>沙包</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>销量</td>
+                            <td>0.99</td>
+                            <td>84</td>
+                            <td>143</td>
+                            <td>348</td>
+                            <td>78</td>
+                        </tr>
+                        <tr>
+                            <td>乐评</td>
+                            <td>78</td>
+                            <td>60</td>
+                            <td>36</td>
+                            <td>80</td>
+                            <td>70</td>
+                        </tr>
+                        <tr>
+                            <td>流媒</td>
+                            <td>LG8</td>
+                            <td>TS13</td>
+                            <td>KP7</td>
+                            <td>A5</td>
+                            <td>R9</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="left-images">
+                    <div class="img-container">
+                        <img src="images/LG1.jpg" alt="LadyGaga">
+                    </div>
+                    <div class="img-container">
+                        <img src="images/TS1.jpg" alt="TaylorSwift">
+                    </div>
+                    <div class="img-container">
+                        <img src="images/KP1.jpg" alt="KatyPerry">
+                    </div>
+                    <div class="img-container">
+                        <img src="images/A1.jpg" alt="Adele">
+                    </div>
+                    <div class="img-container">
+                        <img src="images/R1.jpg" alt="Rihanna">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧详情 -->
+            <div class="menu-right">
+                <div class="coffee-item">
+                    <div class="img-box">
+                        <img src="images/LG2.jpg" alt="LadyGaga-MAYHEM">
+                    </div>
+                    <div class="coffee-desc">
+                        <h4>Lady Gaga - MAYHEM</h4>
+                        <p>【爱称】尖尖、死胎姐</p>
+                        <p>【黑称】嘎嘎、老鳖、绿豆糕糕</p>
+                        <p>【专辑介绍】全能巨星Lady Gaga第七张录音室专辑《MAYHEM》将于3月7日正式全球发行。专辑收录14首重磅曲目，由Lady Gaga与金牌制作人Andrew Watt共同担任执行制作，更集结Cirkut、Gesaffelstein等顶尖音乐人倾力打造。从斩获格莱美「最佳流行合唱」奖的现象级热单《Die With A Smile》，到引发乐评界热议的艺术佳作《Disease》，再到席卷全球舞池的狂欢圣曲《Abracadabra》，每一首都彰显着Gaga独有的音乐魅力。</p>
+                    </div>
+                </div>
+
+                <div class="coffee-item">
+                    <div class="img-box">
+                        <img src="images/TS2.jpg" alt="TaylorSwift-TheLifeOfaShowgirl">
+                    </div>
+                    <div class="coffee-desc">
+                        <h4>Taylor Swift - The Life of a Showgirl</h4>
+                        <p>【爱称】交交、交淫畜</p>
+                        <p>【黑称】霉霉、幸幸</p>
+                        <p>【专辑介绍】《The Life of a Showgirl》是美国歌手兼词曲创作人泰勒·斯威夫特发行的第十二张录音室专辑。斯威夫特在2024年欧洲巡演期间创作了这张专辑，灵感来源于她作为娱乐者的生活。她将其描述为一个充满活力和生机的项目，摆脱了前一张专辑《The Tortured Poets Department》（2024）中的阴郁歌词风格。</p>
+                    </div>
+                </div>
+
+                <div class="coffee-item">
+                    <div class="img-box">
+                        <img src="images/KP2.jpg" alt="KatyPerry-143">
+                    </div>
+                    <div class="coffee-desc">
+                        <h4>Katy Perry - 143</h4>
+                        <p>【爱称】厕粿、树姐、水鬼姐</p>
+                        <p>【黑称】水果姐</p>
+                        <p>【专辑介绍】《143》是凯蒂·佩里时隔五年推出的第六张录音室专辑，以"数字密码"为概念，收录12首融合流行、 disco 与抒情的多元曲目。专辑主打歌《143》以简单数字传递爱意，上线首日便登顶全球18国音乐榜单；深度合作曲《Treehouse》邀请独立音乐人Bon Iver跨刀，歌词探讨自然与内心的联结，被乐评人评为"佩里职业生涯最具艺术性的作品之一"。</p>
+                    </div>
+                </div>
+
+                <div class="coffee-item">
+                    <div class="img-box">
+                        <img src="images/A2.jpg" alt="Adele-30">
+                    </div>
+                    <div class="coffee-desc">
+                        <h4>Adele - 30</h4>
+                        <p>【爱称】猪戴尔</p>
+                        <p>【黑称】阿呆</p>
+                        <p>【专辑介绍】《30》是阿黛尔·阿德金斯的第四张录音室专辑，以她30岁的人生阶段为创作核心，探讨离婚、自我重建与母性的主题。专辑制作历时三年，邀请Greg Kurstin、Max Martin等金牌制作人参与，主打歌《Easy On Me》上线首周便创下全球流媒体播放量纪录，专辑更是以首周30万张的销量空降多国专辑榜冠军，成为2021年全球最畅销专辑之一。</p>
+                    </div>
+                </div>
+
+                <div class="coffee-item">
+                    <div class="img-box">
+                        <img src="images/R2.jpg" alt="Rihanna-ANTI">
+                    </div>
+                    <div class="coffee-desc">
+                        <h4>Rihanna - ANTI</h4>
+                        <p>【爱称】沙包</p>
+                        <p>【黑称】晶晶、日日</p>
+                        <p>【专辑介绍】《ANTI》是蕾哈娜的第八张录音室专辑，打破其以往流行舞曲风格，融入R&B、灵魂乐与摇滚元素，展现更具实验性的音乐表达。专辑主打歌《Work》feat. Drake蝉联美国公告牌百强单曲榜9周冠军，《Love On The Brain》则成为蕾哈娜职业生涯第22首TOP 10单曲。《ANTI》不仅获得格莱美提名，更被《滚石》杂志评为"21世纪100张最佳专辑"之一。</p>
+                    </div>
+                </div>
+
+                <!-- 右侧栏目底部图片 -->
+                <div class="right-bottom-img">
+                    <img src="images/400w.jpg" alt="首周400w大过天">
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p> 欧美百家粉呀 主要是理智嘎迷 </p>
+        </div>
+    </div>
+</body>
+</html>

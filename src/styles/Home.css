@@ -1,0 +1,377 @@
+.home-page {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-section {
+  text-align: center;
+  margin-bottom: 60px;
+  padding: 60px 0;
+}
+
+.hero-section h2 {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-section p {
+  font-size: 18px;
+  color: #888;
+}
+
+.entry-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+  margin-bottom: 60px;
+}
+
+.entry-card {
+  background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+  border: 1px solid #333;
+  border-radius: 16px;
+  padding: 40px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+}
+
+.entry-card:hover {
+  transform: translateY(-4px);
+  border-color: #667eea;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
+}
+
+.card-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.entry-card h3 {
+  font-size: 24px;
+  margin-bottom: 12px;
+  color: #fff;
+}
+
+.entry-card p {
+  font-size: 15px;
+  color: #888;
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.card-button {
+  background-color: #667eea;
+  color: #fff;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.card-button:hover {
+  background-color: #5568d3;
+}
+
+.recent-plays {
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 16px;
+  padding: 32px;
+}
+
+.recent-plays h3 {
+  font-size: 24px;
+  margin-bottom: 24px;
+  color: #fff;
+}
+
+.plays-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.play-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background-color: #252525;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.play-item:hover {
+  background-color: #2a2a2a;
+}
+
+.play-cover {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.play-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.play-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.play-artist {
+  font-size: 14px;
+  color: #888;
+}
+
+.play-time {
+  font-size: 14px;
+  color: #666;
+}
+
+/* 最近播放列表组件样式 */
+.recent-plays-container h2 {
+  font-size: 24px;
+  margin-bottom: 24px;
+  color: #fff;
+}
+
+.login-prompt {
+  text-align: center;
+  padding: 40px 0;
+  color: #888;
+  font-size: 16px;
+}
+
+.loading-history {
+  text-align: center;
+  padding: 40px 0;
+  color: #888;
+  font-size: 16px;
+}
+
+.no-history {
+  text-align: center;
+  padding: 40px 0;
+  color: #888;
+  font-size: 16px;
+}
+
+/* 编者推荐样式 */
+.editor-recommendations {
+  margin-top: 60px;
+  margin-bottom: 60px;
+}
+
+.editor-recommendations h2 {
+  font-size: 28px;
+  margin-bottom: 32px;
+  color: #fff;
+  text-align: center;
+}
+
+.recommendation-modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.recommendation-module {
+  background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+  border: 1px solid #333;
+  border-radius: 16px;
+  padding: 32px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+}
+
+.recommendation-module:hover {
+  transform: translateY(-4px);
+  border-color: #667eea;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
+}
+
+.module-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.recommendation-module h3 {
+  font-size: 22px;
+  margin-bottom: 12px;
+  color: #fff;
+}
+
+.recommendation-module p {
+  font-size: 15px;
+  color: #888;
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+.recent-songs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.recent-song-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background-color: #252525;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.recent-song-item:hover {
+  background-color: #2a2a2a;
+}
+
+.song-rank {
+  width: 24px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.song-cover {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.album-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.song-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.song-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.song-subtitle {
+  font-size: 14px;
+  color: #888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.song-actions {
+  flex-shrink: 0;
+}
+
+.play-btn {
+  background-color: #667eea;
+  color: #fff;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.play-btn:hover {
+  background-color: #5568d3;
+}
+
+/* 分页控件样式 */
+.pagination {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: #888;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-btn {
+  background-color: #252525;
+  color: #fff;
+  border: 1px solid #333;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background-color: #2a2a2a;
+  border-color: #667eea;
+}
+
+.page-btn.active {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-ellipsis {
+  color: #888;
+  font-size: 16px;
+  margin: 0 4px;
+}

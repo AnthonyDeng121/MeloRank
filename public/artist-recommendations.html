@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>艺人推荐</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .artist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .artist-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .artist-card:hover {
+            transform: translateY(-5px);
+        }
+        .artist-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .artist-info {
+            padding: 15px;
+        }
+        .artist-name {
+            font-weight: bold;
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+        .artist-genre {
+            color: #666;
+            font-size: 14px;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>年度艺人推荐</h1>
+        <div class="artist-grid">
+            <div class="artist-card">
+                <img src="https://via.placeholder.com/200" alt="艺人1" class="artist-image">
+                <div class="artist-info">
+                    <h3 class="artist-name">艺人1</h3>
+                    <p class="artist-genre">流行音乐</p>
+                </div>
+            </div>
+            <div class="artist-card">
+                <img src="https://via.placeholder.com/200" alt="艺人2" class="artist-image">
+                <div class="artist-info">
+                    <h3 class="artist-name">艺人2</h3>
+                    <p class="artist-genre">摇滚音乐</p>
+                </div>
+            </div>
+            <div class="artist-card">
+                <img src="https://via.placeholder.com/200" alt="艺人3" class="artist-image">
+                <div class="artist-info">
+                    <h3 class="artist-name">艺人3</h3>
+                    <p class="artist-genre">嘻哈音乐</p>
+                </div>
+            </div>
+            <div class="artist-card">
+                <img src="https://via.placeholder.com/200" alt="艺人4" class="artist-image">
+                <div class="artist-info">
+                    <h3 class="artist-name">艺人4</h3>
+                    <p class="artist-genre">电子音乐</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

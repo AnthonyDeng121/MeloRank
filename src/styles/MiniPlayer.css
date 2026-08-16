@@ -1,0 +1,164 @@
+.mini-player {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 440px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  z-index: 90;
+}
+
+.mini-player-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.mini-player-bottom {
+  width: 100%;
+}
+
+.mini-player-cover {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.mini-player-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.mini-player-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-player-artist {
+  font-size: 12px;
+  color: #888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 8px;
+}
+
+/* 进度条样式 */
+.mini-player-progress-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  width: 100%;
+}
+
+.mini-player-progress-time {
+  font-size: 10px;
+  color: #666;
+  min-width: 36px;
+  text-align: center;
+}
+
+.mini-player-progress-bar {
+  flex: 1;
+  height: 6px;
+  background-color: #333;
+  border-radius: 3px;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  transition: height 0.1s ease;
+  min-width: 20px;
+}
+
+.mini-player-progress-bar:hover {
+  height: 8px;
+}
+
+.mini-player-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  border-radius: 3px;
+  transition: width 0.1s ease;
+}
+
+.mini-player-progress-handle {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.1s ease;
+  opacity: 0;
+}
+
+.mini-player-progress-bar:hover .mini-player-progress-handle {
+  opacity: 1;
+}
+
+.mini-player-progress-handle:hover {
+  transform: translate(-50%, -50%) scale(1.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.mini-player-controls {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.mini-control-btn {
+  background: none;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.mini-control-btn:hover {
+  background-color: #252525;
+  color: #fff;
+}
+
+.mini-control-btn.play {
+  background-color: #667eea;
+  color: #fff;
+}
+
+.mini-control-btn.play:hover {
+  background-color: #5568d3;
+}
+
+/* 迷你播放器播放模式按钮样式 */
+.mini-control-btn.playmode-btn {
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+}
