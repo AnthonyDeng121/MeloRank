@@ -8,6 +8,7 @@ import { saveAs } from "file-saver";
 
 import { useRankingContext, RankingItem, DEFAULT_RANKING_LIST } from '../contexts/RankingContext';
 import { calculateLinearScores as calculateRankingScores, sortRankingTitles, isDefaultRanking } from '../features/ranking/rankingLogic';
+import { removeRankingItem, moveRankingItemUp, moveRankingItemDown } from '../features/ranking/rankingMutations';
 
 interface YearlyRankingProps {
   pageType?: 'yearly-ranking' | 'yearly-songs' | 'yearly-albums';
@@ -238,7 +239,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
     // 根据评分模式处理列表
     if (scoringMode === 'scoring') {
       // 使用线性映射计算初始数据的分数
-      listToUpdate = calculateLinearScores(updatedList);
+      listToUpdate = calculateRankingScores(updatedList);
     } else {
       // 不评分模式下，使用自定义排序
       listToUpdate = [...updatedList].sort((a, b) => {
@@ -292,13 +293,13 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
   
   // 处理删除操作
   const handleDelete = (id: string) => {
-    const updatedList = rankingList.filter(item => item.id !== id);
+    const updatedList = removeRankingItem(rankingList, id);
     let listToUpdate: RankingItem[];
     
     // 根据评分模式处理列表
     if (scoringMode === 'scoring') {
       // 使用线性映射重新计算所有项目的分数
-      listToUpdate = calculateLinearScores(updatedList);
+      listToUpdate = calculateRankingScores(updatedList);
     } else {
       // 不评分模式下，使用自定义排序
       listToUpdate = [...updatedList].sort((a, b) => {
@@ -498,7 +499,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
     // 根据评分模式处理列表
     if (scoringMode === 'scoring') {
       // 使用线性映射重新计算所有项目的分数
-      listToUpdate = calculateLinearScores(updatedList);
+      listToUpdate = calculateRankingScores(updatedList);
     } else {
       // 不评分模式下，使用自定义排序
       listToUpdate = [...updatedList].sort((a, b) => {
@@ -627,7 +628,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
       let listToUpdate: RankingItem[];
       if (scoringMode === 'scoring') {
         // 使用线性映射重新计算所有项目的分数
-        listToUpdate = calculateLinearScores(updatedList);
+        listToUpdate = calculateRankingScores(updatedList);
       } else {
         // 不评分模式下，使用自定义排序
         listToUpdate = [...updatedList].sort((a, b) => {
@@ -1120,7 +1121,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
   /** ====== PDF ====== */
   const exportPDF = async () => {
     // 在生成PDF之前，先重新计算所有项目的分数，确保finalScore是最新的
-    const updatedList = calculateLinearScores(rankingList);
+    const updatedList = calculateRankingScores(rankingList);
     setRankingList(updatedList);
     
     // 等待DOM更新后再捕获图片
@@ -1291,7 +1292,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
     if (scoringMode === 'scoring') {
       // 评分模式下的逻辑
       // 在生成DOCX之前，先重新计算所有项目的分数，确保finalScore是最新的
-      const updatedList = calculateLinearScores(rankingList);
+      const updatedList = calculateRankingScores(rankingList);
       // 使用更新后的列表数据
       rankingData = updatedList;
 
