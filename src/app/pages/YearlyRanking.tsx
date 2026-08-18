@@ -7,7 +7,7 @@ import { Document, Packer, Paragraph, ImageRun, Table, TableRow, TableCell, Alig
 import { saveAs } from "file-saver";
 
 import { useRankingContext, RankingItem, DEFAULT_RANKING_LIST } from '../contexts/RankingContext';
-import { calculateLinearScores as calculateRankingScores } from '../features/ranking/rankingLogic';
+import { calculateLinearScores as calculateRankingScores, sortRankingTitles, isDefaultRanking } from '../features/ranking/rankingLogic';
 
 interface YearlyRankingProps {
   pageType?: 'yearly-ranking' | 'yearly-songs' | 'yearly-albums';
@@ -128,9 +128,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
   // 当榜单类型或评分模式变化时，更新样例数据的标题
   React.useEffect(() => {
     // 检查是否是样例数据
-    const isSampleData = rankingList.length === 3 && rankingList.every(item => 
-      item.id === '1' || item.id === '2' || item.id === '3'
-    );
+    const isSampleData = isDefaultRanking(rankingList);
     
     if (isSampleData) {
       let updatedList;
@@ -244,7 +242,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
     } else {
       // 不评分模式下，使用自定义排序
       listToUpdate = [...updatedList].sort((a, b) => {
-        return customSort(a.title, b.title);
+        return sortRankingTitles(a.title, b.title);
       }).map((item, index) => ({
         ...item,
         rank: index + 1 // 更新排名
@@ -304,7 +302,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
     } else {
       // 不评分模式下，使用自定义排序
       listToUpdate = [...updatedList].sort((a, b) => {
-        return customSort(a.title, b.title);
+        return sortRankingTitles(a.title, b.title);
       }).map((item, index) => ({
         ...item,
         rank: index + 1 // 更新排名
@@ -504,7 +502,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
     } else {
       // 不评分模式下，使用自定义排序
       listToUpdate = [...updatedList].sort((a, b) => {
-        return customSort(a.title, b.title);
+        return sortRankingTitles(a.title, b.title);
       }).map((item, index) => ({
         ...item,
         rank: index + 1 // 更新排名
@@ -633,7 +631,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
       } else {
         // 不评分模式下，使用自定义排序
         listToUpdate = [...updatedList].sort((a, b) => {
-          return customSort(a.title, b.title);
+          return sortRankingTitles(a.title, b.title);
         }).map((item, index) => ({
           ...item,
           rank: index + 1 // 更新排名
@@ -1414,7 +1412,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
       // 非评分模式下的逻辑
       // 不评分模式下，使用自定义排序
       const sortedList = [...rankingList].sort((a, b) => {
-        return customSort(a.title, b.title);
+        return sortRankingTitles(a.title, b.title);
       }).map((item, index) => ({
         ...item,
         rank: index + 1 // 更新排名
@@ -2476,7 +2474,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
               if (scoringMode === 'non-scoring') {
                 // 不评分模式下按首字母排序
                 const sortedList = [...rankingList].sort((a, b) => {
-                  return customSort(a.title, b.title);
+                  return sortRankingTitles(a.title, b.title);
                 });
                 
                 return sortedList.map((item, index) => (
