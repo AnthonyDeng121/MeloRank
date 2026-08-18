@@ -1,6 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { qqMusicService } from '../services/qqMusicService';
-import { dataAPI } from '../services/apiService';
 import "../../styles/YearlyRanking.css";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
@@ -9,18 +8,11 @@ import { saveAs } from "file-saver";
 
 import { useRankingContext, RankingItem, DEFAULT_RANKING_LIST } from '../contexts/RankingContext';
 
-import { ArtistRecommendations } from '../components/ArtistRecommendations';
-
 interface YearlyRankingProps {
-  pageType?: string;
+  pageType?: 'yearly-ranking' | 'yearly-songs' | 'yearly-albums';
 }
 
 export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProps) {
-  // 如果是艺人推荐页面，显示ArtistRecommendations组件
-  if (pageType === 'artist-recommendations') {
-    return <ArtistRecommendations />;
-  }
-
   // 使用RankingContext获取和更新榜单状态
   const { rankingMode, setRankingMode, rankingList, setRankingList } = useRankingContext();
 

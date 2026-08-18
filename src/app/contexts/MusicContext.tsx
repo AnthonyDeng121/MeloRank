@@ -1,6 +1,5 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect, useRef } from 'react';
 import { qqMusicService } from '../services/qqMusicService';
-import { dataAPI } from '../services/apiService';
 
 // 歌曲类型定义
 interface Song {
