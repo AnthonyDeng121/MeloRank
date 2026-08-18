@@ -1,44 +1,44 @@
-# MeloRank Regression Baseline
+# MeloRank 回归基线
 
-Run the automated baseline before and after each refactor:
+每次重构前后都执行以下自动化基线检查：
 
 ```sh
 npm run check
 ```
 
-## Application shell
+## 应用外壳
 
-- Open every top navigation destination and return to the home page.
-- Open and close the play queue without changing the current track.
-- Refresh the page with and without a saved QQ Music cookie.
+- 打开顶部导航中的每个页面，并返回首页。
+- 打开和关闭播放队列，确认当前歌曲不变。
+- 分别在有、无 QQ 音乐 Cookie 的情况下刷新页面。
 
-## QQ Music
+## QQ 音乐
 
-- Open the QR login dialog, cancel it, and confirm polling stops.
-- Search for a song and verify pagination and empty/error states.
-- Play a searchable song, pause it, seek it, and change volume.
-- Add, remove, reorder, and clear songs in the play queue.
-- Verify lyrics update when the current song changes.
+- 打开二维码登录窗口并取消，确认登录状态轮询停止。
+- 搜索歌曲，检查分页、空结果和错误状态。
+- 播放搜索结果中的歌曲，测试暂停、拖动进度和音量调整。
+- 在播放队列中添加、删除、调整顺序并清空歌曲。
+- 切换当前歌曲，确认歌词同步更新。
 
-## Ranking
+## 榜单
 
-- Switch among yearly song, album, artist, and MV ranking modes.
-- Add, edit, delete, and move ranking items in both scoring modes.
-- Verify equal scores, decimal scores, and an empty ranking do not produce invalid values.
-- Import a valid text ranking and reject malformed rows without losing existing data.
-- Save, load, and delete a ranking history entry, then refresh the page.
-- Verify search selection fills title, artist, and cover fields.
-- Export PDF and DOCX and compare item order, scores, covers, and Chinese text.
-- Restore the default ranking only after confirming the dialog.
+- 切换年度歌曲、专辑、艺人和 MV 榜单模式。
+- 在两种评分模式下添加、编辑、删除和移动榜单项目。
+- 检查同分、小数分数和空榜单不会产生无效值。
+- 导入有效文本榜单，确认格式错误的行不会破坏已有数据。
+- 保存、加载和删除历史榜单，然后刷新页面。
+- 通过搜索选择歌曲，确认标题、艺人和封面会正确填充。
+- 导出 PDF 和 DOCX，核对项目顺序、分数、封面和中文文本。
+- 只有确认对话框后才能恢复默认榜单。
 
-## Other tools
+## 其他工具
 
-- Open the artist recommendations page and verify its local images load.
-- Paste lyrics and export the generated result.
-- Load an audio file in Audio Lab and exercise its available controls.
+- 打开艺人推荐页面，确认本地图片正常加载。
+- 粘贴歌词并导出结果。
+- 在音频实验室加载音频文件，测试现有控件。
 
-## Baseline limitations
+## 基线限制
 
-- QQ Music checks require the local API configured by `VITE_QQ_MUSIC_API_URL`.
-- Ranking history currently uses browser local storage.
-- PDF and DOCX output still require manual visual comparison.
+- QQ 音乐检查需要配置 `VITE_QQ_MUSIC_API_URL` 的本地 API 服务。
+- 榜单历史记录目前使用浏览器本地存储。
+- PDF 和 DOCX 输出仍需要人工进行视觉核对。
