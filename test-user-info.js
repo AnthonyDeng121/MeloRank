@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 
 // 从配置文件读取cookie
-const configPath = path.join(__dirname, 'qq-music-api-main', 'config', 'user-info.json');
+const configPath = path.join(__dirname, 'qq-music-api', 'config', 'user-info.json');
 const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
 
 // 测试QQ音乐用户信息接口
