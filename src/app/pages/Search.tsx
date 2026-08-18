@@ -3,6 +3,7 @@ import { qqMusicService } from '../services/qqMusicService';
 import { useMusic } from '../contexts/MusicContext';
 import { useSearch } from '../contexts/SearchContext';
 import { useRankingContext } from '../contexts/RankingContext';
+import { calculateLinearScores as calculateRankingScores } from '../features/ranking/rankingLogic';
 import '../../styles/Search.css';
 
 export function Search() {
@@ -273,7 +274,7 @@ export function Search() {
     }
     
     // 重新计算分数和排名
-    const recalculatedList = calculateLinearScores(updatedList);
+    const recalculatedList = calculateRankingScores(updatedList);
     
     // 更新榜单
     setRankingList(recalculatedList);

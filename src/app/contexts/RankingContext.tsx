@@ -1,18 +1,8 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
+import type { RankingItem } from '../features/ranking/rankingLogic';
+export type { RankingItem } from '../features/ranking/rankingLogic';
 
 // 定义榜单数据类型
-export interface RankingItem {
-  id: string;
-  rank: number;
-  title: string;
-  artist: string;
-  coverUrl: string;
-  review: string;
-  originalScore: number;
-  integrity: number;
-  durability: number;
-  finalScore: number;
-}
 
 // 定义Context类型
 interface RankingContextType {

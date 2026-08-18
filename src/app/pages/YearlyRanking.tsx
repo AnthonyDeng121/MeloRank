@@ -7,6 +7,7 @@ import { Document, Packer, Paragraph, ImageRun, Table, TableRow, TableCell, Alig
 import { saveAs } from "file-saver";
 
 import { useRankingContext, RankingItem, DEFAULT_RANKING_LIST } from '../contexts/RankingContext';
+import { calculateLinearScores as calculateRankingScores } from '../features/ranking/rankingLogic';
 
 interface YearlyRankingProps {
   pageType?: 'yearly-ranking' | 'yearly-songs' | 'yearly-albums';
@@ -120,7 +121,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
 
   // 组件挂载时，使用线性映射计算初始数据的分数
   React.useEffect(() => {
-    const updatedList = calculateLinearScores(rankingList);
+    const updatedList = calculateRankingScores(rankingList);
     setRankingList(updatedList);
   }, []);
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { qqMusicService } from '../services/qqMusicService';
 import { useMusic } from '../contexts/MusicContext';
 import { useRankingContext } from '../contexts/RankingContext';
+import { calculateLinearScores as calculateRankingScores } from '../features/ranking/rankingLogic';
 import '../../styles/Player.css';
 
 export function Player() {
@@ -290,7 +291,7 @@ export function Player() {
     }
     
     // 重新计算分数和排名
-    const recalculatedList = calculateLinearScores(updatedList);
+    const recalculatedList = calculateRankingScores(updatedList);
     
     // 更新榜单
     setRankingList(recalculatedList);
