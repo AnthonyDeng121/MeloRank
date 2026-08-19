@@ -15,6 +15,7 @@ import { RankingList } from '../features/ranking/RankingList';
 import { RankingDialogs } from '../features/ranking/RankingDialogs';
 import { RankingExportPreview } from '../features/ranking/RankingExportPreview';
 import { RankingEditor } from '../features/ranking/RankingEditor';
+import { exportRankingPdf, exportRankingDocx } from '../features/ranking/rankingExportService';
 
 interface YearlyRankingProps {
   pageType?: 'yearly-ranking' | 'yearly-songs' | 'yearly-albums';
@@ -72,6 +73,14 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
 
   /** ====== 导出专用隐藏 DOM ====== */
   const exportRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPDF = async () => {
+    if (exportRef.current) await exportRankingPdf(exportRef.current, `MeloRank_${currentYear}年度榜单.pdf`);
+  };
+
+  const handleExportDOCX = async () => {
+    await exportRankingDocx(rankingList, scoringMode, `MeloRank_${currentYear}年度榜单.docx`);
+  };
   
   /** ====== 分数调节 ====== */
   const integrityRef = useRef<HTMLInputElement>(null);
@@ -2300,8 +2309,8 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
               <button className="export-btn" onClick={fetchHistoryRankings} disabled={isSaving}>
                 历史榜单记录
               </button>
-              <button className="export-btn" onClick={exportPDF}>导出 PDF</button>
-              <button className="export-btn" onClick={exportDOCX}>导出 DOCX</button>
+              <button className="export-btn" onClick={handleExportPDF}>导出 PDF</button>
+              <button className="export-btn" onClick={handleExportDOCX}>导出 DOCX</button>
             </div>
           </div>
 
@@ -2426,7 +2435,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
       <div style={{ display: 'none' }}>
       {/* ====== 隐藏导出榜单（不影响网页） ====== */}
       <div
-        ref={exportRef}
+        aria-hidden="true"
         style={{
           position: "absolute",
           left: "-9999px",
