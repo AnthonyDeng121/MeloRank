@@ -75,19 +75,6 @@ export function normalizeRanking<T extends RankingItem>(items: T[], mode: Scorin
   return mode === 'scoring' ? calculateLinearScores(items) : rankWithoutScoring(items) as T[];
 }
 
-/** 解析“名次. 歌名 - 歌手”格式的纯文本榜单。 */
-export function parseRankingText(text: string): Array<Pick<RankingItem, 'rank' | 'title' | 'artist'>> {
-  return text
-    .split(/\r?\n/)
-    .map(line => line.trim())
-    .filter(Boolean)
-    .map((line, index) => {
-      const match = line.match(/^(?:\d+[.、)）]\s*)?(.+?)(?:\s+-\s+|\s+—\s+|\s+–\s+)(.+)$/);
-      if (match) return { rank: index + 1, title: match[1].trim(), artist: match[2].trim() };
-      return { rank: index + 1, title: line.replace(/^\d+[.、)）]\s*/, '').trim(), artist: '' };
-    });
-}
-
 /** 从带日期、序号和评分的榜单文本中提取条目字段。 */
 export function parseDetailedRankingText(text: string): Array<Pick<RankingItem, 'rank' | 'title' | 'artist' | 'originalScore' | 'integrity' | 'durability'>> {
   return text.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map((line, index) => {
