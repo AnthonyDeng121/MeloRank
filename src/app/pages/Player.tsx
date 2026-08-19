@@ -71,16 +71,7 @@ export function Player() {
     const fetchLyrics = async () => {
       if (currentSong) {
         try {
-          const response = await qqMusicService.getLyric(currentSong.songmid);
-          console.log('获取歌词响应:', response);
-          // 适配后端 API 返回的歌词数据结构
-          if (response?.response?.lyric) {
-            setLyrics(response.response.lyric);
-          } else if (response?.data?.response?.lyric) {
-            setLyrics(response.data.response.lyric);
-          } else if (response?.data?.lyric) {
-            setLyrics(response.data.lyric);
-          }
+          setLyrics(await qqMusicService.getLyrics(currentSong.songmid));
         } catch (error) {
           console.error('获取歌词失败:', error);
         }
@@ -175,7 +166,7 @@ export function Player() {
     artists: currentSong.singer,
     album: {
       name: currentSong.albumname,
-      coverUrl: `https://y.qq.com/music/photo_new/T002R300x300M000${currentSong.albummid}.jpg`
+      coverUrl: qqMusicService.getAlbumCoverUrl(currentSong.albummid)
     }
   } : mockTrack;
   
@@ -252,7 +243,7 @@ export function Player() {
       rank: 1,
       title: currentSong.songname,
       artist: currentSong.singer.map((s: any) => s.name).join(', '),
-      coverUrl: `https://y.qq.com/music/photo_new/T002R300x300M000${currentSong.albummid}.jpg`,
+      coverUrl: qqMusicService.getAlbumCoverUrl(currentSong.albummid),
       review: comment || '没有评价的义务！',
       originalScore: totalScore,
       integrity: 0,
@@ -309,7 +300,7 @@ export function Player() {
       songName: currentSong.songname,
       artist: currentSong.singer.map((s: any) => s.name).join(', '),
       album: currentSong.albumname,
-      coverUrl: `https://y.qq.com/music/photo_new/T002R300x300M000${currentSong.albummid}.jpg`,
+      coverUrl: qqMusicService.getAlbumCoverUrl(currentSong.albummid),
       ratings,
       totalScore,
       comment,

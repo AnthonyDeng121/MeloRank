@@ -61,26 +61,12 @@ export function Search() {
     try {
       console.log('开始搜索:', searchQuery, '页码:', page);
       // 只搜索歌曲类型
-      const searchResponse = await qqMusicService.searchWithType(searchQuery, pageSize, 'songs', page);
-      console.log('搜索响应:', searchResponse);
-      
-      // 处理API响应
-      const searchResultsData = searchResponse;
-      console.log('处理后的搜索结果数据:', searchResultsData);
-      
+      const searchResultsData = await qqMusicService.searchSongs(searchQuery, pageSize, page);
       setSearchResults(searchResultsData);
       setCurrentPage(page);
       
       // 设置总结果数（只处理歌曲）
-      const responseData = searchResultsData.response || searchResultsData;
-      const actualData = responseData.data || responseData;
-      if (actualData.song?.totalnum) {
-        setTotalResults(actualData.song.totalnum);
-      } else if (actualData.song?.list) {
-        setTotalResults(actualData.song.list.length);
-      } else {
-        setTotalResults(0);
-      }
+      setTotalResults(searchResultsData.total);
     } catch (error) {
       console.error('搜索失败:', error);
       // 搜索失败时清空结果
@@ -235,7 +221,7 @@ export function Search() {
       rank: 1,
       title: selectedSong.songname,
       artist: selectedSong.singer.map((s: any) => s.name).join(', '),
-      coverUrl: `https://y.qq.com/music/photo_new/T002R300x300M000${selectedSong.albummid}.jpg`,
+      coverUrl: qqMusicService.getAlbumCoverUrl(selectedSong.albummid),
       review: comment || '没有评价的义务！',
       originalScore: totalScore,
       integrity: 0,
@@ -292,7 +278,7 @@ export function Search() {
       songName: selectedSong.songname,
       artist: selectedSong.singer.map((s: any) => s.name).join(', '),
       album: selectedSong.albumname,
-      coverUrl: `https://y.qq.com/music/photo_new/T002R300x300M000${selectedSong.albummid}.jpg`,
+      coverUrl: qqMusicService.getAlbumCoverUrl(selectedSong.albummid),
       ratings,
       totalScore,
       comment,
@@ -347,19 +333,7 @@ export function Search() {
 
     console.log('渲染搜索结果，当前searchResults:', searchResults);
 
-    // 处理qq-music-api返回的搜索结果格式
-    let songList: any[] = [];
-    
-    // 检查多种可能的数据格式
-    const responseData = searchResults.response || searchResults;
-    const actualData = responseData.data || responseData;
-    
-    if (actualData.song && actualData.song.list) {
-      songList = actualData.song.list;
-    } else {
-      console.error('未知的搜索结果格式:', searchResults);
-      return <div className="no-results">搜索结果格式错误</div>;
-    }
+    const songList = searchResults.items || [];
     
     console.log('实际歌曲列表:', songList);
     
@@ -375,7 +349,7 @@ export function Search() {
             <div className="result-cover">
               {song.albummid && (
                 <img 
-                  src={`https://y.qq.com/music/photo_new/T002R300x300M000${song.albummid}.jpg`} 
+                  src={qqMusicService.getAlbumCoverUrl(song.albummid)}
                   alt={song.songname || '歌曲封面'} 
                   className="result-image" 
                 />
@@ -570,7 +544,7 @@ export function Search() {
             <div className="modal-content">
               <div className="song-info">
                 <img 
-                  src={`https://y.qq.com/music/photo_new/T002R300x300M000${selectedSong.albummid}.jpg`} 
+                  src={qqMusicService.getAlbumCoverUrl(selectedSong.albummid)}
                   alt={selectedSong.songname} 
                   className="modal-song-image" 
                 />

@@ -1,5 +1,35 @@
 import { QQ_MUSIC_CONFIG } from './qqMusicConfig';
 
+export type QQMusicSearchType = 'songs' | 'albums' | 'artists';
+
+export interface QQMusicSinger {
+  name?: string;
+}
+
+export interface QQMusicSong {
+  songmid: string;
+  songname: string;
+  singer?: QQMusicSinger[];
+  albummid?: string;
+  albumname?: string;
+  [key: string]: unknown;
+}
+
+export interface QQMusicSearchPage<T> {
+  items: T[];
+  total: number;
+}
+
+export interface QQMusicCatalogItem {
+  id: string;
+  type: 'song' | 'album' | 'artist';
+  title: string;
+  artist: string;
+  album?: string;
+  coverUrl: string;
+  songmid?: string;
+}
+
 class QQMusicService {
   private baseUrl: string;
   private accessToken: string | null = null;
@@ -33,6 +63,30 @@ class QQMusicService {
   constructor() {
     this.baseUrl = QQ_MUSIC_CONFIG.baseUrl;
     this.loadTokens();
+  }
+
+  getAlbumCoverUrl(albumMid?: string, proxied = false): string {
+    if (!albumMid) return '';
+    const url = `https://y.qq.com/music/photo_new/T002R300x300M000${albumMid}.jpg`;
+    return proxied ? this.getProxiedImageUrl(url) : url;
+  }
+
+  getArtistCoverUrl(artistMid?: string, proxied = false): string {
+    if (!artistMid) return '';
+    const url = `https://y.qq.com/music/photo_new/T001R300x300M000${artistMid}.jpg`;
+    return proxied ? this.getProxiedImageUrl(url) : url;
+  }
+
+  getProxiedImageUrl(url: string): string {
+    if (!url || url.startsWith('data:image/') || url.includes('svg')) return url;
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+    return `${backendUrl}/api/proxy/qqmusic/image?url=${encodeURIComponent(url)}`;
+  }
+
+  private unwrapResponse(result: any): any {
+    const body = result?.body ?? result;
+    const response = body?.response ?? body;
+    return response?.data ?? response;
   }
 
   // 从本地存储加载令牌
@@ -268,12 +322,12 @@ class QQMusicService {
   }
 
   // 搜索音乐
-  async search(query: string, limit: number = 10, page: number = 1): Promise<any> {
-    return this.searchWithType(query, limit, 'songs', page);
+  async search(query: string, limit: number = 10, page: number = 1): Promise<QQMusicSearchPage<QQMusicSong>> {
+    return this.searchSongs(query, limit, page);
   }
 
   // 根据类型搜索音乐
-  async searchWithType(query: string, limit: number = 10, type: 'songs' | 'albums' | 'artists', page: number = 1): Promise<any> {
+  async searchWithType(query: string, limit: number = 10, type: QQMusicSearchType, page: number = 1): Promise<any> {
     // 根据qq-music-api仓库的路由配置，正确的搜索端点是/getSearchByKey
     // 使用GET请求，参数作为查询字符串传递
     try {
@@ -325,6 +379,47 @@ class QQMusicService {
     }
   }
 
+  async searchSongs(query: string, limit = 10, page = 1): Promise<QQMusicSearchPage<QQMusicSong>> {
+    const data = this.unwrapResponse(await this.searchWithType(query, limit, 'songs', page));
+    const items = Array.isArray(data?.song?.list) ? data.song.list as QQMusicSong[] : [];
+    return { items, total: Number(data?.song?.totalnum ?? items.length) };
+  }
+
+  async searchCatalog(query: string, type: QQMusicSearchType, limit = 20, page = 1, proxiedCovers = false): Promise<QQMusicSearchPage<QQMusicCatalogItem>> {
+    const data = this.unwrapResponse(await this.searchWithType(query, limit, type, page));
+    let items: QQMusicCatalogItem[] = [];
+
+    if (type === 'albums') {
+      items = (data?.album?.list ?? []).map((album: any) => ({
+        id: String(album.albumid ?? album.albummid),
+        type: 'album',
+        title: album.albumname ?? '未知专辑',
+        artist: album.singer?.name ?? '未知歌手',
+        coverUrl: this.getAlbumCoverUrl(album.albummid, proxiedCovers)
+      }));
+    } else if (type === 'artists') {
+      items = (data?.singer?.list ?? []).map((artist: any) => ({
+        id: String(artist.singermid),
+        type: 'artist',
+        title: artist.singername ?? '未知艺人',
+        artist: artist.singername ?? '未知艺人',
+        coverUrl: this.getArtistCoverUrl(artist.singermid, proxiedCovers)
+      }));
+    } else {
+      items = (data?.song?.list ?? []).map((song: QQMusicSong) => ({
+        id: song.songmid,
+        type: 'song',
+        title: song.songname ?? '未知歌曲',
+        artist: song.singer?.map(singer => singer.name ?? '未知歌手').join(', ') || '未知歌手',
+        album: song.albumname ?? '未知专辑',
+        coverUrl: this.getAlbumCoverUrl(song.albummid, proxiedCovers),
+        songmid: song.songmid
+      }));
+    }
+
+    return { items, total: items.length };
+  }
+
   // 获取歌曲详情
   async getSongDetail(songId: string): Promise<any> {
     return await this.request('/song/detail', {
@@ -339,11 +434,23 @@ class QQMusicService {
     });
   }
 
+  async getPlaybackUrl(songmid: string): Promise<string> {
+    const response = await this.getSongUrl(songmid);
+    const data = response?.data ?? response;
+    const songInfo = data?.playUrl?.[songmid];
+    return songInfo?.url ?? data?.url ?? (Array.isArray(data) ? data[0]?.url : '') ?? response?.url ?? response?.playUrl ?? '';
+  }
+
   // 获取歌曲歌词
   async getLyric(songmid: string): Promise<any> {
     return await this.request('/getLyric', {
       songmid: songmid
     });
+  }
+
+  async getLyrics(songmid: string): Promise<string> {
+    const response = await this.getLyric(songmid);
+    return response?.response?.lyric ?? response?.data?.response?.lyric ?? response?.data?.lyric ?? response?.lyric ?? '';
   }
 
   // 获取歌单详情

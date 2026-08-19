@@ -1,5 +1,6 @@
 import React from 'react';
 import { useMusic } from '../contexts/MusicContext';
+import { qqMusicService } from '../services/qqMusicService';
 import '../../styles/MiniPlayer.css';
 
 // 格式化时间
@@ -55,7 +56,7 @@ export function MiniPlayer() {
     artists: currentSong.singer,
     album: {
       name: currentSong.albumname,
-      coverUrl: `https://y.qq.com/music/photo_new/T002R300x300M000${currentSong.albummid}.jpg`
+      coverUrl: qqMusicService.getAlbumCoverUrl(currentSong.albummid)
     }
   } : mockTrack;
 

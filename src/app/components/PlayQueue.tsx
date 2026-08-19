@@ -1,5 +1,6 @@
 import React from 'react';
 import { useMusic } from '../contexts/MusicContext';
+import { qqMusicService } from '../services/qqMusicService';
 import '../../styles/PlayQueue.css';
 
 interface PlayQueueProps {
@@ -109,7 +110,7 @@ export const PlayQueue: React.FC<PlayQueueProps> = ({ isVisible, onClose }) => {
                     <div className="queue-item-cover">
                       {song.albummid && (
                         <img 
-                          src={`https://y.qq.com/music/photo_new/T002R300x300M000${song.albummid}.jpg`} 
+                          src={qqMusicService.getAlbumCoverUrl(song.albummid)}
                           alt={song.songname} 
                           className="album-image" 
                         />

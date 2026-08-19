@@ -209,48 +209,9 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
         try {
           // 获取歌曲播放URL
           console.log('获取歌曲播放URL，songmid:', currentSong.songmid);
-          const response = await qqMusicService.getSongUrl(currentSong.songmid);
-          console.log('获取歌曲播放URL响应:', response);
-          
-          // 处理响应，获取播放URL
-          let songUrl = '';
-          let errorMessage = '';
-          
-          // 适配不同的API返回格式
-          if (response.data) {
-            // 情况1: { data: { playUrl: { songmid: { url: string } } } } 格式
-            if (response.data.playUrl && response.data.playUrl[currentSong.songmid]) {
-              const songInfo = response.data.playUrl[currentSong.songmid];
-              if (songInfo) {
-                if (songInfo.url) {
-                  songUrl = songInfo.url;
-                }
-                if (songInfo.error) {
-                  errorMessage = songInfo.error;
-                }
-              }
-            }
-            // 情况2: { data: { url: string } } 格式
-            else if (response.data.url) {
-              songUrl = response.data.url;
-            }
-            // 情况3: { data: [{ url: string }] } 格式
-            else if (Array.isArray(response.data) && response.data[0]?.url) {
-              songUrl = response.data[0].url;
-            }
-          }
-          // 情况4: 直接返回 { url: string } 格式
-          else if (response.url) {
-            songUrl = response.url;
-          }
-          // 情况5: 直接返回 { playUrl: string } 格式
-          else if (response.playUrl) {
-            songUrl = response.playUrl;
-          }
+          const songUrl = await qqMusicService.getPlaybackUrl(currentSong.songmid);
           
           console.log('使用歌曲播放URL:', songUrl);
-          console.log('歌曲错误信息:', errorMessage);
-          
           if (songUrl) {
               // 设置audio元素的src
               audioRef.current.src = songUrl;
@@ -262,11 +223,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
             } else {
               console.error('未能获取到有效的歌曲播放URL');
               // 显示适当的错误提示
-              if (errorMessage) {
-                alert('无法播放该歌曲: ' + errorMessage);
-              } else {
-                alert('无法播放该歌曲，可能是VIP专属或版权受限');
-              }
+              alert('无法播放该歌曲，可能是 VIP 专属或版权受限');
           }
         } catch (error) {
           console.error('播放歌曲失败:', error);
@@ -285,27 +242,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
       if (currentSong) {
         try {
           console.log('获取歌词，songmid:', currentSong.songmid);
-          const response = await qqMusicService.getLyric(currentSong.songmid);
-          console.log('获取歌词响应:', response);
-          
-          // 适配不同的API返回格式
-          let lyricText = '';
-          
-          // 情况1: { response: { lyric: string } } 格式
-          if (response.response?.lyric) {
-            lyricText = response.response.lyric;
-          }
-          // 情况2: { data: { response: { lyric: string } } } 格式
-          else if (response.data?.response?.lyric) {
-            lyricText = response.data.response.lyric;
-          }
-          // 情况3: { data: { lyric: string } } 格式
-          else if (response.data?.lyric) {
-            lyricText = response.data.lyric;
-          }
-          
-          console.log('获取到歌词:', lyricText);
-          setLyrics(lyricText);
+          setLyrics(await qqMusicService.getLyrics(currentSong.songmid));
         } catch (error) {
           console.error('获取歌词失败:', error);
           setLyrics('');

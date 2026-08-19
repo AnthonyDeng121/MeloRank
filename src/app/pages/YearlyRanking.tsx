@@ -1,4 +1,4 @@
-﻿import React, { useRef, useCallback, useEffect } from "react";
+import React, { useRef, useCallback, useEffect } from "react";
 import { qqMusicService } from '../services/qqMusicService';
 import "../../styles/YearlyRanking.css";
 
@@ -16,7 +16,6 @@ import { exportRankingPdf, exportRankingDocx } from '../features/ranking/ranking
 interface YearlyRankingProps {
   pageType?: 'yearly-ranking' | 'yearly-songs' | 'yearly-albums';
 }
-
 export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProps) {
   // 使用RankingContext获取和更新榜单状态
   const { rankingMode, setRankingMode, rankingList, setRankingList } = useRankingContext();
@@ -254,16 +253,6 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
     setRankingList(moveRankingItemDown(rankingList, item.id));
   };
   
-  // 添加一个函数来获取代理封面URL
-  const getProxyCoverUrl = (originalUrl: string): string => {
-    // 如果是base64或默认封面，直接返回
-    if (originalUrl.startsWith('data:image/') || originalUrl.includes('svg')) {
-      return originalUrl;
-    }
-    // 使用本地代理服务获取QQ音乐图片
-    return `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/proxy/qqmusic/image?url=${encodeURIComponent(originalUrl)}`;
-  };
-
   // 处理表单提交
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -312,45 +301,8 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
           searchType = 'songs'; // MV搜索API返回格式不同，暂用单曲搜索代替
         }
         
-        console.log('开始自动搜索封面:', { searchQuery, searchType, title, artist });
-        
-        // 调用QQ音乐搜索API
-        const result = await qqMusicService.searchWithType(searchQuery, 20, searchType, 1);
-        
-        console.log('搜索原始结果:', result);
-        
-        // 处理搜索结果，适配API返回格式
-        const searchResult = result.response || result;
-        const actualData = searchResult;
-        
-        console.log('处理后的搜索结果:', actualData);
-        
-        // 提取第一个结果的封面URL
-        let firstResult = null;
-        if (searchType === 'albums' && actualData.album?.list?.length > 0) {
-          firstResult = actualData.album.list[0];
-        } else if (searchType === 'artists' && actualData.singer?.list?.length > 0) {
-          firstResult = actualData.singer.list[0];
-        } else if (searchType === 'songs' && actualData.song?.list?.length > 0) {
-          firstResult = actualData.song.list[0];
-        }
-        
-        console.log('第一个结果:', firstResult);
-        
-        // 如果有结果，获取封面URL并使用代理
-        if (firstResult) {
-          let originalUrl = '';
-          if (searchType === 'albums') {
-            originalUrl = firstResult.albummid ? `https://y.qq.com/music/photo_new/T002R300x300M000${firstResult.albummid}.jpg` : '';
-          } else if (searchType === 'artists') {
-            originalUrl = firstResult.singermid ? `https://y.qq.com/music/photo_new/T001R300x300M000${firstResult.singermid}.jpg` : '';
-          } else if (searchType === 'songs') {
-            originalUrl = firstResult.albummid ? `https://y.qq.com/music/photo_new/T002R300x300M000${firstResult.albummid}.jpg` : '';
-          }
-          
-          finalCoverUrl = getProxyCoverUrl(originalUrl);
-          console.log('最终封面URL:', finalCoverUrl);
-        }
+        const { items } = await qqMusicService.searchCatalog(searchQuery, searchType, 20, 1, true);
+        finalCoverUrl = items[0]?.coverUrl || finalCoverUrl;
       } catch (error) {
         console.error('自动搜索封面失败:', error);
         // 搜索失败不影响表单提交，继续使用默认封面
@@ -495,70 +447,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
       console.log('当前榜单类型:', rankingMode, '搜索类型:', searchType);
       
       // 调用QQ音乐搜索API，增加搜索结果数量到20
-      const result = await qqMusicService.searchWithType(query, 20, searchType, 1);
-      
-      // 处理搜索结果
-      let processedResults: any[] = [];
-      const responseData = result.response || result;
-      const actualData = responseData.data || responseData;
-      
-      // 只提取与搜索类型匹配的结果
-      if (searchType === 'albums' && actualData.album?.list) {
-        // 专辑搜索结果
-        processedResults = actualData.album.list.map((album: any) => ({
-          id: album.albumid,
-          type: 'album',
-          title: album.albumname,
-          artist: album.singer?.name || '未知歌手',
-          coverUrl: album.albummid ? getProxyCoverUrl(`https://y.qq.com/music/photo_new/T002R300x300M000${album.albummid}.jpg`) : '',
-          albumid: album.albumid
-        }));
-      } else if (searchType === 'artists' && actualData.singer?.list) {
-        // 艺人搜索结果
-        processedResults = actualData.singer.list.map((artist: any) => ({
-          id: artist.singermid,
-          type: 'artist',
-          title: artist.singername,
-          artist: artist.singername,
-          coverUrl: artist.singermid ? getProxyCoverUrl(`https://y.qq.com/music/photo_new/T001R300x300M000${artist.singermid}.jpg`) : '',
-          singermid: artist.singermid
-        }));
-      } else if (searchType === 'songs' && actualData.song?.list) {
-        // 歌曲搜索结果
-        processedResults = actualData.song.list.map((song: any) => ({
-          id: song.songmid,
-          type: 'song',
-          title: song.songname,
-          artist: song.singer?.map((artist: any) => artist.name || '未知歌手').join(', ') || '未知歌手',
-          album: song.albumname || '未知专辑',
-          coverUrl: song.albummid ? getProxyCoverUrl(`https://y.qq.com/music/photo_new/T002R300x300M000${song.albummid}.jpg`) : '',
-          songmid: song.songmid
-        }));
-      } else {
-        // 如果没有匹配的结果类型，尝试提取所有可能的结果
-        console.warn('没有匹配的搜索结果类型，尝试提取所有可能的结果', searchType, actualData);
-        if (actualData.album?.list) {
-          processedResults = actualData.album.list.map((album: any) => ({
-            id: album.albumid,
-            type: 'album',
-            title: album.albumname,
-            artist: album.singer?.name || '未知歌手',
-            coverUrl: album.albummid ? getProxyCoverUrl(`https://y.qq.com/music/photo_new/T002R300x300M000${album.albummid}.jpg`) : '',
-            albumid: album.albumid
-          }));
-        } else if (actualData.song?.list) {
-          processedResults = actualData.song.list.map((song: any) => ({
-            id: song.songmid,
-            type: 'song',
-            title: song.songname,
-            artist: song.singer?.map((artist: any) => artist.name || '未知歌手').join(', ') || '未知歌手',
-            album: song.albumname || '未知专辑',
-            coverUrl: song.albummid ? getProxyCoverUrl(`https://y.qq.com/music/photo_new/T002R300x300M000${song.albummid}.jpg`) : '',
-            songmid: song.songmid
-          }));
-        }
-      }
-      
+      const { items: processedResults } = await qqMusicService.searchCatalog(query, searchType, 20, 1, true);
       setSearchResults(processedResults);
       setShowSearchResults(processedResults.length > 0);
     } catch (error) {
@@ -568,7 +457,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
     } finally {
       setIsSearching(false);
     }
-  }, [rankingMode, getProxyCoverUrl]);
+  }, [rankingMode]);
   
   // 防抖搜索函数
   const debouncedSearch = useCallback((query: string) => {
@@ -677,7 +566,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
   // 处理搜索结果点击
   const handleSearchResultClick = (result: any) => {
     // 填充表单数据，使用代理URL
-    const proxiedCoverUrl = getProxyCoverUrl(result.coverUrl);
+    const proxiedCoverUrl = result.coverUrl;
     setCoverUrl(proxiedCoverUrl);
     setCoverPreview(proxiedCoverUrl);
     
