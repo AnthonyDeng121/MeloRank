@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useRef, useCallback, useEffect } from "react";
 import { qqMusicService } from '../services/qqMusicService';
 import "../../styles/YearlyRanking.css";
 import html2canvas from "html2canvas";
@@ -9,6 +9,7 @@ import { saveAs } from "file-saver";
 import { useRankingContext, RankingItem, DEFAULT_RANKING_LIST } from '../contexts/RankingContext';
 import { calculateLinearScores as calculateRankingScores, sortRankingTitles, isDefaultRanking, normalizeRanking, parseDetailedRankingText } from '../features/ranking/rankingLogic';
 import { removeRankingItem, moveRankingItemUp, moveRankingItemDown } from '../features/ranking/rankingMutations';
+import { useRankingState } from '../features/ranking/useRankingState';
 
 interface YearlyRankingProps {
   pageType?: 'yearly-ranking' | 'yearly-songs' | 'yearly-albums';
@@ -30,19 +31,14 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
   const currentYear = new Date().getFullYear();
   
   // 添加状态管理来存储上传的图片和预览URL
-  const [coverUrl, setCoverUrl] = useState<string>('');
-  const [coverPreview, setCoverPreview] = useState<string>('');
   
   // 添加编辑状态管理
-  const [editMode, setEditMode] = useState(false);
-  const [editingItemId, setEditingItemId] = useState<string | null>(null);
-  const [editingItem, setEditingItem] = useState<typeof rankingList[0] | null>(null);
+  const rankingState = useRankingState();
+  const { coverUrl, setCoverUrl, coverPreview, setCoverPreview, editMode, setEditMode, scoringMode, setScoringMode, editingItemId, setEditingItemId, editingItem, setEditingItem, showConfirmDialog, setShowConfirmDialog, showHistoryDialog, setShowHistoryDialog, historyRankings, setHistoryRankings, isSaving, setIsSaving, saveSuccess, setSaveSuccess, showImportDialog, setShowImportDialog, importedRankingText, setImportedRankingText, searchQuery, setSearchQuery, searchResults, setSearchResults, isSearching, setIsSearching, showSearchResults, setShowSearchResults, searchError, setSearchError } = rankingState;
   
   // 添加确认对话框状态
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   
   // 添加评分模式状态管理
-  const [scoringMode, setScoringMode] = useState<'scoring' | 'non-scoring'>('scoring');
   
   // 评分模式选项
   const scoringModes = [
@@ -55,12 +51,6 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
     normalizeRanking(items, scoringMode);
 
   // 添加保存和历史榜单相关状态
-  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
-  const [historyRankings, setHistoryRankings] = useState<any[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [showImportDialog, setShowImportDialog] = useState(false);
-  const [importedRankingText, setImportedRankingText] = useState('');
 
   const rankingModes = [
     '年度艺人榜',
@@ -70,11 +60,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
   ];
   
   // 搜索相关状态管理
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState<boolean>(false);
-  const [showSearchResults, setShowSearchResults] = useState<boolean>(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
+
   
   // 防抖定时器引用
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
