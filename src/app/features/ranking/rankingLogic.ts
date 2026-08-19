@@ -87,3 +87,26 @@ export function parseRankingText(text: string): Array<Pick<RankingItem, 'rank' |
       return { rank: index + 1, title: line.replace(/^\d+[.、)）]\s*/, '').trim(), artist: '' };
     });
 }
+
+/** 从带日期、序号和评分的榜单文本中提取条目字段。 */
+export function parseDetailedRankingText(text: string): Array<Pick<RankingItem, 'rank' | 'title' | 'artist' | 'originalScore' | 'integrity' | 'durability'>> {
+  return text.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map((line, index) => {
+    const content = line
+      .replace(/^\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}\s+/, '')
+      .replace(/^\d{1,2}[./]\d{1,2}\s+/, '')
+      .replace(/^\d+\s*[.、)）]\s*/, '');
+    const parts = content.split(/\s+-\s+/);
+    const title = (parts.shift() || content).trim();
+    const rest = parts.join(' - ').trim();
+    const scores = rest.match(/(\d+(?:\.\d+)?)(?:\s*\+\s*(\d+(?:\.\d+)?))?(?:\s*\+\+\s*(\d+(?:\.\d+)?))?\s*$/);
+    const artist = scores ? rest.slice(0, scores.index).trim() : rest;
+    return {
+      rank: index + 1,
+      title,
+      artist,
+      originalScore: scores ? Number(scores[1]) : 0,
+      integrity: scores?.[2] ? Number(scores[2]) : 0,
+      durability: scores?.[3] ? Number(scores[3]) : 0
+    };
+  });
+}

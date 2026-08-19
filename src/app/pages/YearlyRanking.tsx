@@ -7,7 +7,7 @@ import { Document, Packer, Paragraph, ImageRun, Table, TableRow, TableCell, Alig
 import { saveAs } from "file-saver";
 
 import { useRankingContext, RankingItem, DEFAULT_RANKING_LIST } from '../contexts/RankingContext';
-import { calculateLinearScores as calculateRankingScores, sortRankingTitles, isDefaultRanking, normalizeRanking } from '../features/ranking/rankingLogic';
+import { calculateLinearScores as calculateRankingScores, sortRankingTitles, isDefaultRanking, normalizeRanking, parseDetailedRankingText } from '../features/ranking/rankingLogic';
 import { removeRankingItem, moveRankingItemUp, moveRankingItemDown } from '../features/ranking/rankingMutations';
 
 interface YearlyRankingProps {
@@ -175,7 +175,8 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
   };
   
   // 自定义排序函数：实现中英文混排，按首字母ASCII顺序，相同时短的靠前
-  const customSort = (a: string, b: string): number => {
+  const customSort = (a: string, b: string): number => sortRankingTitles(a, b);
+  /*
     // 转换为小写进行比较，确保大小写不影响排序
     const strA = a.toLowerCase();
     const strB = b.toLowerCase();
@@ -205,7 +206,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
     }
     
     return localeResult;
-  };
+  }; */
 
   // 确认恢复默认榜单
   const confirmRestoreDefault = () => {
@@ -1054,7 +1055,8 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
   };
 
   // 计算线性映射十分制分数
-  const calculateLinearScores = (items: RankingItem[]): RankingItem[] => {
+  const calculateLinearScores = (items: RankingItem[]): RankingItem[] => calculateRankingScores(items);
+  /*
     // 计算每个作品的百分制总分，解决浮点数精度问题
     const itemsWithTotalScore = items.map(item => ({
       ...item,
@@ -1105,7 +1107,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
         totalScore: item.totalScore
       };
     });
-  };
+  }; */
 
   const captureExportImage = async (): Promise<string> => {
     if (!exportRef.current) {
