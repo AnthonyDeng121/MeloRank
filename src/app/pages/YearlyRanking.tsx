@@ -7,7 +7,7 @@ import { Document, Packer, Paragraph, ImageRun, Table, TableRow, TableCell, Alig
 import { saveAs } from "file-saver";
 
 import { useRankingContext, RankingItem, DEFAULT_RANKING_LIST } from '../contexts/RankingContext';
-import { calculateLinearScores as calculateRankingScores, sortRankingTitles, isDefaultRanking } from '../features/ranking/rankingLogic';
+import { calculateLinearScores as calculateRankingScores, sortRankingTitles, isDefaultRanking, normalizeRanking } from '../features/ranking/rankingLogic';
 import { removeRankingItem, moveRankingItemUp, moveRankingItemDown } from '../features/ranking/rankingMutations';
 
 interface YearlyRankingProps {
@@ -49,6 +49,10 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
     { value: 'scoring', label: '评分' },
     { value: 'non-scoring', label: '不评分' }
   ];
+
+  // 按当前模式统一整理榜单，避免新增、删除和导入流程各自维护排序规则。
+  const normalizeCurrentRanking = (items: RankingItem[]): RankingItem[] =>
+    normalizeRanking(items, scoringMode);
 
   // 添加保存和历史榜单相关状态
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
@@ -250,7 +254,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
       }));
     }
     
-    setRankingList(listToUpdate);
+    setRankingList(normalizeCurrentRanking(updatedList));
     setShowConfirmDialog(false);
   };
   
