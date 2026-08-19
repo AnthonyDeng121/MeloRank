@@ -315,9 +315,9 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
 
   // 移动歌曲排名的函数
   const moveItemUp = (item: RankingItem) => {
-    const index = rankingList.findIndex(i => i.id === item.id);
-    if (index > 0) {
-      const updatedList = [...rankingList];
+    setRankingList(moveRankingItemUp(rankingList, item.id));
+    // 旧实现已移至 rankingMutations.ts
+    /*
       // 交换位置
       [updatedList[index], updatedList[index - 1]] = [updatedList[index - 1], updatedList[index]];
       // 更新排名
@@ -326,13 +326,12 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
         rank: idx + 1
       }));
       setRankingList(reorderedList);
-    }
+    */
   };
 
   const moveItemDown = (item: RankingItem) => {
-    const index = rankingList.findIndex(i => i.id === item.id);
-    if (index < rankingList.length - 1) {
-      const updatedList = [...rankingList];
+    setRankingList(moveRankingItemDown(rankingList, item.id));
+    /*
       // 交换位置
       [updatedList[index], updatedList[index + 1]] = [updatedList[index + 1], updatedList[index]];
       // 更新排名
@@ -341,7 +340,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
         rank: idx + 1
       }));
       setRankingList(reorderedList);
-    }
+    */
   };
   
   // 添加一个函数来获取代理封面URL
