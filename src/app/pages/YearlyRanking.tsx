@@ -10,6 +10,11 @@ import { useRankingContext, RankingItem, DEFAULT_RANKING_LIST } from '../context
 import { calculateLinearScores as calculateRankingScores, sortRankingTitles, isDefaultRanking, normalizeRanking, parseDetailedRankingText } from '../features/ranking/rankingLogic';
 import { removeRankingItem, moveRankingItemUp, moveRankingItemDown } from '../features/ranking/rankingMutations';
 import { useRankingState } from '../features/ranking/useRankingState';
+import { RankingModeSelector } from '../features/ranking/RankingModeSelector';
+import { RankingList } from '../features/ranking/RankingList';
+import { RankingDialogs } from '../features/ranking/RankingDialogs';
+import { RankingExportPreview } from '../features/ranking/RankingExportPreview';
+import { RankingEditor } from '../features/ranking/RankingEditor';
 
 interface YearlyRankingProps {
   pageType?: 'yearly-ranking' | 'yearly-songs' | 'yearly-albums';
@@ -41,7 +46,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
   // 添加评分模式状态管理
   
   // 评分模式选项
-  const scoringModes = [
+  const scoringModes: Array<{ value: 'scoring' | 'non-scoring'; label: string }> = [
     { value: 'scoring', label: '评分' },
     { value: 'non-scoring', label: '不评分' }
   ];
@@ -2032,36 +2037,11 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
       <h2>MeloRank · {currentYear} 年度榜单</h2>
       <p className="platform-position">音乐评分与榜单平台</p>
       
-      <div className="ranking-mode-selector" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <label htmlFor="ranking-mode">选择榜单类型：</label>
-          <select 
-            id="ranking-mode" 
-            value={rankingMode} 
-            onChange={(e) => setRankingMode(e.target.value)}
-          >
-            {rankingModes.map((mode) => (
-              <option key={mode} value={mode}>{mode}</option>
-            ))}
-          </select>
-          
-          <label htmlFor="scoring-mode" style={{ marginLeft: '15px' }}>选择是否评分：</label>
-          <select 
-            id="scoring-mode" 
-            value={scoringMode} 
-            onChange={(e) => setScoringMode(e.target.value as 'scoring' | 'non-scoring')}
-          >
-            {scoringModes.map((mode) => (
-              <option key={mode.value} value={mode.value}>{mode.label}</option>
-            ))}
-          </select>
-        </div>
-        <button className="export-btn" onClick={() => setShowImportDialog(true)}>
-          导入排行榜
-        </button>
-      </div>
+      <RankingModeSelector rankingMode={rankingMode} rankingModes={rankingModes} scoringMode={scoringMode} scoringModes={scoringModes} onRankingModeChange={setRankingMode} onScoringModeChange={setScoringMode} onImport={() => setShowImportDialog(true)} />
 
       <div className="ranking-container">
+        <RankingEditor rankingMode={rankingMode} scoringMode={scoringMode} editMode={editMode} coverUrl={coverUrl} coverPreview={coverPreview} searchQuery={searchQuery} searchResults={searchResults} isSearching={isSearching} searchError={searchError} integrityRef={integrityRef} durabilityRef={durabilityRef} fileInputRef={fileInputRef} onSubmit={handleSubmit} onSearchChange={value => { setSearchQuery(value); setShowSearchResults(true); }} onSearchFocus={() => { if (searchResults.length > 0) setShowSearchResults(true); }} onSearchResultClick={handleSearchResultClick} onCoverPreview={showCoverPreview} onCoverChange={value => { setCoverUrl(value); setCoverPreview(value); }} onCoverPaste={event => { const item = Array.from(event.clipboardData.items).find(entry => entry.type.startsWith('image/')); const file = item?.getAsFile(); if (!file) return; const reader = new FileReader(); reader.onload = loadEvent => { const value = loadEvent.target?.result as string; setCoverUrl(value); setCoverPreview(value); }; reader.readAsDataURL(file); event.preventDefault(); }} onFileUpload={handleFileUpload} onSelectFile={triggerFileSelect} onAdjustScore={adjustScore} />
+        <div style={{ display: 'none' }}>
         <div className="ranking-form">
           <h3>添加到 {rankingMode}</h3>
           <form onSubmit={handleSubmit}>
@@ -2299,6 +2279,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
             <button type="submit" className="add-btn">{editMode ? '修改完成' : '添加到榜单'}</button>
           </form>
         </div>
+        </div>
 
         <div className="ranking-display">
           <div className="ranking-display-header">
@@ -2324,7 +2305,8 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
             </div>
           </div>
 
-          <div className="user-ranking-list">
+          <RankingList items={rankingList} mode={scoringMode} onEdit={handleEdit} onDelete={handleDelete} onMoveUp={moveItemUp} onMoveDown={moveItemDown} />
+          <div className="user-ranking-list legacy-ranking-list" style={{ display: 'none' }}>
             {/* 根据评分模式处理榜单数据 */}
             {(() => {
               // 如果是不评分模式，使用当前排序（允许用户手动调整）
@@ -2439,6 +2421,9 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
         </div>
       </div>
 
+      <RankingExportPreview ref={exportRef} items={rankingList} mode={scoringMode} formatScore={formatScore} />
+      {/* 旧导出预览已由 RankingExportPreview 替代 */}
+      <div style={{ display: 'none' }}>
       {/* ====== 隐藏导出榜单（不影响网页） ====== */}
       <div
         ref={exportRef}
@@ -2529,6 +2514,9 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
         </table>
       </div>
 
+      </div>
+      <RankingDialogs showRestore={showConfirmDialog} showHistory={showHistoryDialog} showImport={showImportDialog} history={historyRankings} importText={importedRankingText} onRestore={confirmRestoreDefault} onCancelRestore={cancelRestoreDefault} onCloseHistory={closeHistoryDialog} onLoadHistory={loadHistoryRanking} onDeleteHistory={deleteHistoryRanking} onImportTextChange={setImportedRankingText} onImport={handleImportRanking} onCloseImport={() => { setShowImportDialog(false); setImportedRankingText(''); }} />
+      <div style={{ display: 'none' }}>
       {/* 确认对话框 */}
       {showConfirmDialog && (
         <div className="confirm-dialog-overlay">
@@ -2686,6 +2674,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
