@@ -9,9 +9,12 @@ interface TopNavProps {
   onLogout?: () => void;
   onQQMusicLogin?: (user: { nickname: string }) => void;
   onTogglePlayQueue?: () => void;
+  siteUser?: { username: string } | null;
+  onSiteLogin?: (user: { username: string }) => void;
+  onSiteLogout?: () => void;
 }
 
-export function TopNav({ currentPage, onNavigate, qqMusicUser, onLogout, onQQMusicLogin, onTogglePlayQueue }: TopNavProps) {
+export function TopNav({ currentPage, onNavigate, qqMusicUser, onLogout, onQQMusicLogin, onTogglePlayQueue, siteUser, onSiteLogin, onSiteLogout }: TopNavProps) {
   const navItems = [
     { id: 'home', label: '首页' },
     { id: 'search', label: '搜索' },
@@ -22,6 +25,10 @@ export function TopNav({ currentPage, onNavigate, qqMusicUser, onLogout, onQQMus
 
   // QQ音乐登录相关状态
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showSiteAuth, setShowSiteAuth] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const loginIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -133,6 +140,23 @@ export function TopNav({ currentPage, onNavigate, qqMusicUser, onLogout, onQQMus
     }
   };
 
+  const handleSiteAuth = (event: React.FormEvent) => {
+    event.preventDefault();
+    const name = username.trim();
+    if (!name || !password) return;
+    const accounts = JSON.parse(localStorage.getItem('meloRankAccounts') || '{}');
+    if (authMode === 'register') {
+      if (accounts[name]) { alert('账号已存在，请直接登录'); return; }
+      accounts[name] = password;
+      localStorage.setItem('meloRankAccounts', JSON.stringify(accounts));
+    } else if (accounts[name] !== password) {
+      alert('账号或密码错误'); return;
+    }
+    localStorage.setItem('meloRankSiteUser', JSON.stringify({ username: name }));
+    onSiteLogin?.({ username: name });
+    setShowSiteAuth(false); setPassword('');
+  };
+
   // 清理函数
   React.useEffect(() => {
     return () => {
@@ -181,7 +205,7 @@ export function TopNav({ currentPage, onNavigate, qqMusicUser, onLogout, onQQMus
                   </button>
                 </div>
               )}
-              {!qqMusicUser && (
+              {siteUser && !qqMusicUser && (
                 <>
                   <button 
                     id="qq-music-login-btn"
@@ -192,6 +216,8 @@ export function TopNav({ currentPage, onNavigate, qqMusicUser, onLogout, onQQMus
                   </button>
                 </>
               )}
+              {!siteUser && <button className="nav-button login-button" onClick={() => setShowSiteAuth(true)}>网站登录 / 注册</button>}
+              {siteUser && <button className="nav-button logout-button small" onClick={onSiteLogout}>退出网站</button>}
             </div>
           </div>
         </div>
@@ -224,6 +250,19 @@ export function TopNav({ currentPage, onNavigate, qqMusicUser, onLogout, onQQMus
               )}
               <p className="modal-hint">登录后可同步您的QQ音乐数据</p>
             </div>
+          </div>
+        </div>
+      )}
+      {showSiteAuth && (
+        <div className="site-auth-overlay" role="dialog" aria-modal="true">
+          <div className="site-auth-dialog">
+            <div className="site-auth-header"><h3>{authMode === 'login' ? '网站登录' : '注册账号'}</h3><button className="site-auth-close" aria-label="关闭" onClick={() => setShowSiteAuth(false)}>×</button></div>
+            <form className="site-auth-form" onSubmit={handleSiteAuth}>
+              <label>用户名<input value={username} onChange={e => setUsername(e.target.value)} placeholder="请输入用户名或邮箱" autoComplete="username" required /></label>
+              <label>密码<input value={password} onChange={e => setPassword(e.target.value)} placeholder="请输入密码" type="password" autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} required /></label>
+              <button className="site-auth-submit" type="submit">{authMode === 'login' ? '登录' : '注册并登录'}</button>
+              <button type="button" className="site-auth-switch" onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}>{authMode === 'login' ? '没有账号？立即注册' : '已有账号？返回登录'}</button>
+            </form>
           </div>
         </div>
       )}

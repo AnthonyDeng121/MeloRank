@@ -21,15 +21,28 @@ interface QQMusicUser {
   nickname: string;
 }
 
+interface SiteUser {
+  username: string;
+}
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
   // QQ音乐用户状态管理
   const [qqMusicUser, setQQMusicUser] = useState<QQMusicUser | null>(null);
+  const [siteUser, setSiteUser] = useState<SiteUser | null>(null);
   // 播放队列可见性状态
   const [isPlayQueueVisible, setIsPlayQueueVisible] = useState(false);
 
   // 从localStorage恢复登录状态
   useEffect(() => {
+    const savedSiteUser = localStorage.getItem('meloRankSiteUser');
+    if (savedSiteUser) {
+      try {
+        setSiteUser(JSON.parse(savedSiteUser));
+      } catch {
+        localStorage.removeItem('meloRankSiteUser');
+      }
+    }
     // 检查QQ音乐用户状态
     const qqMusicCookie = localStorage.getItem('qqMusicCookie');
     if (qqMusicCookie) {
@@ -37,6 +50,12 @@ export default function App() {
       setQQMusicUser({ nickname: 'QQ Music User' });
     }
   }, []);
+
+  const handleSiteLogout = () => {
+    localStorage.removeItem('meloRankSiteUser');
+    setSiteUser(null);
+    handleLogout();
+  };
 
   // QQ音乐登录处理函数
   const handleQQMusicLogin = (loggedInQQUser: QQMusicUser) => {
@@ -90,6 +109,9 @@ export default function App() {
             onLogout={handleLogout} 
             onQQMusicLogin={handleQQMusicLogin}
             onTogglePlayQueue={() => setIsPlayQueueVisible(!isPlayQueueVisible)}
+            siteUser={siteUser}
+            onSiteLogin={setSiteUser}
+            onSiteLogout={handleSiteLogout}
           />
           <main className="main-content">
             {renderPage()}
