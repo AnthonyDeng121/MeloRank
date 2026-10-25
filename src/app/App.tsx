@@ -6,6 +6,7 @@ import { Home } from './pages/Home';
 import { Search } from './pages/Search';
 import { Player } from './pages/Player';
 import { YearlyRanking } from './pages/YearlyRanking';
+import { EditorRanking } from './pages/EditorRanking';
 
 import { LyricsTool } from './pages/LyricsTool';
 import { AudioLab } from './pages/AudioLab';
@@ -63,9 +64,9 @@ export default function App() {
       case 'yearly-ranking':
         return <YearlyRanking pageType="yearly-ranking" />;
       case 'yearly-songs':
-        return <YearlyRanking pageType="yearly-songs" />;
+        return <EditorRanking key="songs" kind="songs" />;
       case 'yearly-albums':
-        return <YearlyRanking pageType="yearly-albums" />;
+        return <EditorRanking key="albums" kind="albums" />;
       case 'artist-recommendations':
         return <YearlyRanking pageType="artist-recommendations" />;
       case 'lyrics-tool':
