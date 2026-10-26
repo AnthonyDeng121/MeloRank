@@ -13,7 +13,7 @@ console.log('PASS QR nickname parses Chinese, escaped characters, and pending lo
 const source = fs.readFileSync('src/app/services/qqMusicService.ts', 'utf8')
   .replace(/import .*?;\s*/, "const QQ_MUSIC_CONFIG = { baseUrl: 'http://api.test' };\n")
   .replace('export const qqMusicService', 'const qqMusicService') + '\nglobalThis.service = qqMusicService;';
-const sandbox = { URL, localStorage: { getItem: () => null }, console: { log() {}, warn() {}, error() {} } };
+const sandbox = { URL, AbortSignal, localStorage: { getItem: () => null }, console: { log() {}, warn() {}, error() {} } };
 vm.createContext(sandbox);
 vm.runInContext(ts.transpile(source, { target: ts.ScriptTarget.ES2022 }), sandbox);
 const service = sandbox.service;

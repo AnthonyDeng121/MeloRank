@@ -31,3 +31,7 @@ body {
   margin-right: auto;
   overflow: auto;
 }
+
+.page-back-button { display:inline-flex; align-items:center; gap:8px; padding:9px 15px; margin:0 0 18px; border:1px solid #444; border-radius:9px; background:#202026; color:#dedee9; cursor:pointer; }
+.page-back-button:hover { background:#302b47; border-color:#8b7bf5; }
+.page-back-button:focus-visible { outline:2px solid #9c9cff; outline-offset:3px; }

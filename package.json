@@ -9,6 +9,9 @@
     "typecheck": "tsc --noEmit",
     "check:music": "node scripts/check-music-behavior.cjs",
     "check:ranking": "node scripts/check-ranking-behavior.cjs",
+    "check:import": "node scripts/check-ranking-import.cjs",
+    "check:queue": "node scripts/check-queue-clear.cjs",
+    "check:export": "node scripts/check-ranking-export.cjs",
     "check:deployed": "npm run build && node scripts/verify-deployed-parity.cjs --assets"
   },
   "dependencies": {
@@ -50,11 +53,13 @@
     "date-fns": "3.6.0",
     "docx": "^9.5.1",
     "docx-pdf": "^0.0.1",
+    "docx-preview": "^0.3.7",
     "embla-carousel-react": "8.6.0",
     "file-saver": "^2.0.5",
     "html2canvas": "^1.4.1",
     "input-otp": "1.4.2",
     "jspdf": "^3.0.4",
+    "jszip": "^3.10.1",
     "libreoffice-convert": "^1.7.0",
     "lucide-react": "0.487.0",
     "motion": "12.23.24",

@@ -115,7 +115,7 @@ class QQMusicService {
         console.log('QQ Music API Request Body:', options.body);
       }
 
-      const response = await fetch(url.toString(), options);
+      const response = await fetch(url.toString(), { ...options, signal: AbortSignal.timeout(15000) });
       
       console.log('QQ Music API Response Status:', response.status);
       
@@ -389,6 +389,29 @@ class QQMusicService {
     const url = data.playUrl?.[songmid]?.url || data.url || data[0]?.url || (typeof data.playUrl === 'string' ? data.playUrl : '');
     if (!url) throw new Error('该歌曲暂无可用音源，可能需要会员或受版权限制');
     return url;
+  }
+
+  async findCover(title: string, artist: string, kind: string): Promise<string> {
+    const normalize = (value: string) => value.normalize('NFKC').toLowerCase()
+      .replace(/\s*(\(explicit\)|\[explicit\])\s*$/i, '').replace(/\s+/g, ' ').trim();
+    if (kind === '年度艺人榜') {
+      const result = await this.request('/getSmartbox', { key: title });
+      const response = (result.body || result).response || result;
+      const singer = response.data?.singer?.itemlist?.find((item: any) => normalize(item.name) === normalize(title));
+      return singer?.pic?.replace(/^http:/, 'https:') || '';
+    }
+    if (kind === '年度专辑榜') {
+      try {
+        const tracks = await this.getAlbumTracks(title, artist);
+        return `https://y.qq.com/music/photo_new/T002R300x300M000${tracks[0].albummid}.jpg`;
+      } catch { return ''; }
+    }
+    const result = await this.search(`${title} ${artist}`, 30);
+    const response = result.response || result;
+    const data = response.data || response;
+    const song = data.song?.list?.find((item: any) => normalize(item.songname || '') === normalize(title)
+      && item.singer?.some((s: any) => artist.split('/').some(name => normalize(name) === normalize(s.name))));
+    return song?.albummid ? `https://y.qq.com/music/photo_new/T002R300x300M000${song.albummid}.jpg` : '';
   }
 
   async getSongDetail(songId: string): Promise<any> {

@@ -23,6 +23,16 @@ interface QQMusicUser {
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
+  const [pageHistory, setPageHistory] = useState<string[]>([]);
+  const navigate = (page: string) => {
+    if (page === currentPage) return;
+    setPageHistory(history => [...history, currentPage]);
+    setCurrentPage(page);
+  };
+  const goBack = () => {
+    setCurrentPage(pageHistory[pageHistory.length - 1] || 'home');
+    setPageHistory(history => history.slice(0, -1));
+  };
   // QQ音乐用户状态管理
   const [qqMusicUser, setQQMusicUser] = useState<QQMusicUser | null>(null);
   // 播放队列可见性状态
@@ -64,7 +74,7 @@ export default function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'home':
-        return <Home onNavigate={setCurrentPage} qqMusicUser={qqMusicUser} onQQMusicLogin={() => document.getElementById('qq-music-login-btn')?.click()} />;
+        return <Home onNavigate={navigate} qqMusicUser={qqMusicUser} onQQMusicLogin={() => document.getElementById('qq-music-login-btn')?.click()} />;
       case 'search':
         return <Search />;
       case 'player':
@@ -82,7 +92,7 @@ export default function App() {
       case 'audio-lab':
         return <AudioLab />;
       default:
-        return <Home onNavigate={setCurrentPage} qqMusicUser={qqMusicUser} onQQMusicLogin={() => document.getElementById('qq-music-login-btn')?.click()} />;
+        return <Home onNavigate={navigate} qqMusicUser={qqMusicUser} onQQMusicLogin={() => document.getElementById('qq-music-login-btn')?.click()} />;
     }
   };
 
@@ -93,13 +103,16 @@ export default function App() {
           <div className="app">
           <TopNav 
             currentPage={currentPage} 
-            onNavigate={setCurrentPage} 
+            onNavigate={navigate}
             qqMusicUser={qqMusicUser} 
             onLogout={handleLogout} 
             onQQMusicLogin={handleQQMusicLogin}
             onTogglePlayQueue={() => setIsPlayQueueVisible(!isPlayQueueVisible)}
           />
           <main className="main-content">
+            {['yearly-songs', 'yearly-albums', 'artist-recommendations'].includes(currentPage) && (
+              <button className="page-back-button" onClick={goBack}>← 返回上一页</button>
+            )}
             {renderPage()}
           </main>
           <MiniPlayer />

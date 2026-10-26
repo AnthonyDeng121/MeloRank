@@ -1520,3 +1520,8 @@
     margin-right: 8px;
   }
 }
+
+.ranking-error { color:#ff9a9a; line-height:1.6; }
+.ranking-import-status { color:#b3a9ee; line-height:1.6; }
+.export-buttons { flex-wrap:wrap; }
+.export-btn:disabled { opacity:.5; cursor:wait; }

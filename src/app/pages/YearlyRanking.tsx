@@ -1,20 +1,9 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { qqMusicService } from "../services/qqMusicService";
 import "../../styles/YearlyRanking.css";
-import {
-  Document,
-  Packer,
-  Paragraph,
-  ImageRun,
-  Table,
-  TableRow,
-  TableCell,
-  AlignmentType,
-  BorderStyle,
-  TextRun,
-  WidthType,
-} from "docx";
-import { saveAs } from "file-saver";
+
+import { downloadRanking, type RankingExportFormat } from '../services/rankingExport';
+import { parseRankingText } from '../utils/rankingImport';
 
 import {
   useRankingContext,
@@ -84,6 +73,12 @@ export function YearlyRanking({
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importedRankingText, setImportedRankingText] = useState("");
+  const [importError, setImportError] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState('');
+  const [coverProgress, setCoverProgress] = useState({ loading: false, completed: 0, total: 0, unmatched: 0 });
+  const coverGeneration = useRef(0);
+  useEffect(() => () => { coverGeneration.current++; }, []);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [rankingName, setRankingName] = useState("");
   const [currentRankingId, setCurrentRankingId] = useState<string | null>(null);
@@ -204,6 +199,8 @@ export function YearlyRanking({
 
   // 恢复默认榜单的函数
   const restoreDefaultRanking = () => {
+    coverGeneration.current++;
+    setCoverProgress({ loading: false, completed: 0, total: 0, unmatched: 0 });
     setShowConfirmDialog(true);
   };
 
@@ -632,138 +629,50 @@ export function YearlyRanking({
   };
 
   // 处理导入排行榜的函数
+  // Parse first, then fill covers in the background with at most three requests in flight.
   const handleImportRanking = () => {
-    if (!importedRankingText.trim()) {
-      setShowImportDialog(false);
-      setImportedRankingText("");
+    const parsed = parseRankingText(importedRankingText, scoringMode === 'scoring');
+    if (parsed.errors.length) {
+      setImportError(parsed.errors.join('\n'));
       return;
     }
-
-    // 解析粘贴的文本
-    const lines = importedRankingText.split("\n").filter((line) => line.trim());
-    const importedItems: RankingItem[] = [];
-
-    lines.forEach((line) => {
-      let processedLine = line.trim();
-      if (!processedLine) return;
-
-      // 第一步：先去掉日期部分
-      let mainContent = processedLine;
-
-      // 识别并移除日期部分，支持多种日期格式
-      // 1. 月.日格式 (如：1.1, 12.31)
-      const datePattern1 = /^\d{1,2}\.\d{1,2}\s+/;
-      // 2. 年-月-日格式 (如：2024-01-01, 24-1-1)
-      const datePattern2 = /^\d{2,4}-\d{1,2}-\d{1,2}\s+/;
-      // 3. 月/日格式 (如：1/1, 12/31)
-      const datePattern3 = /^\d{1,2}\/\d{1,2}\s+/;
-      // 4. 中文日期格式 (如：1月1日, 12月31日)
-      const datePattern4 = /^\d{1,2}月\d{1,2}日\s+/;
-
-      // 依次检查并移除各种日期格式
-      if (datePattern1.test(mainContent)) {
-        mainContent = mainContent.replace(datePattern1, "").trim();
-      } else if (datePattern2.test(mainContent)) {
-        mainContent = mainContent.replace(datePattern2, "").trim();
-      } else if (datePattern3.test(mainContent)) {
-        mainContent = mainContent.replace(datePattern3, "").trim();
-      } else if (datePattern4.test(mainContent)) {
-        mainContent = mainContent.replace(datePattern4, "").trim();
-      }
-
-      // 第二步：去除行首的序号和点
-      mainContent = mainContent.replace(/^\d+\s*\.\s*/, "").trim();
-      if (!mainContent) return;
-
-      // 使用" - "作为分隔符提取作品名和作者名
-      const separatorIndex = mainContent.indexOf(" - ");
-      if (separatorIndex === -1) return;
-
-      const title = mainContent.substring(0, separatorIndex).trim();
-      const artistAndScore = mainContent.substring(separatorIndex + 3).trim();
-
-      // 提取评分信息（如果有）
-      const scoreMatch = artistAndScore.match(
-        /(\d+(?:\.\d+)?)(?:\s*\+\s*(\d+(?:\.\d+)?))?(?:\s*\+\+\s*(\d+(?:\.\d+)?))?/
-      );
-
-      // 提取作者名（如果有评分，作者名是评分前的部分；否则是整个字符串）
-      let artist = artistAndScore;
-      let originalScore = 0;
-      let integrity = 0;
-      let durability = 0;
-
-      if (scoreMatch) {
-        // 提取作者名（评分前的部分）
-        const scoreStartIndex = artistAndScore.indexOf(scoreMatch[0]);
-        artist = artistAndScore.substring(0, scoreStartIndex).trim();
-
-        // 提取评分信息，支持可选的评分项
-        originalScore = parseFloat(scoreMatch[1]) || 0;
-        integrity = parseFloat(scoreMatch[2]) || 0;
-        durability = parseFloat(scoreMatch[3]) || 0;
-      }
-
-      // 创建新的排行榜项目
-      const newItem: RankingItem = {
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-        rank: 1,
-        title: title.trim(),
-        artist: artist.trim(),
-        coverUrl:
-          "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Crect width='150' height='150' fill='%23333'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='14'%3EMeloRank%3C/text%3E%3C/svg%3E",
-        review: "",
-        originalScore,
-        integrity,
-        durability,
-        finalScore: 0, // 初始值，后面会被重新计算
-      };
-
-      importedItems.push(newItem);
-    });
-
-    if (importedItems.length > 0) {
-      // 检查是否是首次提交（如果rankingList包含样例数据，清空后添加新数据）
-      const isSampleData =
-        rankingList.length === 3 &&
-        rankingList.every(
-          (item) => item.id === "1" || item.id === "2" || item.id === "3"
-        );
-
-      let updatedList: RankingItem[];
-      if (isSampleData) {
-        updatedList = importedItems;
-      } else {
-        updatedList = [...rankingList, ...importedItems];
-      }
-
-      // 根据评分模式处理列表
-      let listToUpdate: RankingItem[];
-      if (scoringMode === "scoring") {
-        // 使用线性映射重新计算所有项目的分数
-        listToUpdate = calculateLinearScores(updatedList);
-      } else {
-        // 不评分模式下，使用自定义排序
-        listToUpdate = [...updatedList]
-          .sort((a, b) => {
-            return customSort(a.title, b.title);
-          })
-          .map((item, index) => ({
-            ...item,
-            rank: index + 1, // 更新排名
-          }));
-      }
-
-      // 更新榜单列表
-      setRankingList(listToUpdate);
-    }
-
-    // 关闭对话框并清空输入
+    if (!parsed.items.length) { setImportError('请粘贴至少一条有效的榜单数据'); return; }
+    const importedItems: RankingItem[] = parsed.items.map((item, index) => ({
+      ...item, id: `${Date.now()}-${index}-${Math.random().toString(36).slice(2)}`,
+      rank: index + 1, coverUrl: DEFAULT_RANKING_LIST[0].coverUrl, review: '', finalScore: 0,
+    }));
+    const isSampleData = rankingList.length === 3 && rankingList.every(item => ['1', '2', '3'].includes(item.id));
+    const updatedList = isSampleData ? importedItems : [...rankingList, ...importedItems];
+    const listToUpdate = scoringMode === 'scoring' ? calculateLinearScores(updatedList)
+      : [...updatedList].sort((a, b) => customSort(a.title, b.title)).map((item, index) => ({ ...item, rank: index + 1 }));
+    setRankingList(listToUpdate);
     setShowImportDialog(false);
-    setImportedRankingText("");
+    setImportedRankingText('');
+    setImportError('');
+    void fillImportedCovers(importedItems, rankingMode);
   };
 
-  // 调节分数的函数
+  const fillImportedCovers = async (items: RankingItem[], mode: string) => {
+    const generation = ++coverGeneration.current;
+    let next = 0, completed = 0, unmatched = 0;
+    setCoverProgress({ loading: true, completed: 0, total: items.length, unmatched: 0 });
+    await Promise.all(Array.from({ length: Math.min(3, items.length) }, async () => {
+      while (next < items.length && generation === coverGeneration.current) {
+        const item = items[next++];
+        let cover = '';
+        try { cover = await qqMusicService.findCover(item.title, item.artist, mode); } catch {}
+        if (generation !== coverGeneration.current) return;
+        if (cover) setRankingList(current => current.map(existing =>
+          existing.id === item.id && existing.title === item.title && existing.artist === item.artist
+            && (!existing.coverUrl || existing.coverUrl === DEFAULT_RANKING_LIST[0].coverUrl)
+            ? { ...existing, coverUrl: cover } : existing));
+        else unmatched++;
+        completed++;
+        setCoverProgress({ loading: completed < items.length, completed, total: items.length, unmatched });
+      }
+    }));
+  };
+
   const adjustScore = (
     ref: React.RefObject<HTMLInputElement | null>,
     isIncrease: boolean
@@ -1116,6 +1025,8 @@ export function YearlyRanking({
 
   // 加载历史榜单到当前编辑
   const loadHistoryRanking = (ranking: any) => {
+    coverGeneration.current++;
+    setCoverProgress({ loading: false, completed: 0, total: 0, unmatched: 0 });
     // 更新当前榜单状态
     setRankingMode(ranking.type);
     setScoringMode(ranking.scoringMode);
@@ -1227,1106 +1138,17 @@ export function YearlyRanking({
     });
   };
 
-  // Restore the deployed DOCX layout and image loading behavior.
-  const exportDOCX = async (): Promise<any> => {
-    const Ne = new Date().getFullYear();
-    let je, ze;
-    const Me = async (yt: any): Promise<any> => {
-      try {
-        if (
-          (console.log("Processing image URL for export:", yt),
-          !yt || yt.trim() === "")
-        )
-          return (
-            console.log("Empty image URL, returning default image"),
-            {
-              binary: new TextEncoder().encode(
-                "<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'><rect width='150' height='150' fill='#333'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#666' font-family='Arial' font-size='14'>MeloRank</text></svg>"
-              ),
-              type: "png",
-            }
-          );
-        let wt = yt;
-        if (yt.startsWith("data:")) {
-          console.log("Processing base64 URL");
-          const ar = yt.match(
-            /^data:(image\/(png|jpeg|jpg|gif|bmp));base64,(.*)$/i
-          );
-          if (ar && ar.length >= 4) {
-            const tr = ar[1];
-            let Jt = ar[2].toLowerCase(),
-              fr = "png";
-            Jt === "jpeg" || Jt === "jpg"
-              ? (fr = "jpg")
-              : Jt === "png"
-              ? (fr = "png")
-              : Jt === "gif"
-              ? (fr = "gif")
-              : Jt === "bmp" && (fr = "bmp");
-            const xr = ar[3],
-              Tr = Uint8Array.from(atob(xr), (AA: any) => AA.charCodeAt(0));
-            return (
-              console.log(
-                "Base64 converted to binary, length:",
-                Tr.length,
-                "type:",
-                fr
-              ),
-              { binary: Tr, type: fr }
-            );
-          }
-        }
-        try {
-          console.log("Trying direct fetch for image:", wt);
-          const ar = await fetch(wt, {
-            mode: "cors",
-            referrerPolicy: "no-referrer",
-          });
-          if (ar.ok) {
-            const tr = await ar.blob(),
-              Jt = await tr.arrayBuffer(),
-              fr = new Uint8Array(Jt),
-              xr = tr.type;
-            let Tr = "png";
-            return (
-              xr.includes("jpeg") || xr.includes("jpg")
-                ? (Tr = "jpg")
-                : xr.includes("png")
-                ? (Tr = "png")
-                : xr.includes("gif")
-                ? (Tr = "gif")
-                : xr.includes("bmp") && (Tr = "bmp"),
-              console.log(
-                "Direct fetch succeeded, converted to binary, length:",
-                fr.length,
-                "type:",
-                Tr
-              ),
-              { binary: fr, type: Tr }
-            );
-          }
-        } catch (ar) {
-          console.error("Direct fetch failed, trying with proxy:", ar),
-            wt.includes("/api/proxy/qqmusic/image") ||
-              ((wt = getProxyCoverUrl(wt)), console.log("Using proxy URL for image:", wt));
-          try {
-            const fr = await fetch(wt, {
-              mode: "cors",
-              referrerPolicy: "no-referrer",
-            });
-            if (fr.ok) {
-              const xr = await fr.blob(),
-                Tr = await xr.arrayBuffer(),
-                AA = new Uint8Array(Tr),
-                wr = xr.type;
-              let Ar = "png";
-              return (
-                wr.includes("jpeg") || wr.includes("jpg")
-                  ? (Ar = "jpg")
-                  : wr.includes("png")
-                  ? (Ar = "png")
-                  : wr.includes("gif")
-                  ? (Ar = "gif")
-                  : wr.includes("bmp") && (Ar = "bmp"),
-                console.log(
-                  "Proxy fetch succeeded, converted to binary, length:",
-                  AA.length,
-                  "type:",
-                  Ar
-                ),
-                { binary: AA, type: Ar }
-              );
-            }
-          } catch (fr) {
-            console.error("Proxy fetch also failed:", fr);
-          }
-          return (
-            console.log("All fetch attempts failed, returning default image"),
-            {
-              binary: new TextEncoder().encode(
-                "<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'><rect width='150' height='150' fill='#333'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#666' font-family='Arial' font-size='14'>MeloRank</text></svg>"
-              ),
-              type: "png",
-            }
-          );
-        }
-        return (
-          console.log(
-            "Reached end of getImageData without returning, returning default image"
-          ),
-          {
-            binary: new TextEncoder().encode(
-              "<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'><rect width='150' height='150' fill='#333'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#666' font-family='Arial' font-size='14'>MeloRank</text></svg>"
-            ),
-            type: "png",
-          }
-        );
-      } catch (wt) {
-        return (
-          console.error("Error in getImageData:", wt, yt),
-          {
-            binary: new TextEncoder().encode(
-              "<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'><rect width='150' height='150' fill='#333'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#666' font-family='Arial' font-size='14'>MeloRank</text></svg>"
-            ),
-            type: "png",
-          }
-        );
-      }
-    };
-    je = await Promise.all(
-      rankingList.map(async (yt: any): Promise<any> => {
-        var wt, Kr;
-        if (yt.coverUrl && yt.coverUrl !== "") return yt;
-        try {
-          console.log(`为${yt.title} - ${yt.artist}自动搜索封面`);
-          const Qr = yt.artist ? `${yt.title} ${yt.artist}` : yt.title,
-            ar = await qqMusicService.searchWithType(Qr, 20, "songs", 1),
-            tr = ar.response || ar,
-            Jt = tr.data || tr;
-          let fr = "";
-          if (
-            ((Kr = (wt = Jt.song) == null ? void 0 : wt.list) == null
-              ? void 0
-              : Kr.length) > 0
-          ) {
-            const xr = Jt.song.list[0];
-            xr &&
-              xr.albummid &&
-              ((fr = `https://y.qq.com/music/photo_new/T002R300x300M000${xr.albummid}.jpg`),
-              console.log(`找到封面：${fr}`));
-          }
-          return { ...yt, coverUrl: fr };
-        } catch (Qr) {
-          return (
-            console.error(`为${yt.title} - ${yt.artist}搜索封面失败：`, Qr), yt
-          );
-        }
-      })
-    );
-    const gt = "/images/red-circle-with-arrow.png",
-      ft = "/images/black-circle.png",
-      lr = async (yt: any, wt: any): Promise<any> =>
-        new Promise<any>((Kr: any) => {
-          const Qr = wt ? 250 : 142,
-            ar = wt ? 250 : 142,
-            tr = document.createElement("canvas");
-          (tr.width = Qr), (tr.height = ar);
-          const Jt = tr.getContext("2d");
-          if (!Jt) {
-            Kr("");
-            return;
-          }
-          const fr = new Image();
-          (fr.crossOrigin = "anonymous"),
-            (fr.src = wt ? gt : ft),
-            (fr.onload = () => {
-              Jt.drawImage(fr, 0, 0, tr.width, tr.height);
-              const xr = wt
-                ? "bold 90px Times New Roman"
-                : "bold 60px Times New Roman";
-              (Jt.fillStyle = wt ? "#FF0000" : "#000000"),
-                (Jt.font = xr),
-                (Jt.textAlign = "center"),
-                wt
-                  ? ((Jt.textBaseline = "bottom"),
-                    Jt.fillText(formatScore(yt), tr.width / 2, tr.height - 55))
-                  : ((Jt.textBaseline = "middle"),
-                    Jt.fillText(formatScore(yt), tr.width / 2, tr.height / 2)),
-                Kr(tr.toDataURL("image/png"));
-            }),
-            (fr.onerror = () => {
-              Jt.clearRect(0, 0, tr.width, tr.height);
-              const xr = wt ? 80 : 65;
-              Jt.beginPath(),
-                Jt.arc(tr.width / 2, tr.height / 2, xr, 0, Math.PI * 2),
-                (Jt.strokeStyle = wt ? "#FF0000" : "#000000"),
-                (Jt.lineWidth = 8),
-                Jt.stroke();
-              const Tr = wt
-                ? "bold 80px Times New Roman"
-                : "bold 50px Times New Roman";
-              (Jt.fillStyle = wt ? "#FF0000" : "#000000"),
-                (Jt.font = Tr),
-                (Jt.textAlign = "center"),
-                wt
-                  ? ((Jt.textBaseline = "bottom"),
-                    Jt.fillText(formatScore(yt), tr.width / 2, tr.height - 20))
-                  : ((Jt.textBaseline = "middle"),
-                    Jt.fillText(formatScore(yt), tr.width / 2, tr.height / 2)),
-                Kr(tr.toDataURL("image/png"));
-            });
-        });
-    scoringMode === "scoring"
-      ? (ze = await Promise.all(
-          je.map(async (yt: any): Promise<any> => {
-            const wt = yt.integrity > 0 && yt.durability > 0,
-              Kr = await lr(yt.finalScore, wt),
-              Qr = await Me(yt.coverUrl),
-              ar = await Me(Kr);
-            return {
-              ...yt,
-              coverBinary: Qr.binary,
-              coverType: Qr.type,
-              scoreImageBinary: ar.binary,
-              scoreImageType: ar.type,
-            };
-          })
-        ))
-      : (ze = await Promise.all(
-          je.map(async (yt: any): Promise<any> => {
-            const wt = await Me(yt.coverUrl);
-            return {
-              ...yt,
-              coverBinary: wt.binary,
-              coverType: wt.type,
-              scoreImageBinary: new Uint8Array(0),
-              scoreImageType: "png",
-            };
-          })
-        ));
-    const Fr = new Document({
-        sections: [
-          {
-            children: [
-              scoringMode === "scoring"
-                ? new Table({
-                    rows: [
-                      new TableRow({
-                        children: [
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: "封面",
-                                    bold: !0,
-                                    size: 24,
-                                    font: "仿宋",
-                                    color: "FFFFFF",
-                                  }),
-                                ],
-                                alignment: AlignmentType.CENTER,
-                                shading: { fill: "000000" },
-                              }),
-                            ],
-                            width: { size: 3800, type: WidthType.DXA },
-                            borders: {
-                              top: {
-                                style: BorderStyle.SINGLE,
-                                size: 1,
-                                color: "000000",
-                              },
-                              bottom: {
-                                style: BorderStyle.SINGLE,
-                                size: 1,
-                                color: "000000",
-                              },
-                              left: {
-                                style: BorderStyle.SINGLE,
-                                size: 1,
-                                color: "000000",
-                              },
-                              right: {
-                                style: BorderStyle.SINGLE,
-                                size: 1,
-                                color: "FFFFFF",
-                              },
-                            },
-                          }),
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: "详情",
-                                    bold: !0,
-                                    size: 24,
-                                    font: "仿宋",
-                                    color: "FFFFFF",
-                                  }),
-                                ],
-                                alignment: AlignmentType.CENTER,
-                                shading: { fill: "000000" },
-                              }),
-                            ],
-                            width: { size: 6200, type: WidthType.DXA },
-                            borders: {
-                              top: {
-                                style: BorderStyle.SINGLE,
-                                size: 1,
-                                color: "000000",
-                              },
-                              bottom: {
-                                style: BorderStyle.SINGLE,
-                                size: 1,
-                                color: "000000",
-                              },
-                              left: {
-                                style: BorderStyle.SINGLE,
-                                size: 1,
-                                color: "FFFFFF",
-                              },
-                              right: {
-                                style: BorderStyle.SINGLE,
-                                size: 1,
-                                color: "FFFFFF",
-                              },
-                            },
-                          }),
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: "评分",
-                                    bold: !0,
-                                    size: 24,
-                                    font: "仿宋",
-                                    color: "FFFFFF",
-                                  }),
-                                ],
-                                alignment: AlignmentType.CENTER,
-                                shading: { fill: "000000" },
-                              }),
-                            ],
-                            width: { size: 5e3, type: WidthType.DXA },
-                            borders: {
-                              top: {
-                                style: BorderStyle.SINGLE,
-                                size: 1,
-                                color: "000000",
-                              },
-                              bottom: {
-                                style: BorderStyle.SINGLE,
-                                size: 1,
-                                color: "000000",
-                              },
-                              left: {
-                                style: BorderStyle.SINGLE,
-                                size: 1,
-                                color: "FFFFFF",
-                              },
-                              right: {
-                                style: BorderStyle.SINGLE,
-                                size: 1,
-                                color: "000000",
-                              },
-                            },
-                          }),
-                        ],
-                      }),
-                      ...ze.flatMap((yt: any) => [
-                        new TableRow({
-                          children: [
-                            new TableCell({
-                              children: [
-                                new Paragraph({
-                                  children: [
-                                    new TextRun({
-                                      text: `NO.${yt.rank} `,
-                                      bold: !0,
-                                      size: 24,
-                                      font: "Times New Roman",
-                                    }),
-                                    new TextRun({
-                                      text: `${yt.title} - ${yt.artist}`,
-                                      bold: !1,
-                                      size: 24,
-                                      font: "Times New Roman",
-                                    }),
-                                  ],
-                                  alignment: AlignmentType.CENTER,
-                                }),
-                              ],
-                              columnSpan: 3,
-                              borders: {
-                                top: {
-                                  style: BorderStyle.SINGLE,
-                                  size: 1,
-                                  color: "000000",
-                                },
-                                bottom: {
-                                  style: BorderStyle.SINGLE,
-                                  size: 1,
-                                  color: "000000",
-                                },
-                                left: {
-                                  style: BorderStyle.SINGLE,
-                                  size: 1,
-                                  color: "000000",
-                                },
-                                right: {
-                                  style: BorderStyle.SINGLE,
-                                  size: 1,
-                                  color: "000000",
-                                },
-                              },
-                            }),
-                          ],
-                        }),
-                        new TableRow({
-                          children: [
-                            new TableCell({
-                              children: [
-                                new Paragraph({
-                                  children: [
-                                    new ImageRun({
-                                      type: yt.coverType || "png",
-                                      data: yt.coverBinary,
-                                      transformation: {
-                                        width: 142,
-                                        height: 142,
-                                      },
-                                    }),
-                                  ],
-                                  alignment: AlignmentType.CENTER,
-                                  spacing: {
-                                    before: 0,
-                                    after: 0,
-                                    line: 1,
-                                    lineRule: "atLeast",
-                                  },
-                                }),
-                              ],
-                              width: { size: 4536, type: WidthType.DXA },
-                              verticalAlign: AlignmentType.CENTER,
-                              borders: {
-                                top: {
-                                  style: BorderStyle.SINGLE,
-                                  size: 1,
-                                  color: "000000",
-                                },
-                                bottom: {
-                                  style: BorderStyle.SINGLE,
-                                  size: 1,
-                                  color: "000000",
-                                },
-                                left: {
-                                  style: BorderStyle.SINGLE,
-                                  size: 1,
-                                  color: "000000",
-                                },
-                                right: {
-                                  style: BorderStyle.SINGLE,
-                                  size: 1,
-                                  color: "000000",
-                                },
-                              },
-                              margins: { top: 0, bottom: 0, left: 0, right: 0 },
-                            }),
-                            new TableCell({
-                              children: [
-                                new Table({
-                                  rows: [
-                                    new TableRow({
-                                      children: [
-                                        new TableCell({
-                                          children: [
-                                            new Paragraph({
-                                              children: [
-                                                new TextRun({
-                                                  text: `原始分数：${yt.originalScore}`,
-                                                  size: 22,
-                                                  font: "仿宋",
-                                                }),
-                                              ],
-                                              alignment: AlignmentType.CENTER,
-                                              spacing: {
-                                                before: 50,
-                                                after: 50,
-                                              },
-                                            }),
-                                            new Paragraph({
-                                              children: [
-                                                new TextRun({
-                                                  text: `整体性：${
-                                                    yt.integrity > 0
-                                                      ? "+" +
-                                                        yt.integrity.toFixed(1)
-                                                      : "0"
-                                                  }`,
-                                                  size: 22,
-                                                  font: "仿宋",
-                                                }),
-                                              ],
-                                              alignment: AlignmentType.CENTER,
-                                              spacing: {
-                                                before: 50,
-                                                after: 50,
-                                              },
-                                            }),
-                                            new Paragraph({
-                                              children: [
-                                                new TextRun({
-                                                  text: `保值度：${
-                                                    yt.durability > 0
-                                                      ? "+" +
-                                                        yt.durability.toFixed(1)
-                                                      : "0"
-                                                  }`,
-                                                  size: 22,
-                                                  font: "仿宋",
-                                                }),
-                                              ],
-                                              alignment: AlignmentType.CENTER,
-                                              spacing: {
-                                                before: 50,
-                                                after: 50,
-                                              },
-                                            }),
-                                          ],
-                                          borders: {
-                                            top: {
-                                              style: BorderStyle.NONE,
-                                              size: 0,
-                                              color: "000000",
-                                            },
-                                            bottom: {
-                                              style: BorderStyle.SINGLE,
-                                              size: 1,
-                                              color: "000000",
-                                            },
-                                            left: {
-                                              style: BorderStyle.NONE,
-                                              size: 0,
-                                              color: "000000",
-                                            },
-                                            right: {
-                                              style: BorderStyle.NONE,
-                                              size: 0,
-                                              color: "000000",
-                                            },
-                                          },
-                                        }),
-                                      ],
-                                    }),
-                                    new TableRow({
-                                      children: [
-                                        new TableCell({
-                                          children: [
-                                            new Paragraph({
-                                              children: [
-                                                new TextRun({
-                                                  text:
-                                                    yt.review ||
-                                                    "没有评价的义务！",
-                                                  size: 22,
-                                                  font: "仿宋",
-                                                }),
-                                              ],
-                                              alignment: AlignmentType.CENTER,
-                                              spacing: {
-                                                after: 100,
-                                                before: 100,
-                                              },
-                                            }),
-                                          ],
-                                          borders: {
-                                            top: {
-                                              style: BorderStyle.NONE,
-                                              size: 0,
-                                              color: "000000",
-                                            },
-                                            bottom: {
-                                              style: BorderStyle.NONE,
-                                              size: 0,
-                                              color: "000000",
-                                            },
-                                            left: {
-                                              style: BorderStyle.NONE,
-                                              size: 0,
-                                              color: "000000",
-                                            },
-                                            right: {
-                                              style: BorderStyle.NONE,
-                                              size: 0,
-                                              color: "000000",
-                                            },
-                                          },
-                                        }),
-                                      ],
-                                    }),
-                                  ],
-                                  width: {
-                                    size: 100,
-                                    type: WidthType.PERCENTAGE,
-                                  },
-                                }),
-                              ],
-                              width: { size: 4536, type: WidthType.DXA },
-                              margins: {
-                                top: 200,
-                                bottom: 200,
-                                left: 200,
-                                right: 200,
-                              },
-                              borders: {
-                                top: {
-                                  style: BorderStyle.SINGLE,
-                                  size: 1,
-                                  color: "000000",
-                                },
-                                bottom: {
-                                  style: BorderStyle.SINGLE,
-                                  size: 1,
-                                  color: "000000",
-                                },
-                                left: {
-                                  style: BorderStyle.SINGLE,
-                                  size: 1,
-                                  color: "000000",
-                                },
-                                right: {
-                                  style: BorderStyle.SINGLE,
-                                  size: 1,
-                                  color: "000000",
-                                },
-                              },
-                            }),
-                            new TableCell({
-                              verticalAlign: AlignmentType.CENTER,
-                              children: [
-                                new Paragraph({
-                                  alignment: AlignmentType.CENTER,
-                                  children: [
-                                    new ImageRun({
-                                      type: yt.scoreImageType || "png",
-                                      data: yt.scoreImageBinary,
-                                      transformation: {
-                                        width: 142,
-                                        height: 142,
-                                      },
-                                    }),
-                                  ],
-                                  spacing: { before: 0, after: 0 },
-                                }),
-                              ],
-                              width: { size: 5670, type: WidthType.DXA },
-                              margins: { top: 0, bottom: 0, left: 0, right: 0 },
-                              borders: {
-                                top: {
-                                  style: BorderStyle.SINGLE,
-                                  size: 1,
-                                  color: "000000",
-                                },
-                                bottom: {
-                                  style: BorderStyle.SINGLE,
-                                  size: 1,
-                                  color: "000000",
-                                },
-                                left: {
-                                  style: BorderStyle.SINGLE,
-                                  size: 1,
-                                  color: "000000",
-                                },
-                                right: {
-                                  style: BorderStyle.SINGLE,
-                                  size: 1,
-                                  color: "000000",
-                                },
-                              },
-                            }),
-                          ],
-                        }),
-                      ]),
-                    ],
-                  })
-                : new Table({
-                    rows: [
-                      ...Array.from(
-                        { length: Math.ceil(ze.length / 2) },
-                        (yt: any, wt: any) => {
-                          const Kr = ze[wt * 2],
-                            Qr = ze[wt * 2 + 1];
-                          return [
-                            new TableRow({
-                              children: [
-                                new TableCell({
-                                  children: [
-                                    new Paragraph({
-                                      children: [
-                                        new TextRun({
-                                          text: `${Kr.title} - ${Kr.artist}`,
-                                          bold: !0,
-                                          size: 22,
-                                          font: "Times New Roman",
-                                        }),
-                                      ],
-                                      alignment: AlignmentType.CENTER,
-                                    }),
-                                  ],
-                                  borders: {
-                                    top: {
-                                      style: BorderStyle.SINGLE,
-                                      size: 1,
-                                      color: "000000",
-                                    },
-                                    bottom: {
-                                      style: BorderStyle.SINGLE,
-                                      size: 1,
-                                      color: "000000",
-                                    },
-                                    left: {
-                                      style: BorderStyle.SINGLE,
-                                      size: 1,
-                                      color: "000000",
-                                    },
-                                    right: {
-                                      style: BorderStyle.SINGLE,
-                                      size: 1,
-                                      color: "000000",
-                                    },
-                                  },
-                                }),
-                                Qr
-                                  ? new TableCell({
-                                      children: [
-                                        new Paragraph({
-                                          children: [
-                                            new TextRun({
-                                              text: `${Qr.title} - ${Qr.artist}`,
-                                              bold: !0,
-                                              size: 22,
-                                              font: "Times New Roman",
-                                            }),
-                                          ],
-                                          alignment: AlignmentType.CENTER,
-                                        }),
-                                      ],
-                                      borders: {
-                                        top: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                        bottom: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                        left: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                        right: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                      },
-                                    })
-                                  : new TableCell({
-                                      children: [new Paragraph({})],
-                                      borders: {
-                                        top: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                        bottom: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                        left: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                        right: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                      },
-                                    }),
-                              ],
-                            }),
-                            new TableRow({
-                              children: [
-                                new TableCell({
-                                  children: [
-                                    new Paragraph({
-                                      children: [
-                                        new ImageRun({
-                                          type: Kr.coverType || "png",
-                                          data: Kr.coverBinary,
-                                          transformation: {
-                                            width: 142,
-                                            height: 142,
-                                          },
-                                        }),
-                                      ],
-                                      alignment: AlignmentType.CENTER,
-                                      spacing: {
-                                        before: 0,
-                                        after: 0,
-                                        line: 1,
-                                        lineRule: "atLeast",
-                                      },
-                                    }),
-                                  ],
-                                  width: { size: 9072, type: WidthType.DXA },
-                                  verticalAlign: AlignmentType.CENTER,
-                                  borders: {
-                                    top: {
-                                      style: BorderStyle.SINGLE,
-                                      size: 1,
-                                      color: "000000",
-                                    },
-                                    bottom: {
-                                      style: BorderStyle.SINGLE,
-                                      size: 1,
-                                      color: "000000",
-                                    },
-                                    left: {
-                                      style: BorderStyle.SINGLE,
-                                      size: 1,
-                                      color: "000000",
-                                    },
-                                    right: {
-                                      style: BorderStyle.SINGLE,
-                                      size: 1,
-                                      color: "000000",
-                                    },
-                                  },
-                                  margins: {
-                                    top: 0,
-                                    bottom: 0,
-                                    left: 0,
-                                    right: 0,
-                                  },
-                                }),
-                                Qr
-                                  ? new TableCell({
-                                      children: [
-                                        new Paragraph({
-                                          children: [
-                                            new ImageRun({
-                                              type: Qr.coverType || "png",
-                                              data: Qr.coverBinary,
-                                              transformation: {
-                                                width: 142,
-                                                height: 142,
-                                              },
-                                            }),
-                                          ],
-                                          alignment: AlignmentType.CENTER,
-                                          spacing: {
-                                            before: 0,
-                                            after: 0,
-                                            line: 1,
-                                            lineRule: "atLeast",
-                                          },
-                                        }),
-                                      ],
-                                      width: {
-                                        size: 9072,
-                                        type: WidthType.DXA,
-                                      },
-                                      verticalAlign: AlignmentType.CENTER,
-                                      borders: {
-                                        top: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                        bottom: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                        left: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                        right: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                      },
-                                      margins: {
-                                        top: 0,
-                                        bottom: 0,
-                                        left: 0,
-                                        right: 0,
-                                      },
-                                    })
-                                  : new TableCell({
-                                      children: [new Paragraph({})],
-                                      width: {
-                                        size: 9072,
-                                        type: WidthType.DXA,
-                                      },
-                                      borders: {
-                                        top: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                        bottom: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                        left: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                        right: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                      },
-                                    }),
-                              ],
-                            }),
-                            new TableRow({
-                              children: [
-                                new TableCell({
-                                  children: [
-                                    new Paragraph({
-                                      children: [
-                                        new TextRun({
-                                          text: Kr.review || "没有评价的义务！",
-                                          bold: !1,
-                                          size: 22,
-                                          font: "仿宋",
-                                        }),
-                                      ],
-                                      alignment: AlignmentType.CENTER,
-                                      spacing: { after: 100, before: 100 },
-                                    }),
-                                  ],
-                                  width: { size: 9072, type: WidthType.DXA },
-                                  verticalAlign: AlignmentType.CENTER,
-                                  borders: {
-                                    top: {
-                                      style: BorderStyle.SINGLE,
-                                      size: 1,
-                                      color: "000000",
-                                    },
-                                    bottom: {
-                                      style: BorderStyle.SINGLE,
-                                      size: 1,
-                                      color: "000000",
-                                    },
-                                    left: {
-                                      style: BorderStyle.SINGLE,
-                                      size: 1,
-                                      color: "000000",
-                                    },
-                                    right: {
-                                      style: BorderStyle.SINGLE,
-                                      size: 1,
-                                      color: "000000",
-                                    },
-                                  },
-                                  margins: {
-                                    top: 200,
-                                    bottom: 200,
-                                    left: 200,
-                                    right: 200,
-                                  },
-                                }),
-                                Qr
-                                  ? new TableCell({
-                                      children: [
-                                        new Paragraph({
-                                          children: [
-                                            new TextRun({
-                                              text:
-                                                Qr.review || "没有评价的义务！",
-                                              bold: !1,
-                                              size: 22,
-                                              font: "仿宋",
-                                            }),
-                                          ],
-                                          alignment: AlignmentType.CENTER,
-                                          spacing: { after: 100, before: 100 },
-                                        }),
-                                      ],
-                                      width: {
-                                        size: 9072,
-                                        type: WidthType.DXA,
-                                      },
-                                      verticalAlign: AlignmentType.CENTER,
-                                      borders: {
-                                        top: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                        bottom: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                        left: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                        right: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                      },
-                                      margins: {
-                                        top: 200,
-                                        bottom: 200,
-                                        left: 200,
-                                        right: 200,
-                                      },
-                                    })
-                                  : new TableCell({
-                                      children: [new Paragraph({})],
-                                      width: {
-                                        size: 9072,
-                                        type: WidthType.DXA,
-                                      },
-                                      borders: {
-                                        top: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                        bottom: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                        left: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                        right: {
-                                          style: BorderStyle.SINGLE,
-                                          size: 1,
-                                          color: "000000",
-                                        },
-                                      },
-                                    }),
-                              ],
-                            }),
-                          ];
-                        }
-                      ).flat(),
-                    ],
-                  }),
-            ],
-          },
-        ],
-      }),
-      hA = await Packer.toBlob(Fr);
-    saveAs(hA, `MeloRank_${Ne}年度榜单.docx`);
+  // All formats use the same DOCX as their rendering source.
+  const exportRanking = async (format: RankingExportFormat) => {
+    if (isExporting) return;
+    setIsExporting(true);
+    setExportError('');
+    try {
+      await downloadRanking(rankingList, scoringMode === 'scoring', format,
+        `MeloRank_${currentYear}_${rankingMode}`);
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : '??????????');
+    } finally { setIsExporting(false); }
   };
 
   return (
@@ -2338,11 +1160,17 @@ export function YearlyRanking({
       </h2>
       <p className="platform-position">
         {
-          "导出docx时，记得：“弹出图片→下载到本地→重新上传刚下载的本地图片”，否则图片不显示（我也不知道什么bug）"
+          "导出使用 A4 窄页边距，PDF 与图片由同一份 DOCX 渲染。每页图片会打包为 ZIP。"
         }
         <br />
         {"历史榜单保存于浏览器中，各个浏览器之间看不到彼此的数据"}
       </p>
+      {coverProgress.total > 0 && <p role="status" className="ranking-import-status">
+        {coverProgress.loading ? `正在匹配封面 ${coverProgress.completed}/${coverProgress.total}…` : `封面匹配完成：${coverProgress.completed - coverProgress.unmatched}/${coverProgress.total}`}
+        {coverProgress.unmatched > 0 && `；${coverProgress.unmatched} 项未找到准确匹配，可手动上传封面`}
+      </p>}
+      {isExporting && <p role="status">正在生成文档与分页，请稍候…</p>}
+      {exportError && <p role="alert" className="ranking-error">{exportError}</p>}
       <div
         className="ranking-mode-selector"
         style={{
@@ -2683,9 +1511,12 @@ export function YearlyRanking({
               >
                 {"历史榜单记录"}
               </button>
-              <button className="export-btn" onClick={exportDOCX}>
+              <button className="export-btn" disabled={isExporting || coverProgress.loading} onClick={() => exportRanking('docx')}>
                 {"导出 DOCX"}
               </button>
+              <button className="export-btn" disabled={isExporting || coverProgress.loading} onClick={() => exportRanking('pdf')}>导出 PDF</button>
+              <button className="export-btn" disabled={isExporting || coverProgress.loading} onClick={() => exportRanking('long-image')}>导出长图片</button>
+              <button className="export-btn" disabled={isExporting || coverProgress.loading} onClick={() => exportRanking('pages')}>导出每页图片</button>
             </div>
           </div>
           <div className="user-ranking-list">
@@ -3434,19 +2265,22 @@ export function YearlyRanking({
                 }}
               >
                 <div style={{ marginBottom: "10px" }}>
-                  <strong>{"1. xx.xx xxx - xxx xx+xx++xx"}</strong>
+                  <strong>{"月.日 作品名 - 作者名 原始分数+整体性++保值度"}</strong>
                   <br />
                   <span style={{ marginLeft: "20px" }}>
                     {"（月.日 作品名 - 作者名 原始分数+整体性++保值度）"}
                   </span>
                 </div>
+                <p><strong>或者（任选一种格式，也可混合粘贴）</strong></p>
                 <div>
-                  <strong>{"2. xxx - xxx"}</strong>
+                  <strong>{"作品名 - 作者名"}</strong>
                   <br />
                   <span style={{ marginLeft: "20px" }}>
                     {"（作品名 - 作者名）"}
                   </span>
                 </div>
+                <p>评分可省略；填写时分数前必须有空格。+ 表示整体性，++ 表示保值度。例：Not Anymore - 16 43；CRACK CODE - Kep1er 55.4。</p>
+                <p>不评分模式会完整保留作者字段，包括数字结尾的姓名。</p>
               </div>
               <textarea
                 className="import-ranking-textarea"
@@ -3465,6 +2299,7 @@ export function YearlyRanking({
                 value={importedRankingText}
                 onChange={(Ne) => setImportedRankingText(Ne.target.value)}
               />
+              {importError && <p role="alert" className="ranking-error" style={{ whiteSpace: 'pre-wrap' }}>{importError}</p>}
             </div>
             <div className="confirm-dialog-footer">
               <button

@@ -19,7 +19,7 @@ interface RankingContextType {
   rankingMode: string;
   setRankingMode: (mode: string) => void;
   rankingList: RankingItem[];
-  setRankingList: (list: RankingItem[]) => void;
+  setRankingList: React.Dispatch<React.SetStateAction<RankingItem[]>>;
 }
 
 // 创建Context

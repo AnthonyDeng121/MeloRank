@@ -60,6 +60,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
   const [playQueue, setPlayQueue] = useState<Song[]>([]); // 播放队列
   const [currentIndex, setCurrentIndex] = useState(-1); // 当前歌曲在队列中的索引
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playbackGeneration = useRef(0);
 
   // 使用useCallback包装nextSong和previousSong函数，确保它们总是使用最新的状态
   const nextSong = React.useCallback(() => {
@@ -173,7 +174,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     // 监听总时长变化事件
     const handleDurationChange = () => {
       if (audioRef.current) {
-        setDuration(audioRef.current.duration);
+        setDuration(Number.isFinite(audioRef.current.duration) ? audioRef.current.duration : 0);
       }
     };
     
@@ -206,7 +207,8 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
   // 当currentSong变化时，获取播放URL并播放
   useEffect(() => {
     let cancelled = false;
-    if (audioRef.current) { audioRef.current.pause(); audioRef.current.removeAttribute('src'); }
+    const generation = ++playbackGeneration.current;
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current.removeAttribute('src'); audioRef.current.load(); }
     setCurrentTime(0);
     setDuration(0);
     setIsPlaying(false);
@@ -216,7 +218,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
           // 获取歌曲播放URL
           console.log('获取歌曲播放URL，songmid:', currentSong.songmid);
           const response = await qqMusicService.getSongUrl(currentSong.songmid);
-          if (cancelled) return;
+          if (cancelled || generation !== playbackGeneration.current) return;
           console.log('获取歌曲播放URL响应:', response);
           
           // 处理响应，获取播放URL
@@ -276,7 +278,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
               }
           }
         } catch (error) {
-          if (cancelled) return;
+          if (cancelled || generation !== playbackGeneration.current) return;
           console.error('播放歌曲失败:', error);
           // 显示更友好的错误提示
           alert('播放失败，请检查网络连接或稍后重试');
@@ -422,6 +424,17 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
 
   // 清空播放队列
   const clearPlayQueue = () => {
+    // Stop synchronously, including requests started before this click.
+    playbackGeneration.current++;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.removeAttribute('src');
+      audioRef.current.load();
+    }
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+    setLyrics('');
     setPlayQueue([]);
     setCurrentIndex(-1);
     setCurrentSong(null);

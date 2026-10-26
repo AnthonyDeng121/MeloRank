@@ -23,6 +23,12 @@ const pendingUpdates = [];
 let clock = Date.now();
 class TestDate extends Date { static now() { return clock += 100; } }
 const model = {
+  parseRankingText: (() => {
+    const output = { exports: {} };
+    vm.runInNewContext(ts.transpile(fs.readFileSync('src/app/utils/rankingImport.ts', 'utf8'), { module: ts.ModuleKind.CommonJS }), { exports: output.exports });
+    return output.exports.parseRankingText;
+  })(),
+  setImportError() {}, fillImportedCovers() {}, coverGeneration: { current: 0 }, setCoverProgress() {},
   console, Date: TestDate, Math, JSON, parseFloat, parseInt,
   currentYear: 2026, rankingMode: '年度专辑榜', scoringMode: 'scoring',
   rankingList: [], currentRankingId: null, currentRankingName: null,
