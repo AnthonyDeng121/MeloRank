@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "dev": "vite --host"
+    "dev": "vite --host --port 5188 --strictPort",
+    "typecheck": "tsc --noEmit",
+    "check:ranking": "node scripts/check-ranking-behavior.cjs",
+    "check:deployed": "npm run build && node scripts/verify-deployed-parity.cjs --assets"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",

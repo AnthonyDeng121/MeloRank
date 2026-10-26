@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useMusic } from '../contexts/MusicContext';
 import { qqMusicService } from '../services/qqMusicService';
 import '../../styles/YearlyRanking.css';
-import '../../styles/EditorRanking.css';
 
 interface EditorItem {
   id: string;

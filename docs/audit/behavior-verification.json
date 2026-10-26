@@ -1,0 +1,41 @@
+{
+  "isolated": true,
+  "results": [
+    {
+      "name": "first save asks for a name",
+      "pass": true
+    },
+    {
+      "name": "named save keeps covers and metadata",
+      "pass": true
+    },
+    {
+      "name": "load restores the editable identity",
+      "pass": true
+    },
+    {
+      "name": "save loaded ranking updates without duplicating",
+      "pass": true
+    },
+    {
+      "name": "save as creates a separately named record",
+      "pass": true
+    },
+    {
+      "name": "rename retains data and other records",
+      "pass": true
+    },
+    {
+      "name": "import parses score and both bonuses",
+      "pass": true
+    },
+    {
+      "name": "manual moves update ranks",
+      "pass": true
+    },
+    {
+      "name": "editing non-scoring items keeps manual order and the uploaded cover",
+      "pass": true
+    }
+  ]
+}

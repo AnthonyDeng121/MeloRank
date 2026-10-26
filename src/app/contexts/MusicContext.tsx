@@ -52,7 +52,7 @@ interface MusicProviderProps {
 export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(70); // 默认音量70%
+  const [volume, setVolume] = useState(50); // 与部署版本一致的默认音量
   const [currentTime, setCurrentTime] = useState(0); // 当前播放时间（秒）
   const [duration, setDuration] = useState(0); // 歌曲总时长（秒）
   const [lyrics, setLyrics] = useState('');

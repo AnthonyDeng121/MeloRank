@@ -34,29 +34,29 @@ export function Home({ onNavigate, qqMusicUser, onQQMusicLogin }: HomeProps) {
 
         <div className="entry-card" onClick={() => onNavigate('yearly-ranking')}>
           <div className="card-icon">🏆</div>
-          <h3>我的年度榜单</h3>
-          <p>创建和管理您的个人年终音乐排名</p>
+          <h3>年度榜单</h3>
+          <p>点击立即创建你的个人年榜</p>
           <button className="card-button">我的榜单</button>
         </div>
       </div>
 
       <section className="editor-recommendations">
-        <h2>编者推荐</h2>
+        <h2>BITCHFUCK编者推荐</h2>
         <div className="recommendation-modules">
           <div className="recommendation-module" onClick={() => onNavigate('yearly-songs')}>
             <div className="module-icon">🎵</div>
             <h3>2025年度歌曲</h3>
-            <p>探索2025年最受欢迎的热门歌曲</p>
+            <p>点击欣赏BITCHFUCK 2025年度歌曲</p>
           </div>
           <div className="recommendation-module" onClick={() => onNavigate('yearly-albums')}>
             <div className="module-icon">💿</div>
             <h3>2025年度专辑</h3>
-            <p>查看2025年最具影响力的专辑</p>
+            <p>点击查看BITCHFUCK 2025年度专辑排行<br />(本主编只听过这些专辑)</p>
           </div>
           <div className="recommendation-module" onClick={() => onNavigate('artist-recommendations')}>
             <div className="module-icon">🎤</div>
             <h3>艺人推荐</h3>
-            <p>发现值得关注的优秀艺人</p>
+            <p>尖椒炸猪排</p>
           </div>
         </div>
       </section>

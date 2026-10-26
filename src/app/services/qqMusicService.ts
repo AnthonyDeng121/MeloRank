@@ -286,7 +286,7 @@ class QQMusicService {
     }
       
       const params = {
-        w: query,
+        key: query,
         limit: limit,
         page: page,
         catZhida: catZhida,

@@ -216,7 +216,7 @@ export function TopNav({ currentPage, onNavigate, qqMusicUser, onLogout, onQQMus
               </button>
             </div>
             <div className="modal-content">
-              <p>请使用QQ音乐APP扫描二维码登录</p>
+              <p>请使用手机QQ扫码登录</p>
               {qrCodeUrl && (
                 <div className="qr-code-container">
                   <img src={qrCodeUrl} alt="QQ音乐登录二维码" className="qr-code" />

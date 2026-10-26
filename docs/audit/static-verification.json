@@ -1,0 +1,252 @@
+{
+  "reference": {
+    "mode": "live",
+    "js": "https://melorank.netlify.app/assets/index-C0skqRM8.js",
+    "css": "https://melorank.netlify.app/assets/index-CR9tbX51.css",
+    "jsSHA256": "8426704eb567fc8836d2b3b485616cebe015f134a4146e506d17f064d9fd0c68",
+    "cssSHA256": "5ae9da8427b0b27c7d89bf4dbf9bb3a60f3d6d9e3d900653b955709bee125cd3"
+  },
+  "checkedAt": "2026-10-25T11:49:17.605Z",
+  "results": [
+    {
+      "name": "component syntax: top-nav-container",
+      "pass": true
+    },
+    {
+      "name": "component syntax: home-page",
+      "pass": true
+    },
+    {
+      "name": "component syntax: search-page",
+      "pass": true
+    },
+    {
+      "name": "component syntax: player-page",
+      "pass": true
+    },
+    {
+      "name": "component syntax: audio-lab-page",
+      "pass": true
+    },
+    {
+      "name": "component syntax: lyrics-tool-page",
+      "pass": true
+    },
+    {
+      "name": "component syntax: playqueue-overlay",
+      "pass": true
+    },
+    {
+      "name": "component syntax: mini-player",
+      "pass": true
+    },
+    {
+      "name": "music provider syntax",
+      "pass": true
+    },
+    {
+      "name": "DOCX export helper syntax and document layout",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: setCache",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: getCache",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: loadTokens",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: saveTokens",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: request",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: getLoginQr",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: checkLoginStatus",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: isLoggedIn",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: login",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: logout",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: setCookie",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: getUserInfo",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: getUserPlaylists",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: getUserLikedSongs",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: search",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: searchWithType",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: getSongDetail",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: getSongUrl",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: getLyric",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: getPlaylistDetail",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: getArtistTopSongs",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: getNewAlbums",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: getTopList",
+      "pass": true
+    },
+    {
+      "name": "QQ Music API method: getRecommendedPlaylists",
+      "pass": true
+    },
+    {
+      "name": "all songs entries, covers, reviews and ranks (35)",
+      "pass": true
+    },
+    {
+      "name": "all albums entries, covers, reviews and ranks (97)",
+      "pass": true
+    },
+    {
+      "name": "all deployed app CSS rules and responsive breakpoints",
+      "pass": true,
+      "differences": []
+    },
+    {
+      "name": "CSS declaration order at 360px",
+      "pass": true,
+      "differences": []
+    },
+    {
+      "name": "CSS declaration order at 390px",
+      "pass": true,
+      "differences": []
+    },
+    {
+      "name": "CSS declaration order at 480px",
+      "pass": true,
+      "differences": []
+    },
+    {
+      "name": "CSS declaration order at 768px",
+      "pass": true,
+      "differences": []
+    },
+    {
+      "name": "CSS declaration order at 1024px",
+      "pass": true,
+      "differences": []
+    },
+    {
+      "name": "CSS declaration order at 1440px",
+      "pass": true,
+      "differences": []
+    },
+    {
+      "name": "asset SHA256: /artists/images/LG2.jpg",
+      "pass": true
+    },
+    {
+      "name": "asset SHA256: /artists/images/LG1.jpg",
+      "pass": true
+    },
+    {
+      "name": "asset SHA256: /artists/images/TS2.jpg",
+      "pass": true
+    },
+    {
+      "name": "asset SHA256: /artists/images/TS1.jpg",
+      "pass": true
+    },
+    {
+      "name": "asset SHA256: /artists/images/KP2.jpg",
+      "pass": true
+    },
+    {
+      "name": "asset SHA256: /artists/images/KP1.jpg",
+      "pass": true
+    },
+    {
+      "name": "asset SHA256: /artists/images/A2.jpg",
+      "pass": true
+    },
+    {
+      "name": "asset SHA256: /artists/images/A1.jpg",
+      "pass": true
+    },
+    {
+      "name": "asset SHA256: /artists/images/R2.jpg",
+      "pass": true
+    },
+    {
+      "name": "asset SHA256: /artists/images/R1.jpg",
+      "pass": true
+    },
+    {
+      "name": "asset SHA256: /artists/images/banner.jpg",
+      "pass": true
+    },
+    {
+      "name": "asset SHA256: /artists/images/banner2.jpg",
+      "pass": true
+    },
+    {
+      "name": "asset SHA256: /artists/images/400w.jpg",
+      "pass": true
+    },
+    {
+      "name": "asset SHA256: /images/red-circle-with-arrow.png",
+      "pass": true
+    },
+    {
+      "name": "asset SHA256: /images/black-circle.png",
+      "pass": true
+    }
+  ],
+  "note": "Syntax and CSS-rule equivalence are static evidence, not proof of all runtime states or external service availability."
+}

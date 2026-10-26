@@ -1,59 +1,80 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { qqMusicService } from '../services/qqMusicService';
-import { dataAPI } from '../services/apiService';
+import { qqMusicService } from "../services/qqMusicService";
 import "../../styles/YearlyRanking.css";
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
-import { Document, Packer, Paragraph, ImageRun, Table, TableRow, TableCell, AlignmentType, BorderStyle, TextRun, WidthType } from "docx";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  ImageRun,
+  Table,
+  TableRow,
+  TableCell,
+  AlignmentType,
+  BorderStyle,
+  TextRun,
+  WidthType,
+} from "docx";
 import { saveAs } from "file-saver";
 
-import { useRankingContext, RankingItem, DEFAULT_RANKING_LIST } from '../contexts/RankingContext';
+import {
+  useRankingContext,
+  RankingItem,
+  DEFAULT_RANKING_LIST,
+} from "../contexts/RankingContext";
 
-import { ArtistRecommendations } from '../components/ArtistRecommendations';
+import { ArtistRecommendations } from "../components/ArtistRecommendations";
 
 interface YearlyRankingProps {
   pageType?: string;
 }
 
-export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProps) {
+export function YearlyRanking({
+  pageType = "yearly-ranking",
+}: YearlyRankingProps) {
   // 如果是艺人推荐页面，显示ArtistRecommendations组件
-  if (pageType === 'artist-recommendations') {
+  if (pageType === "artist-recommendations") {
     return <ArtistRecommendations />;
   }
 
   // 使用RankingContext获取和更新榜单状态
-  const { rankingMode, setRankingMode, rankingList, setRankingList } = useRankingContext();
+  const { rankingMode, setRankingMode, rankingList, setRankingList } =
+    useRankingContext();
 
   // 根据pageType设置初始榜单类型
   React.useEffect(() => {
-    if (pageType === 'yearly-songs') {
-      setRankingMode('年度单曲榜');
-    } else if (pageType === 'yearly-albums') {
-      setRankingMode('年度专辑榜');
+    if (pageType === "yearly-songs") {
+      setRankingMode("年度单曲榜");
+    } else if (pageType === "yearly-albums") {
+      setRankingMode("年度专辑榜");
     }
   }, [pageType, setRankingMode]);
-  
+
   const currentYear = new Date().getFullYear();
-  
+
   // 添加状态管理来存储上传的图片和预览URL
-  const [coverUrl, setCoverUrl] = useState<string>('');
-  const [coverPreview, setCoverPreview] = useState<string>('');
-  
+  const [coverUrl, setCoverUrl] = useState<string>("");
+  const [coverPreview, setCoverPreview] = useState<string>("");
+
   // 添加编辑状态管理
   const [editMode, setEditMode] = useState(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
-  const [editingItem, setEditingItem] = useState<typeof rankingList[0] | null>(null);
-  
+  const [editingItem, setEditingItem] = useState<
+    (typeof rankingList)[0] | null
+  >(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+
   // 添加确认对话框状态
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  
+
   // 添加评分模式状态管理
-  const [scoringMode, setScoringMode] = useState<'scoring' | 'non-scoring'>('scoring');
-  
+  const [scoringMode, setScoringMode] = useState<"scoring" | "non-scoring">(
+    "scoring"
+  );
+
   // 评分模式选项
   const scoringModes = [
-    { value: 'scoring', label: '评分' },
-    { value: 'non-scoring', label: '不评分' }
+    { value: "scoring", label: "评分" },
+    { value: "non-scoring", label: "不评分" },
   ];
 
   // 添加保存和历史榜单相关状态
@@ -62,45 +83,51 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
-  const [importedRankingText, setImportedRankingText] = useState('');
+  const [importedRankingText, setImportedRankingText] = useState("");
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [rankingName, setRankingName] = useState("");
+  const [currentRankingId, setCurrentRankingId] = useState<string | null>(null);
+  const [currentRankingName, setCurrentRankingName] = useState<string | null>(
+    null
+  );
+  const [showRenameDialog, setShowRenameDialog] = useState(false);
+  const [renamingRankingId, setRenamingRankingId] = useState<string | null>(
+    null
+  );
+  const [newRankingName, setNewRankingName] = useState("");
 
-  const rankingModes = [
-    '年度艺人榜',
-    '年度专辑榜',
-    '年度单曲榜',
-    '年度MV榜'
-  ];
-  
+  const rankingModes = ["年度艺人榜", "年度专辑榜", "年度单曲榜", "年度MV榜"];
+
   // 搜索相关状态管理
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchResults, setSearchResults] = useState<any>(null);
   const [isSearching, setIsSearching] = useState<boolean>(false);
-  const [showSearchResults, setShowSearchResults] = useState<boolean>(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
-  
+
   // 防抖定时器引用
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSearchTimeRef = useRef(0);
+  const searchInputRef = useRef<HTMLDivElement>(null);
+  const searchResultsRef = useRef<HTMLDivElement>(null);
 
   /** ====== 导出专用隐藏 DOM ====== */
-  const exportRef = useRef<HTMLDivElement>(null);
-  
+
   /** ====== 分数调节 ====== */
   const integrityRef = useRef<HTMLInputElement>(null);
   const durabilityRef = useRef<HTMLInputElement>(null);
-  
+
   /** ====== 文件上传处理 ====== */
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // 处理文件上传
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       // 检查文件类型
-      if (!file.type.startsWith('image/')) {
-        alert('请上传图片文件');
+      if (!file.type.startsWith("image/")) {
+        alert("请上传图片文件");
         return;
       }
-      
+
       // 创建图片预览URL
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -111,19 +138,19 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
       reader.readAsDataURL(file);
     }
   };
-  
+
   // 触发文件选择
   const triggerFileSelect = () => {
     fileInputRef.current?.click();
   };
-  
+
   // 获取当前榜单类型对应的名称（例如：年度专辑榜 -> 专辑）
   const getCurrentRankingTypeName = () => {
-    if (rankingMode.includes('艺人')) return '艺人';
-    if (rankingMode.includes('专辑')) return '专辑';
-    if (rankingMode.includes('单曲')) return '单曲';
-    if (rankingMode.includes('MV')) return 'MV';
-    return '作品';
+    if (rankingMode.includes("艺人")) return "艺人";
+    if (rankingMode.includes("专辑")) return "专辑";
+    if (rankingMode.includes("单曲")) return "单曲";
+    if (rankingMode.includes("MV")) return "MV";
+    return "作品";
   };
 
   // 组件挂载时，使用线性映射计算初始数据的分数
@@ -135,40 +162,42 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
   // 当榜单类型或评分模式变化时，更新样例数据的标题
   React.useEffect(() => {
     // 检查是否是样例数据
-    const isSampleData = rankingList.length === 3 && rankingList.every(item => 
-      item.id === '1' || item.id === '2' || item.id === '3'
-    );
-    
+    const isSampleData =
+      rankingList.length === 3 &&
+      rankingList.every(
+        (item) => item.id === "1" || item.id === "2" || item.id === "3"
+      );
+
     if (isSampleData) {
       let updatedList;
-      
-      if (scoringMode === 'non-scoring') {
+
+      if (scoringMode === "non-scoring") {
         // 不评分模式下，显示曲目1、曲目2、曲目3
-        updatedList = rankingList.map(item => {
-          let title = '';
+        updatedList = rankingList.map((item) => {
+          let title = "";
           if (item.rank === 1) title = `曲目1`;
           if (item.rank === 2) title = `曲目2`;
           if (item.rank === 3) title = `曲目3`;
           return {
             ...item,
-            title
+            title,
           };
         });
       } else {
         // 评分模式下，保持原有逻辑
         const typeName = getCurrentRankingTypeName();
-        updatedList = rankingList.map(item => {
-          let title = '';
+        updatedList = rankingList.map((item) => {
+          let title = "";
           if (item.rank === 1) title = `冠军${typeName}`;
           if (item.rank === 2) title = `亚军${typeName}`;
           if (item.rank === 3) title = `季军${typeName}`;
           return {
             ...item,
-            title
+            title,
           };
         });
       }
-      
+
       setRankingList(updatedList);
     }
   }, [rankingMode, scoringMode]);
@@ -177,17 +206,21 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
   const restoreDefaultRanking = () => {
     setShowConfirmDialog(true);
   };
-  
+
   // 自定义排序函数：实现中英文混排，按首字母ASCII顺序，相同时短的靠前
   const customSort = (a: string, b: string): number => {
     // 转换为小写进行比较，确保大小写不影响排序
     const strA = a.toLowerCase();
     const strB = b.toLowerCase();
-    
+
     // 检查是否为英文（只包含a-z和基本符号）
-    const isEnglishA = /^[a-z0-9\s\-\_\.\,\!\?\'\"\(\)\[\]\{\}\:\;]+$/.test(strA);
-    const isEnglishB = /^[a-z0-9\s\-\_\.\,\!\?\'\"\(\)\[\]\{\}\:\;]+$/.test(strB);
-    
+    const isEnglishA = /^[a-z0-9\s\-\_\.\,\!\?\'\"\(\)\[\]\{\}\:\;]+$/.test(
+      strA
+    );
+    const isEnglishB = /^[a-z0-9\s\-\_\.\,\!\?\'\"\(\)\[\]\{\}\:\;]+$/.test(
+      strB
+    );
+
     // 英文总是排在中文前面
     if (isEnglishA && !isEnglishB) {
       return -1;
@@ -195,290 +228,321 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
     if (!isEnglishA && isEnglishB) {
       return 1;
     }
-    
+
     // 都是英文或都是中文，使用localeCompare排序
-    const localeResult = strA.localeCompare(strB, isEnglishA ? 'en-US' : 'zh-CN-u-co-pinyin', { 
-      numeric: true, 
-      sensitivity: 'base',
-      caseFirst: 'upper' // 大写字母优先
-    });
-    
+    const localeResult = strA.localeCompare(
+      strB,
+      isEnglishA ? "en-US" : "zh-CN-u-co-pinyin",
+      {
+        numeric: true,
+        sensitivity: "base",
+        caseFirst: "upper", // 大写字母优先
+      }
+    );
+
     // 如果localeCompare结果为0（首字母相同），则比较长度，短的靠前
     if (localeResult === 0) {
       return a.length - b.length;
     }
-    
+
     return localeResult;
   };
 
   // 确认恢复默认榜单
   const confirmRestoreDefault = () => {
     let updatedList;
-    
-    if (scoringMode === 'non-scoring') {
+
+    if (scoringMode === "non-scoring") {
       // 不评分模式下，显示曲目1、曲目2、曲目3
-      updatedList = DEFAULT_RANKING_LIST.map(item => {
-        let title = '';
+      updatedList = DEFAULT_RANKING_LIST.map((item) => {
+        let title = "";
         if (item.rank === 1) title = `曲目1`;
         if (item.rank === 2) title = `曲目2`;
         if (item.rank === 3) title = `曲目3`;
         return {
           ...item,
-          title
+          title,
         };
       });
     } else {
       // 评分模式下，保持原有逻辑
       const typeName = getCurrentRankingTypeName();
-      updatedList = DEFAULT_RANKING_LIST.map(item => {
-        let title = '';
+      updatedList = DEFAULT_RANKING_LIST.map((item) => {
+        let title = "";
         if (item.rank === 1) title = `冠军${typeName}`;
         if (item.rank === 2) title = `亚军${typeName}`;
         if (item.rank === 3) title = `季军${typeName}`;
         return {
           ...item,
-          title
+          title,
         };
       });
     }
-    
+
     let listToUpdate: RankingItem[];
-    
+
     // 根据评分模式处理列表
-    if (scoringMode === 'scoring') {
+    if (scoringMode === "scoring") {
       // 使用线性映射计算初始数据的分数
       listToUpdate = calculateLinearScores(updatedList);
     } else {
       // 不评分模式下，使用自定义排序
-      listToUpdate = [...updatedList].sort((a, b) => {
-        return customSort(a.title, b.title);
-      }).map((item, index) => ({
-        ...item,
-        rank: index + 1 // 更新排名
-      }));
+      listToUpdate = [...updatedList]
+        .sort((a, b) => {
+          return customSort(a.title, b.title);
+        })
+        .map((item, index) => ({
+          ...item,
+          rank: index + 1, // 更新排名
+        }));
     }
-    
+
     setRankingList(listToUpdate);
+    setCurrentRankingId(null);
+    setCurrentRankingName(null);
     setShowConfirmDialog(false);
   };
-  
+
   // 取消恢复默认榜单
   const cancelRestoreDefault = () => {
     setShowConfirmDialog(false);
   };
 
-
-  
   // 处理编辑操作
   const handleEdit = (item: RankingItem) => {
     setEditMode(true);
     setEditingItemId(item.id);
     setEditingItem(item);
-    
-    // 填充表单数据
     setCoverUrl(item.coverUrl);
     setCoverPreview(item.coverUrl);
-    
-    // 填充表单输入框
-    const form = document.querySelector('form') as HTMLFormElement;
-    if (form) {
-      const titleInput = form.elements.namedItem('title') as HTMLInputElement;
-      const artistInput = form.elements.namedItem('artist') as HTMLInputElement;
-      const scoreInput = form.elements.namedItem('score') as HTMLInputElement;
-      const reviewInput = form.elements.namedItem('review') as HTMLTextAreaElement;
-      const coverUrlInput = form.elements.namedItem('coverUrl') as HTMLInputElement;
-      
-      if (titleInput) titleInput.value = item.title;
-      if (artistInput) artistInput.value = item.artist;
-      if (scoreInput) scoreInput.value = item.originalScore.toString();
-      if (reviewInput) reviewInput.value = item.review || '';
-      
-      // 设置分数调节值
-      if (integrityRef.current) integrityRef.current.value = item.integrity.toFixed(1);
-      if (durabilityRef.current) durabilityRef.current.value = item.durability.toFixed(1);
-    }
+    setShowEditDialog(true);
+    setTimeout(() => {
+      const form = document.getElementById(
+        "edit-form"
+      ) as HTMLFormElement | null;
+      if (!form) return;
+      const setField = (name: string, value: string) => {
+        const input = form.elements.namedItem(name) as
+          | HTMLInputElement
+          | HTMLTextAreaElement
+          | null;
+        if (input) input.value = value;
+      };
+      setField("title", item.title);
+      setField("artist", item.artist);
+      setField("score", String(item.originalScore));
+      setField("review", item.review || "");
+      setField("coverUrl", item.coverUrl);
+      if (integrityRef.current)
+        integrityRef.current.value = item.integrity.toFixed(1);
+      if (durabilityRef.current)
+        durabilityRef.current.value = item.durability.toFixed(1);
+    }, 0);
   };
-  
+
   // 处理删除操作
   const handleDelete = (id: string) => {
-    const updatedList = rankingList.filter(item => item.id !== id);
+    const updatedList = rankingList.filter((item) => item.id !== id);
     let listToUpdate: RankingItem[];
-    
+
     // 根据评分模式处理列表
-    if (scoringMode === 'scoring') {
+    if (scoringMode === "scoring") {
       // 使用线性映射重新计算所有项目的分数
       listToUpdate = calculateLinearScores(updatedList);
     } else {
       // 不评分模式下，使用自定义排序
-      listToUpdate = [...updatedList].sort((a, b) => {
-        return customSort(a.title, b.title);
-      }).map((item, index) => ({
-        ...item,
-        rank: index + 1 // 更新排名
-      }));
+      listToUpdate = [...updatedList]
+        .sort((a, b) => {
+          return customSort(a.title, b.title);
+        })
+        .map((item, index) => ({
+          ...item,
+          rank: index + 1, // 更新排名
+        }));
     }
-    
+
     setRankingList(listToUpdate);
   };
 
   // 移动歌曲排名的函数
   const moveItemUp = (item: RankingItem) => {
-    const index = rankingList.findIndex(i => i.id === item.id);
+    const index = rankingList.findIndex((i) => i.id === item.id);
     if (index > 0) {
       const updatedList = [...rankingList];
       // 交换位置
-      [updatedList[index], updatedList[index - 1]] = [updatedList[index - 1], updatedList[index]];
+      [updatedList[index], updatedList[index - 1]] = [
+        updatedList[index - 1],
+        updatedList[index],
+      ];
       // 更新排名
       const reorderedList = updatedList.map((item, idx) => ({
         ...item,
-        rank: idx + 1
+        rank: idx + 1,
       }));
       setRankingList(reorderedList);
     }
   };
 
   const moveItemDown = (item: RankingItem) => {
-    const index = rankingList.findIndex(i => i.id === item.id);
+    const index = rankingList.findIndex((i) => i.id === item.id);
     if (index < rankingList.length - 1) {
       const updatedList = [...rankingList];
       // 交换位置
-      [updatedList[index], updatedList[index + 1]] = [updatedList[index + 1], updatedList[index]];
+      [updatedList[index], updatedList[index + 1]] = [
+        updatedList[index + 1],
+        updatedList[index],
+      ];
       // 更新排名
       const reorderedList = updatedList.map((item, idx) => ({
         ...item,
-        rank: idx + 1
+        rank: idx + 1,
       }));
       setRankingList(reorderedList);
     }
   };
-  
+
   // 添加一个函数来获取代理封面URL
   const getProxyCoverUrl = (originalUrl: string): string => {
     // 如果是base64或默认封面，直接返回
-    if (originalUrl.startsWith('data:image/') || originalUrl.includes('svg')) {
+    if (
+      originalUrl.startsWith("data:image/") ||
+      originalUrl.includes("svg") ||
+      originalUrl.includes("/api/proxy/qqmusic/image")
+    ) {
       return originalUrl;
     }
     // 使用本地代理服务获取QQ音乐图片
-    return `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/proxy/qqmusic/image?url=${encodeURIComponent(originalUrl)}`;
+    return `${
+      import.meta.env.VITE_BACKEND_URL || "http://localhost:5000"
+    }/api/proxy/qqmusic/image?url=${encodeURIComponent(originalUrl)}`;
   };
 
   // 处理表单提交
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // 获取表单数据
     const form = e.target as HTMLFormElement;
-    const title = (form.elements.namedItem('title') as HTMLInputElement)?.value || '';
-    const artist = (form.elements.namedItem('artist') as HTMLInputElement)?.value || '';
-    
+    const title =
+      (form.elements.namedItem("title") as HTMLInputElement)?.value || "";
+    const artist =
+      (form.elements.namedItem("artist") as HTMLInputElement)?.value || "";
+
     // 根据评分模式处理评分相关数据
     let originalScore = 0;
     let integrity = 0;
     let durability = 0;
-    
-    if (scoringMode === 'scoring') {
+
+    if (scoringMode === "scoring") {
       // 解决浮点数精度问题：先转换为字符串，去除可能的小数误差，再转换为浮点数
-      const rawScore = (form.elements.namedItem('score') as HTMLInputElement)?.value || '0';
+      const rawScore =
+        (form.elements.namedItem("score") as HTMLInputElement)?.value || "0";
       // 先转换为数字，再使用toFixed(2)处理，最后转回数字
       originalScore = parseFloat(parseFloat(rawScore).toFixed(2)) || 0;
-      
+
       // 获取分数调节值，解决浮点数精度问题
-      const integrityStr = integrityRef.current?.value || '0';
-      const durabilityStr = durabilityRef.current?.value || '0';
+      const integrityStr = integrityRef.current?.value || "0";
+      const durabilityStr = durabilityRef.current?.value || "0";
       integrity = parseFloat(parseFloat(integrityStr).toFixed(1)) || 0;
       durability = parseFloat(parseFloat(durabilityStr).toFixed(1)) || 0;
     }
-    
-    const review = (form.elements.namedItem('review') as HTMLTextAreaElement)?.value || '';
-    
+
+    const review =
+      (form.elements.namedItem("review") as HTMLTextAreaElement)?.value || "";
+
     // 自动搜索封面图片
     let finalCoverUrl = coverUrl;
-    if (title) {
+    if (
+      title &&
+      (!finalCoverUrl || finalCoverUrl === DEFAULT_RANKING_LIST[0].coverUrl)
+    ) {
       try {
         // 构建搜索查询
         const searchQuery = artist ? `${title} ${artist}` : title;
-        
-        // 根据当前榜单类型选择搜索类型
-        let searchType: 'songs' | 'albums' | 'artists' = 'songs';
-        if (rankingMode.includes('专辑')) {
-          searchType = 'albums';
-        } else if (rankingMode.includes('艺人')) {
-          searchType = 'artists';
-        } else if (rankingMode.includes('单曲')) {
-          searchType = 'songs';
-        } else if (rankingMode.includes('MV')) {
-          searchType = 'songs'; // MV搜索API返回格式不同，暂用单曲搜索代替
-        }
-        
-        console.log('开始自动搜索封面:', { searchQuery, searchType, title, artist });
-        
+
+        // 部署版本统一搜索歌曲，使用所属专辑的封面。
+        const searchType = "songs";
+
+        console.log("开始自动搜索封面:", {
+          searchQuery,
+          searchType,
+          title,
+          artist,
+        });
+
         // 调用QQ音乐搜索API
-        const result = await qqMusicService.searchWithType(searchQuery, 20, searchType, 1);
-        
-        console.log('搜索原始结果:', result);
-        
+        const result = await qqMusicService.searchWithType(
+          searchQuery,
+          20,
+          searchType,
+          1
+        );
+
+        console.log("搜索原始结果:", result);
+
         // 处理搜索结果，适配API返回格式
         const searchResult = result.response || result;
-        const actualData = searchResult;
-        
-        console.log('处理后的搜索结果:', actualData);
-        
+        const actualData = searchResult.data || searchResult;
+
+        console.log("处理后的搜索结果:", actualData);
+
         // 提取第一个结果的封面URL
         let firstResult = null;
-        if (searchType === 'albums' && actualData.album?.list?.length > 0) {
-          firstResult = actualData.album.list[0];
-        } else if (searchType === 'artists' && actualData.singer?.list?.length > 0) {
-          firstResult = actualData.singer.list[0];
-        } else if (searchType === 'songs' && actualData.song?.list?.length > 0) {
+        if (actualData.song?.list?.length > 0) {
           firstResult = actualData.song.list[0];
         }
-        
-        console.log('第一个结果:', firstResult);
-        
+
+        console.log("第一个结果:", firstResult);
+
         // 如果有结果，获取封面URL并使用代理
         if (firstResult) {
-          let originalUrl = '';
-          if (searchType === 'albums') {
-            originalUrl = firstResult.albummid ? `https://y.qq.com/music/photo_new/T002R300x300M000${firstResult.albummid}.jpg` : '';
-          } else if (searchType === 'artists') {
-            originalUrl = firstResult.singermid ? `https://y.qq.com/music/photo_new/T001R300x300M000${firstResult.singermid}.jpg` : '';
-          } else if (searchType === 'songs') {
-            originalUrl = firstResult.albummid ? `https://y.qq.com/music/photo_new/T002R300x300M000${firstResult.albummid}.jpg` : '';
-          }
-          
-          finalCoverUrl = getProxyCoverUrl(originalUrl);
-          console.log('最终封面URL:', finalCoverUrl);
+          let originalUrl = "";
+          originalUrl = firstResult.albummid
+            ? `https://y.qq.com/music/photo_new/T002R300x300M000${firstResult.albummid}.jpg`
+            : "";
+
+          if (originalUrl) finalCoverUrl = originalUrl;
+          console.log("最终封面URL:", finalCoverUrl);
         }
       } catch (error) {
-        console.error('自动搜索封面失败:', error);
+        console.error("自动搜索封面失败:", error);
         // 搜索失败不影响表单提交，继续使用默认封面
       }
     }
-    
+
     let updatedList: RankingItem[];
-    
+    const previousItem = rankingList.find((item) => item.id === editingItemId);
+    const scoreChanged =
+      previousItem &&
+      (previousItem.originalScore !== originalScore ||
+        previousItem.integrity !== integrity ||
+        previousItem.durability !== durability);
+
     if (editMode && editingItemId) {
       // 编辑模式：更新现有项
-      updatedList = rankingList.map(item => {
+      updatedList = rankingList.map((item) => {
         if (item.id === editingItemId) {
           return {
             ...item,
             title,
             artist,
-            coverUrl: finalCoverUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Crect width='150' height='150' fill='%23333'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='14'%3EMeloRank%3C/text%3E%3C/svg%3E",
+            coverUrl:
+              finalCoverUrl ||
+              "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Crect width='150' height='150' fill='%23333'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='14'%3EMeloRank%3C/text%3E%3C/svg%3E",
             review,
             originalScore,
             integrity,
-            durability
+            durability,
           };
         }
         return item;
       });
-      
+
       // 重置编辑状态
       setEditMode(false);
       setEditingItemId(null);
       setEditingItem(null);
+      setShowEditDialog(false);
     } else {
       // 添加模式：创建新的榜单项
       const newItem: RankingItem = {
@@ -486,70 +550,106 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
         rank: 1,
         title,
         artist,
-        coverUrl: finalCoverUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Crect width='150' height='150' fill='%23333'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='14'%3EMeloRank%3C/text%3E%3C/svg%3E",
+        coverUrl:
+          finalCoverUrl ||
+          "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Crect width='150' height='150' fill='%23333'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='14'%3EMeloRank%3C/text%3E%3C/svg%3E",
         review,
         originalScore,
         integrity,
         durability,
-        finalScore: 0 // 初始值，后面会被重新计算
+        finalScore: 0, // 初始值，后面会被重新计算
       };
-      
+
       // 检查是否是首次提交（如果rankingList包含样例数据，清空后添加新数据）
-      const isSampleData = rankingList.length === 3 && rankingList.every(item => 
-        item.id === '1' || item.id === '2' || item.id === '3'
-      );
-      
+      const isSampleData =
+        rankingList.length === 3 &&
+        rankingList.every(
+          (item) => item.id === "1" || item.id === "2" || item.id === "3"
+        );
+
       updatedList = isSampleData ? [newItem] : [...rankingList, newItem];
     }
-    
+
     let listToUpdate: RankingItem[];
-    
+
     // 根据评分模式处理列表
-    if (scoringMode === 'scoring') {
+    if (editMode && editingItemId && scoringMode === "non-scoring") {
+      // 部署版编辑文字时保留用户手动调整的顺序。
+      listToUpdate = updatedList.map((item, index) => ({
+        ...item,
+        rank: index + 1,
+      }));
+    } else if (editMode && editingItemId && !scoreChanged) {
+      const totals = updatedList.map((item) =>
+        parseFloat(
+          (item.originalScore + item.integrity + item.durability).toFixed(2)
+        )
+      );
+      const max = Math.max(...totals),
+        min = Math.min(...totals);
+      listToUpdate = updatedList.map((item) => {
+        if (item.id !== editingItemId) return item;
+        const totalScore = parseFloat(
+          (item.originalScore + item.integrity + item.durability).toFixed(2)
+        );
+        return {
+          ...item,
+          totalScore,
+          finalScore:
+            max === min
+              ? 10
+              : parseFloat(
+                  (((totalScore - min) / (max - min)) * 10).toFixed(1)
+                ),
+        };
+      });
+    } else if (scoringMode === "scoring") {
       // 使用线性映射重新计算所有项目的分数
       listToUpdate = calculateLinearScores(updatedList);
     } else {
       // 不评分模式下，使用自定义排序
-      listToUpdate = [...updatedList].sort((a, b) => {
-        return customSort(a.title, b.title);
-      }).map((item, index) => ({
-        ...item,
-        rank: index + 1 // 更新排名
-      }));
+      listToUpdate = [...updatedList]
+        .sort((a, b) => {
+          return customSort(a.title, b.title);
+        })
+        .map((item, index) => ({
+          ...item,
+          rank: index + 1, // 更新排名
+        }));
     }
-    
+
     // 更新榜单列表
     setRankingList(listToUpdate);
-    
+
     // 重置表单
     form.reset();
-    setCoverUrl('');
-    setCoverPreview('');
-    
+    setCoverUrl("");
+    setCoverPreview("");
+
     // 重置分数调节
-    if (integrityRef.current) integrityRef.current.value = '0.0';
-    if (durabilityRef.current) durabilityRef.current.value = '0.0';
+    if (integrityRef.current) integrityRef.current.value = "0.0";
+    if (durabilityRef.current) durabilityRef.current.value = "0.0";
   };
-  
+
   // 处理导入排行榜的函数
   const handleImportRanking = () => {
     if (!importedRankingText.trim()) {
       setShowImportDialog(false);
-      setImportedRankingText('');
+      setImportedRankingText("");
       return;
     }
 
     // 解析粘贴的文本
-    const lines = importedRankingText.split('\n').filter(line => line.trim());
+    const lines = importedRankingText.split("\n").filter((line) => line.trim());
     const importedItems: RankingItem[] = [];
 
-    lines.forEach(line => {
+    lines.forEach((line) => {
       let processedLine = line.trim();
       if (!processedLine) return;
 
       // 第一步：先去掉日期部分
       let mainContent = processedLine;
-      
+
       // 识别并移除日期部分，支持多种日期格式
       // 1. 月.日格式 (如：1.1, 12.31)
       const datePattern1 = /^\d{1,2}\.\d{1,2}\s+/;
@@ -559,32 +659,34 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
       const datePattern3 = /^\d{1,2}\/\d{1,2}\s+/;
       // 4. 中文日期格式 (如：1月1日, 12月31日)
       const datePattern4 = /^\d{1,2}月\d{1,2}日\s+/;
-      
+
       // 依次检查并移除各种日期格式
       if (datePattern1.test(mainContent)) {
-        mainContent = mainContent.replace(datePattern1, '').trim();
+        mainContent = mainContent.replace(datePattern1, "").trim();
       } else if (datePattern2.test(mainContent)) {
-        mainContent = mainContent.replace(datePattern2, '').trim();
+        mainContent = mainContent.replace(datePattern2, "").trim();
       } else if (datePattern3.test(mainContent)) {
-        mainContent = mainContent.replace(datePattern3, '').trim();
+        mainContent = mainContent.replace(datePattern3, "").trim();
       } else if (datePattern4.test(mainContent)) {
-        mainContent = mainContent.replace(datePattern4, '').trim();
+        mainContent = mainContent.replace(datePattern4, "").trim();
       }
-      
+
       // 第二步：去除行首的序号和点
-      mainContent = mainContent.replace(/^\d+\s*\.\s*/, '').trim();
+      mainContent = mainContent.replace(/^\d+\s*\.\s*/, "").trim();
       if (!mainContent) return;
 
       // 使用" - "作为分隔符提取作品名和作者名
-      const separatorIndex = mainContent.indexOf(' - ');
+      const separatorIndex = mainContent.indexOf(" - ");
       if (separatorIndex === -1) return;
 
       const title = mainContent.substring(0, separatorIndex).trim();
       const artistAndScore = mainContent.substring(separatorIndex + 3).trim();
-      
+
       // 提取评分信息（如果有）
-      const scoreMatch = artistAndScore.match(/(\d+(?:\.\d+)?)(?:\s*\+\s*(\d+(?:\.\d+)?))?(?:\s*\+\+\s*(\d+(?:\.\d+)?))?/);
-      
+      const scoreMatch = artistAndScore.match(
+        /(\d+(?:\.\d+)?)(?:\s*\+\s*(\d+(?:\.\d+)?))?(?:\s*\+\+\s*(\d+(?:\.\d+)?))?/
+      );
+
       // 提取作者名（如果有评分，作者名是评分前的部分；否则是整个字符串）
       let artist = artistAndScore;
       let originalScore = 0;
@@ -595,7 +697,7 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
         // 提取作者名（评分前的部分）
         const scoreStartIndex = artistAndScore.indexOf(scoreMatch[0]);
         artist = artistAndScore.substring(0, scoreStartIndex).trim();
-        
+
         // 提取评分信息，支持可选的评分项
         originalScore = parseFloat(scoreMatch[1]) || 0;
         integrity = parseFloat(scoreMatch[2]) || 0;
@@ -608,12 +710,13 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
         rank: 1,
         title: title.trim(),
         artist: artist.trim(),
-        coverUrl: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Crect width='150' height='150' fill='%23333'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='14'%3EMeloRank%3C/text%3E%3C/svg%3E",
-        review: '',
+        coverUrl:
+          "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Crect width='150' height='150' fill='%23333'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='14'%3EMeloRank%3C/text%3E%3C/svg%3E",
+        review: "",
         originalScore,
         integrity,
         durability,
-        finalScore: 0 // 初始值，后面会被重新计算
+        finalScore: 0, // 初始值，后面会被重新计算
       };
 
       importedItems.push(newItem);
@@ -621,9 +724,11 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
 
     if (importedItems.length > 0) {
       // 检查是否是首次提交（如果rankingList包含样例数据，清空后添加新数据）
-      const isSampleData = rankingList.length === 3 && rankingList.every(item => 
-        item.id === '1' || item.id === '2' || item.id === '3'
-      );
+      const isSampleData =
+        rankingList.length === 3 &&
+        rankingList.every(
+          (item) => item.id === "1" || item.id === "2" || item.id === "3"
+        );
 
       let updatedList: RankingItem[];
       if (isSampleData) {
@@ -634,17 +739,19 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
 
       // 根据评分模式处理列表
       let listToUpdate: RankingItem[];
-      if (scoringMode === 'scoring') {
+      if (scoringMode === "scoring") {
         // 使用线性映射重新计算所有项目的分数
         listToUpdate = calculateLinearScores(updatedList);
       } else {
         // 不评分模式下，使用自定义排序
-        listToUpdate = [...updatedList].sort((a, b) => {
-          return customSort(a.title, b.title);
-        }).map((item, index) => ({
-          ...item,
-          rank: index + 1 // 更新排名
-        }));
+        listToUpdate = [...updatedList]
+          .sort((a, b) => {
+            return customSort(a.title, b.title);
+          })
+          .map((item, index) => ({
+            ...item,
+            rank: index + 1, // 更新排名
+          }));
       }
 
       // 更新榜单列表
@@ -653,27 +760,30 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
 
     // 关闭对话框并清空输入
     setShowImportDialog(false);
-    setImportedRankingText('');
+    setImportedRankingText("");
   };
 
   // 调节分数的函数
-  const adjustScore = (ref: React.RefObject<HTMLInputElement | null>, isIncrease: boolean) => {
+  const adjustScore = (
+    ref: React.RefObject<HTMLInputElement | null>,
+    isIncrease: boolean
+  ) => {
     if (ref.current) {
       const currentValue = parseFloat(ref.current.value) || 0;
       let step = 1;
       let min = 0;
       let max = 100;
-      
+
       // 检查是否是整体性或保值度输入框
       if (ref === integrityRef || ref === durabilityRef) {
         step = 0.5;
         min = 0;
         max = 2;
       }
-      
+
       let newValue = isIncrease ? currentValue + step : currentValue - step;
       newValue = Math.max(min, Math.min(max, newValue));
-      
+
       // 整体性和保值度只显示一位小数，其他分数显示两位小数
       if (ref === integrityRef || ref === durabilityRef) {
         ref.current.value = newValue.toFixed(1);
@@ -682,325 +792,323 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
       }
     }
   };
-  
+
   // 处理组合按钮点击事件
-  const handleAdjustButtonClick = (ref: React.RefObject<HTMLInputElement | null>, e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleAdjustButtonClick = (
+    ref: React.RefObject<HTMLInputElement | null>,
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
     const button = e.currentTarget;
     const rect = button.getBoundingClientRect();
     const clickY = e.clientY - rect.top;
     const halfHeight = rect.height / 2;
-    
+
     adjustScore(ref, clickY < halfHeight);
   };
-  
+
   // 搜索音乐的函数
   const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) {
-      setSearchResults([]);
-      setShowSearchResults(false);
+      setSearchResults(null);
       return;
     }
-    
     setIsSearching(true);
-    setSearchError(null);
-    
     try {
-      // 根据当前榜单类型选择搜索类型
-      let searchType: 'songs' | 'albums' | 'artists' = 'songs';
-      if (rankingMode.includes('专辑')) {
-        searchType = 'albums';
-      } else if (rankingMode.includes('艺人')) {
-        searchType = 'artists';
-      } else if (rankingMode.includes('单曲')) {
-        searchType = 'songs';
-      } else if (rankingMode.includes('MV')) {
-        searchType = 'songs'; // MV搜索API返回格式不同，暂用单曲搜索代替
-      }
-      console.log('当前榜单类型:', rankingMode, '搜索类型:', searchType);
-      
-      // 调用QQ音乐搜索API，增加搜索结果数量到20
-      const result = await qqMusicService.searchWithType(query, 20, searchType, 1);
-      
-      // 处理搜索结果
-      let processedResults: any[] = [];
-      const responseData = result.response || result;
-      const actualData = responseData.data || responseData;
-      
-      // 只提取与搜索类型匹配的结果
-      if (searchType === 'albums' && actualData.album?.list) {
-        // 专辑搜索结果
-        processedResults = actualData.album.list.map((album: any) => ({
-          id: album.albumid,
-          type: 'album',
-          title: album.albumname,
-          artist: album.singer?.name || '未知歌手',
-          coverUrl: album.albummid ? getProxyCoverUrl(`https://y.qq.com/music/photo_new/T002R300x300M000${album.albummid}.jpg`) : '',
-          albumid: album.albumid
-        }));
-      } else if (searchType === 'artists' && actualData.singer?.list) {
-        // 艺人搜索结果
-        processedResults = actualData.singer.list.map((artist: any) => ({
-          id: artist.singermid,
-          type: 'artist',
-          title: artist.singername,
-          artist: artist.singername,
-          coverUrl: artist.singermid ? getProxyCoverUrl(`https://y.qq.com/music/photo_new/T001R300x300M000${artist.singermid}.jpg`) : '',
-          singermid: artist.singermid
-        }));
-      } else if (searchType === 'songs' && actualData.song?.list) {
-        // 歌曲搜索结果
-        processedResults = actualData.song.list.map((song: any) => ({
-          id: song.songmid,
-          type: 'song',
-          title: song.songname,
-          artist: song.singer?.map((artist: any) => artist.name || '未知歌手').join(', ') || '未知歌手',
-          album: song.albumname || '未知专辑',
-          coverUrl: song.albummid ? getProxyCoverUrl(`https://y.qq.com/music/photo_new/T002R300x300M000${song.albummid}.jpg`) : '',
-          songmid: song.songmid
-        }));
-      } else {
-        // 如果没有匹配的结果类型，尝试提取所有可能的结果
-        console.warn('没有匹配的搜索结果类型，尝试提取所有可能的结果', searchType, actualData);
-        if (actualData.album?.list) {
-          processedResults = actualData.album.list.map((album: any) => ({
-            id: album.albumid,
-            type: 'album',
-            title: album.albumname,
-            artist: album.singer?.name || '未知歌手',
-            coverUrl: album.albummid ? getProxyCoverUrl(`https://y.qq.com/music/photo_new/T002R300x300M000${album.albummid}.jpg`) : '',
-            albumid: album.albumid
-          }));
-        } else if (actualData.song?.list) {
-          processedResults = actualData.song.list.map((song: any) => ({
-            id: song.songmid,
-            type: 'song',
-            title: song.songname,
-            artist: song.singer?.map((artist: any) => artist.name || '未知歌手').join(', ') || '未知歌手',
-            album: song.albumname || '未知专辑',
-            coverUrl: song.albummid ? getProxyCoverUrl(`https://y.qq.com/music/photo_new/T002R300x300M000${song.albummid}.jpg`) : '',
-            songmid: song.songmid
-          }));
-        }
-      }
-      
-      setSearchResults(processedResults);
-      setShowSearchResults(processedResults.length > 0);
+      setSearchResults(
+        await qqMusicService.searchWithType(query, 50, "songs", 1)
+      );
     } catch (error) {
-      console.error('搜索失败:', error);
-      setSearchError('搜索失败，请稍后重试');
-      setSearchResults([]);
+      console.error("搜索失败:", error);
+      setSearchResults(null);
     } finally {
       setIsSearching(false);
     }
-  }, [rankingMode, getProxyCoverUrl]);
-  
-  // 防抖搜索函数
-  const debouncedSearch = useCallback((query: string) => {
-    if (searchDebounceRef.current) {
-      clearTimeout(searchDebounceRef.current);
-    }
-    
-    searchDebounceRef.current = setTimeout(() => {
-      handleSearch(query);
-    }, 300);
-  }, [handleSearch]);
-  
-  // 监听搜索关键词变化
-  useEffect(() => {
-    debouncedSearch(searchQuery);
-    
-    return () => {
-      if (searchDebounceRef.current) {
-        clearTimeout(searchDebounceRef.current);
-      }
-    };
-  }, [searchQuery, debouncedSearch]);
-  
+  }, []);
+
+  const debouncedSearch = useCallback(
+    (query: string) => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+      searchDebounceRef.current = setTimeout(() => {
+        const now = Date.now();
+        if (now - lastSearchTimeRef.current < 1000) return;
+        lastSearchTimeRef.current = now;
+        handleSearch(query);
+      }, 500);
+    },
+    [handleSearch]
+  );
+
+  const handleSearchKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (event.key === "Enter") debouncedSearch(searchQuery);
+  };
+
+  useEffect(
+    () => () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    },
+    []
+  );
+
   // 弹出封面
   const showCoverPreview = async (coverUrl: string) => {
     try {
       // 直接显示封面预览，不再尝试自动复制
       // 降级方案：创建一个临时的图片元素，让用户手动复制
-      const tempImg = document.createElement('img');
+      const tempImg = document.createElement("img");
       tempImg.src = coverUrl;
-      tempImg.style.position = 'fixed';
-      tempImg.style.top = '50%';
-      tempImg.style.left = '50%';
-      tempImg.style.transform = 'translate(-50%, -50%)';
-      tempImg.style.width = '300px';
-      tempImg.style.height = '300px';
-      tempImg.style.objectFit = 'cover';
-      tempImg.style.zIndex = '9999';
-      tempImg.style.border = '4px solid #667eea';
-      tempImg.style.borderRadius = '12px';
-      tempImg.style.cursor = 'pointer';
-      tempImg.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.5)';
-      tempImg.title = '点击复制图片到剪贴板';
+      tempImg.style.position = "fixed";
+      tempImg.style.top = "50%";
+      tempImg.style.left = "50%";
+      tempImg.style.transform = "translate(-50%, -50%)";
+      tempImg.style.width = "300px";
+      tempImg.style.height = "300px";
+      tempImg.style.objectFit = "cover";
+      tempImg.style.zIndex = "9999";
+      tempImg.style.border = "4px solid #667eea";
+      tempImg.style.borderRadius = "12px";
+      tempImg.style.cursor = "pointer";
+      tempImg.style.boxShadow = "0 10px 30px rgba(0, 0, 0, 0.5)";
+      tempImg.title = "点击复制图片到剪贴板";
       tempImg.onclick = () => {
         // 创建canvas来复制图片
-        const canvas = document.createElement('canvas');
+        const canvas = document.createElement("canvas");
         canvas.width = tempImg.naturalWidth;
         canvas.height = tempImg.naturalHeight;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext("2d");
         if (ctx) {
           ctx.drawImage(tempImg, 0, 0);
           canvas.toBlob((blob) => {
             if (blob) {
-              const item = new ClipboardItem({ 'image/png': blob });
-              navigator.clipboard.write([item]).then(() => {
-                document.body.removeChild(tempImg);
-                document.body.removeChild(closeBtn);
-                alert('封面已复制到剪贴板');
-              }).catch(() => {
-                // 再次降级，使用传统方法
-                try {
-                  // 移除不支持的select方法
+              const item = new ClipboardItem({ "image/png": blob });
+              navigator.clipboard
+                .write([item])
+                .then(() => {
                   document.body.removeChild(tempImg);
                   document.body.removeChild(closeBtn);
-                  alert('复制封面失败，请手动保存图片');
-                } catch (error) {
-                  console.error('复制封面失败:', error);
-                  alert('复制封面失败，请手动保存图片');
-                }
-              });
+                  alert("封面已复制到剪贴板");
+                })
+                .catch(() => {
+                  // 再次降级，使用传统方法
+                  try {
+                    // 移除不支持的select方法
+                    document.body.removeChild(tempImg);
+                    document.body.removeChild(closeBtn);
+                    alert("复制封面失败，请手动保存图片");
+                  } catch (error) {
+                    console.error("复制封面失败:", error);
+                    alert("复制封面失败，请手动保存图片");
+                  }
+                });
             }
           });
         }
       };
-      
+
       // 添加关闭按钮
-      const closeBtn = document.createElement('button');
-      closeBtn.textContent = '×';
-      closeBtn.style.position = 'fixed';
-      closeBtn.style.top = 'calc(50% - 180px)';
-      closeBtn.style.left = 'calc(50% + 130px)';
-      closeBtn.style.width = '30px';
-      closeBtn.style.height = '30px';
-      closeBtn.style.border = 'none';
-      closeBtn.style.borderRadius = '50%';
-      closeBtn.style.backgroundColor = '#ff4d4f';
-      closeBtn.style.color = 'white';
-      closeBtn.style.fontSize = '20px';
-      closeBtn.style.fontWeight = 'bold';
-      closeBtn.style.cursor = 'pointer';
-      closeBtn.style.zIndex = '10000';
-      closeBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+      const closeBtn = document.createElement("button");
+      closeBtn.textContent = "×";
+      closeBtn.style.position = "fixed";
+      closeBtn.style.top = "calc(50% - 180px)";
+      closeBtn.style.left = "calc(50% + 130px)";
+      closeBtn.style.width = "30px";
+      closeBtn.style.height = "30px";
+      closeBtn.style.border = "none";
+      closeBtn.style.borderRadius = "50%";
+      closeBtn.style.backgroundColor = "#ff4d4f";
+      closeBtn.style.color = "white";
+      closeBtn.style.fontSize = "20px";
+      closeBtn.style.fontWeight = "bold";
+      closeBtn.style.cursor = "pointer";
+      closeBtn.style.zIndex = "10000";
+      closeBtn.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.3)";
       closeBtn.onclick = () => {
         document.body.removeChild(tempImg);
         document.body.removeChild(closeBtn);
       };
-      
+
       document.body.appendChild(tempImg);
       document.body.appendChild(closeBtn);
     } catch (error) {
-      console.error('弹出封面失败:', error);
-      alert('弹出封面失败，请稍后重试');
+      console.error("弹出封面失败:", error);
+      alert("弹出封面失败，请稍后重试");
     }
   };
 
   // 处理搜索结果点击
-  const handleSearchResultClick = (result: any) => {
-    // 填充表单数据，使用代理URL
-    const proxiedCoverUrl = getProxyCoverUrl(result.coverUrl);
-    setCoverUrl(proxiedCoverUrl);
-    setCoverPreview(proxiedCoverUrl);
-    
-    // 填充表单输入框
-    const form = document.querySelector('form') as HTMLFormElement;
+  const handleSearchResultClick = (song: any) => {
+    const form = (
+      editMode
+        ? document.getElementById("edit-form")
+        : document.querySelector("form")
+    ) as HTMLFormElement | null;
     if (form) {
-      const titleInput = form.elements.namedItem('title') as HTMLInputElement;
-      const artistInput = form.elements.namedItem('artist') as HTMLInputElement;
-      
-      if (titleInput) titleInput.value = result.title;
-      if (artistInput) artistInput.value = result.artist;
+      const title = form.elements.namedItem("title") as HTMLInputElement | null;
+      const artist = form.elements.namedItem(
+        "artist"
+      ) as HTMLInputElement | null;
+      if (title) title.value = song.songname || "";
+      if (artist)
+        artist.value =
+          song.singer?.map((singer: any) => singer.name).join(", ") || "";
     }
-    
-    // 关闭搜索结果
-    setShowSearchResults(false);
-    setSearchQuery('');
+    if (song.albummid) {
+      const cover =
+        "https://y.qq.com/music/photo_new/T002R300x300M000" +
+        song.albummid +
+        ".jpg";
+      setCoverUrl(cover);
+      setCoverPreview(cover);
+    }
+    setSearchResults(null);
+    setSearchQuery("");
   };
-  
-  // 关闭搜索结果
-  const closeSearchResults = () => {
-    setShowSearchResults(false);
-  };
-  
-  // 点击页面其他地方关闭搜索结果
+
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const searchContainer = document.querySelector('.search-container');
-      if (searchContainer && !searchContainer.contains(event.target as Node)) {
-        setShowSearchResults(false);
-      }
+    const closeOutside = (event: MouseEvent) => {
+      if (
+        searchResultsRef.current &&
+        searchInputRef.current &&
+        !searchResultsRef.current.contains(event.target as Node) &&
+        !searchInputRef.current.contains(event.target as Node)
+      )
+        setSearchResults(null);
     };
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    document.addEventListener("mousedown", closeOutside);
+    return () => document.removeEventListener("mousedown", closeOutside);
   }, []);
 
   // 保存榜单到本地存储
+  const handleSaveClick = () =>
+    currentRankingId ? saveRanking() : setShowSaveDialog(true);
+  const handleSaveAsClick = () => setShowSaveDialog(true);
+
   const saveRanking = () => {
-    try {
-      setIsSaving(true);
-      setSaveSuccess(false);
-      
-      // 准备要保存的数据
-      const rankingData = {
-        id: `ranking_${Date.now()}`, // 添加唯一ID
+    setIsSaving(true);
+    setSaveSuccess(false);
+    const persist = (stripImages = false) => {
+      const rankings = JSON.parse(
+        localStorage.getItem("yearlyRankings") || "[]"
+      );
+      const saveAsNew = showSaveDialog;
+      const now = new Date().toISOString();
+      const fallbackName =
+        rankingMode + "_" + currentYear + "_" + now.slice(0, 10);
+      const previous = rankings.find(
+        (ranking: any) => ranking.id === currentRankingId
+      );
+      const record = {
+        id: saveAsNew
+          ? "ranking_" + Date.now()
+          : currentRankingId || "ranking_" + Date.now(),
+        name: saveAsNew
+          ? rankingName || fallbackName
+          : currentRankingName || rankingName || fallbackName,
         year: currentYear,
         type: rankingMode,
         scoringMode,
-        rankingList,
-        createdAt: new Date().toISOString()
+        rankingList: stripImages
+          ? rankingList.map((item) =>
+              item.coverUrl.startsWith("data:image/")
+                ? { ...item, coverUrl: "" }
+                : item
+            )
+          : rankingList,
+        createdAt: saveAsNew ? now : previous?.createdAt || now,
+        updatedAt: now,
       };
-      
-      // 从本地存储获取现有数据
-      const existingRankings = localStorage.getItem('yearlyRankings');
-      let rankings = existingRankings ? JSON.parse(existingRankings) : [];
-      
-      // 添加新的榜单数据
-      rankings.push(rankingData);
-      
-      // 保存回本地存储
-      localStorage.setItem('yearlyRankings', JSON.stringify(rankings));
-      
-      // 显示保存成功提示
+      const updated =
+        currentRankingId && !saveAsNew
+          ? rankings.map((ranking: any) =>
+              ranking.id === currentRankingId ? record : ranking
+            )
+          : [...rankings, record];
+      localStorage.setItem("yearlyRankings", JSON.stringify(updated));
+    };
+    try {
+      persist();
       setSaveSuccess(true);
-      
-      // 3秒后隐藏成功提示
-      setTimeout(() => {
-        setSaveSuccess(false);
-      }, 3000);
+      setTimeout(() => setSaveSuccess(false), 3000);
+      setShowSaveDialog(false);
+      setRankingName("");
     } catch (error) {
-      console.error('保存榜单失败:', error);
-      alert('保存榜单失败，请稍后重试');
+      if (
+        error instanceof Error &&
+        error.message.includes("QuotaExceededError")
+      ) {
+        try {
+          persist(true);
+          alert(
+            "保存成功：由于本地存储容量限制，部分base64图片已被优化。建议您使用外部图片链接以获得更好的体验。"
+          );
+          setSaveSuccess(true);
+          setTimeout(() => setSaveSuccess(false), 3000);
+          setShowSaveDialog(false);
+          setRankingName("");
+        } catch {
+          alert(
+            "保存榜单失败：本地存储容量不足。请尝试减少图片数量或使用外部图片链接。"
+          );
+        }
+      } else {
+        alert("保存榜单失败，请稍后重试。");
+      }
     } finally {
       setIsSaving(false);
     }
   };
-  
 
+  const handleRenameClick = (ranking: any) => {
+    setRenamingRankingId(ranking.id);
+    setNewRankingName(ranking.name || ranking.year + " " + ranking.type);
+    setShowRenameDialog(true);
+  };
+
+  const renameHistoryRanking = () => {
+    if (!renamingRankingId) return;
+    try {
+      const rankings = JSON.parse(
+        localStorage.getItem("yearlyRankings") || "[]"
+      );
+      const updated = rankings.map((ranking: any) =>
+        ranking.id === renamingRankingId
+          ? {
+              ...ranking,
+              name: newRankingName || ranking.year + " " + ranking.type,
+            }
+          : ranking
+      );
+      localStorage.setItem("yearlyRankings", JSON.stringify(updated));
+      setHistoryRankings(updated);
+      setShowRenameDialog(false);
+      setRenamingRankingId(null);
+      setNewRankingName("");
+    } catch {
+      alert("重命名历史榜单失败，请稍后重试");
+    }
+  };
 
   // 获取历史榜单记录
   const fetchHistoryRankings = () => {
     try {
       setIsSaving(true);
-      
+
       // 从本地存储获取历史榜单数据
-      const existingRankings = localStorage.getItem('yearlyRankings');
-      const yearlyRankings = existingRankings ? JSON.parse(existingRankings) : [];
-      console.log('从本地存储获取的历史榜单数据:', yearlyRankings);
-      
+      const existingRankings = localStorage.getItem("yearlyRankings");
+      const yearlyRankings = existingRankings
+        ? JSON.parse(existingRankings)
+        : [];
+      console.log("从本地存储获取的历史榜单数据:", yearlyRankings);
+
       // 更新历史榜单状态
       setHistoryRankings(yearlyRankings || []);
-      
+
       // 显示历史榜单对话框
       setShowHistoryDialog(true);
     } catch (error) {
-      console.error('获取历史榜单失败:', error);
-      alert('获取历史榜单失败，请稍后重试');
+      console.error("获取历史榜单失败:", error);
+      alert("获取历史榜单失败，请稍后重试");
     } finally {
       setIsSaving(false);
     }
@@ -1012,7 +1120,9 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
     setRankingMode(ranking.type);
     setScoringMode(ranking.scoringMode);
     setRankingList(ranking.rankingList);
-    
+    setCurrentRankingId(ranking.id || null);
+    setCurrentRankingName(ranking.name || ranking.year + " " + ranking.type);
+
     // 关闭历史榜单对话框
     setShowHistoryDialog(false);
   };
@@ -1021,28 +1131,28 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
   const deleteHistoryRanking = (rankingId: string | number) => {
     try {
       // 从本地存储获取现有数据
-      const existingRankings = localStorage.getItem('yearlyRankings');
+      const existingRankings = localStorage.getItem("yearlyRankings");
       let rankings = existingRankings ? JSON.parse(existingRankings) : [];
-      
+
       // 过滤掉要删除的榜单
-      if (typeof rankingId === 'string') {
+      if (typeof rankingId === "string") {
         // 如果有唯一ID，使用ID过滤
         rankings = rankings.filter((item: any) => item.id !== rankingId);
       } else {
         // 否则使用索引过滤（兼容旧数据）
         rankings.splice(rankingId, 1);
       }
-      
+
       // 保存回本地存储
-      localStorage.setItem('yearlyRankings', JSON.stringify(rankings));
-      
+      localStorage.setItem("yearlyRankings", JSON.stringify(rankings));
+
       // 更新状态
       setHistoryRankings(rankings);
-      
-      console.log('删除历史榜单成功，剩余榜单数量:', rankings.length);
+
+      console.log("删除历史榜单成功，剩余榜单数量:", rankings.length);
     } catch (error) {
-      console.error('删除历史榜单失败:', error);
-      alert('删除历史榜单失败，请稍后重试');
+      console.error("删除历史榜单失败:", error);
+      alert("删除历史榜单失败，请稍后重试");
     }
   };
 
@@ -1050,30 +1160,34 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
   const closeHistoryDialog = () => {
     setShowHistoryDialog(false);
   };
-  
+
   // 格式化分数显示：10.0显示为10，0.0显示为0，其他保持原样
   const formatScore = (score: number): string => {
-    if (score === 10.0) return '10';
-    if (score === 0.0) return '0';
+    if (score === 10.0) return "10";
+    if (score === 0.0) return "0";
     return score.toFixed(1);
   };
 
   // 计算线性映射十分制分数
   const calculateLinearScores = (items: RankingItem[]): RankingItem[] => {
     // 计算每个作品的百分制总分，解决浮点数精度问题
-    const itemsWithTotalScore = items.map(item => ({
+    const itemsWithTotalScore = items.map((item) => ({
       ...item,
-      totalScore: parseFloat((item.originalScore + item.integrity + item.durability).toFixed(2))
+      totalScore: parseFloat(
+        (item.originalScore + item.integrity + item.durability).toFixed(2)
+      ),
     }));
-    
+
     // 根据总分降序排序
-    const sortedItems = [...itemsWithTotalScore].sort((a, b) => b.totalScore - a.totalScore);
-    
+    const sortedItems = [...itemsWithTotalScore].sort(
+      (a, b) => b.totalScore - a.totalScore
+    );
+
     // 找出最高分和最低分
-    const scores = sortedItems.map(item => item.totalScore);
+    const scores = sortedItems.map((item) => item.totalScore);
     const maxScore = Math.max(...scores);
     const minScore = Math.min(...scores);
-    
+
     // 如果所有分数相同，直接返回10.0分（或平均分）并重新分配排名
     if (maxScore === minScore) {
       return sortedItems.map((item, index) => ({
@@ -1088,13 +1202,14 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
         integrity: item.integrity,
         durability: item.durability,
         finalScore: 10.0,
-        totalScore: item.totalScore
+        totalScore: item.totalScore,
       }));
     }
-    
+
     // 线性映射到0-10分，并重新分配排名
     return sortedItems.map((item, index) => {
-      const normalizedScore = (item.totalScore - minScore) / (maxScore - minScore) * 10;
+      const normalizedScore =
+        ((item.totalScore - minScore) / (maxScore - minScore)) * 10;
       return {
         // 明确保留原始的originalScore，避免任何可能的修改
         id: item.id,
@@ -1107,1118 +1222,1312 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
         integrity: item.integrity,
         durability: item.durability,
         finalScore: parseFloat(normalizedScore.toFixed(1)),
-        totalScore: item.totalScore
+        totalScore: item.totalScore,
       };
     });
   };
 
-  const captureExportImage = async (): Promise<string> => {
-    if (!exportRef.current) {
-      throw new Error("导出区域不存在");
-    }
-
-    const canvas = await html2canvas(exportRef.current, {
-      scale: 2,
-      backgroundColor: "#ffffff",
-      useCORS: true,
-    });
-
-    return canvas.toDataURL("image/jpeg", 1.0);
-  };
-
-  /** ====== PDF ====== */
-  const exportPDF = async () => {
-    // 在生成PDF之前，先重新计算所有项目的分数，确保finalScore是最新的
-    const updatedList = calculateLinearScores(rankingList);
-    setRankingList(updatedList);
-    
-    // 等待DOM更新后再捕获图片
-    await new Promise(resolve => setTimeout(resolve, 0));
-    
-    const img = await captureExportImage();
-    const pdf = new jsPDF("p", "mm", "a4");
-
-    const w = pdf.internal.pageSize.getWidth();
-    const props = pdf.getImageProperties(img);
-    const h = (props.height * w) / props.width;
-
-    pdf.addImage(img, "JPEG", 0, 0, w, h);
-    pdf.save(`MeloRank_${currentYear}年度榜单.pdf`);
-  };
-
-  /** ====== Word ====== */
-  const exportDOCX = async () => {
-    const currentYear = new Date().getFullYear();
-    
-    // 根据评分模式准备不同的数据
-    let rankingData;
-    let tableData;
-    
-    // 函数：将图片URL转换为二进制数据和类型
-    const getImageData = async (url: string) => {
+  // Restore the deployed DOCX layout and image loading behavior.
+  const exportDOCX = async (): Promise<any> => {
+    const Ne = new Date().getFullYear();
+    let je, ze;
+    const Me = async (yt: any): Promise<any> => {
       try {
-        console.log('Processing image URL:', url);
-        
-        // 如果是data URL，直接转换
-        if (url.startsWith('data:')) {
-          console.log('Processing data URL');
-          // 解析data URL获取类型和base64数据
-          const matches = url.match(/^data:(image\/(png|jpeg|jpg|gif|bmp));base64,(.*)$/i);
-          if (matches && matches.length >= 4) {
-            const mimeType = matches[1];
-            let matchedType = matches[2].toLowerCase();
-            // 确保类型是合法的ImageRun类型
-            let type: "png" | "jpg" | "gif" | "bmp" = "png";
-            if (matchedType === 'jpeg' || matchedType === 'jpg') {
-              type = "jpg";
-            } else if (matchedType === 'png') {
-              type = "png";
-            } else if (matchedType === 'gif') {
-              type = "gif";
-            } else if (matchedType === 'bmp') {
-              type = "bmp";
+        if (
+          (console.log("Processing image URL for export:", yt),
+          !yt || yt.trim() === "")
+        )
+          return (
+            console.log("Empty image URL, returning default image"),
+            {
+              binary: new TextEncoder().encode(
+                "<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'><rect width='150' height='150' fill='#333'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#666' font-family='Arial' font-size='14'>MeloRank</text></svg>"
+              ),
+              type: "png",
             }
-            const base64 = matches[3];
-            // 将base64转换为二进制数据
-            const binary = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-            console.log('Data URL converted to binary, length:', binary.length, 'type:', type);
-            return { binary, type };
-          } else {
-            // 处理不匹配的data URL，默认使用png
-            const base64 = url.split(',')[1];
-            const binary = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-            console.log('Data URL converted to binary (default type: png), length:', binary.length);
-            return { binary, type: 'png' };
+          );
+        let wt = yt;
+        if (yt.startsWith("data:")) {
+          console.log("Processing base64 URL");
+          const ar = yt.match(
+            /^data:(image\/(png|jpeg|jpg|gif|bmp));base64,(.*)$/i
+          );
+          if (ar && ar.length >= 4) {
+            const tr = ar[1];
+            let Jt = ar[2].toLowerCase(),
+              fr = "png";
+            Jt === "jpeg" || Jt === "jpg"
+              ? (fr = "jpg")
+              : Jt === "png"
+              ? (fr = "png")
+              : Jt === "gif"
+              ? (fr = "gif")
+              : Jt === "bmp" && (fr = "bmp");
+            const xr = ar[3],
+              Tr = Uint8Array.from(atob(xr), (AA: any) => AA.charCodeAt(0));
+            return (
+              console.log(
+                "Base64 converted to binary, length:",
+                Tr.length,
+                "type:",
+                fr
+              ),
+              { binary: Tr, type: fr }
+            );
           }
         }
-        
-        // 确保URL格式正确
-        let imageUrl = url;
-        
-        // 如果不是代理URL，使用代理服务
-        if (!imageUrl.includes('/api/proxy/qqmusic/image')) {
-          imageUrl = getProxyCoverUrl(imageUrl);
-          console.log('Using proxy URL for image:', imageUrl);
-        }
-        
-        // 添加默认协议（如果没有）
-        if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
-          imageUrl = `https://${imageUrl}`;
-          console.log('Added https protocol:', imageUrl);
-        }
-        
-        // 使用fetch获取图片，直接转换为二进制数据
-        console.log('Using fetch to get image:', imageUrl);
-        const response = await fetch(imageUrl, {
-          mode: 'cors',
-          referrerPolicy: 'no-referrer'
-        });
-        
-        if (!response.ok) {
-          console.error('Image fetch failed with status:', response.status);
-          // 如果fetch失败，尝试使用canvas方法
-          return new Promise<{ binary: Uint8Array; type: string }>((resolve) => {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            
-            img.onload = () => {
-              try {
-                const canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                
-                const ctx = canvas.getContext('2d');
-                if (!ctx) {
-                  console.error('Failed to get canvas context');
-                  resolve({ binary: new Uint8Array(0), type: 'png' });
-                  return;
-                }
-                
-                ctx.drawImage(img, 0, 0);
-                
-                // 转换为blob，然后转换为Uint8Array
-                canvas.toBlob((blob) => {
-                  if (!blob) {
-                    console.error('Failed to create blob from canvas');
-                    resolve({ binary: new Uint8Array(0), type: 'png' });
-                    return;
-                  }
-                  
-                  const reader = new FileReader();
-                  reader.onload = (e) => {
-                    const arrayBuffer = e.target?.result as ArrayBuffer;
-                    const binary = new Uint8Array(arrayBuffer);
-                    console.log('Canvas converted to binary, length:', binary.length);
-                    resolve({ binary, type: 'png' });
-                  };
-                  reader.onerror = () => {
-                    console.error('Failed to read blob');
-                    resolve({ binary: new Uint8Array(0), type: 'png' });
-                  };
-                  reader.readAsArrayBuffer(blob);
-                }, 'image/png');
-              } catch (error) {
-                console.error('Error in canvas processing:', error);
-                resolve({ binary: new Uint8Array(0), type: 'png' });
-              }
-            };
-            
-            img.onerror = (error) => {
-              console.error('Image failed to load:', error, imageUrl);
-              resolve({ binary: new Uint8Array(0), type: 'png' });
-            };
-            
-            img.src = imageUrl;
+        try {
+          console.log("Trying direct fetch for image:", wt);
+          const ar = await fetch(wt, {
+            mode: "cors",
+            referrerPolicy: "no-referrer",
           });
-        }
-        
-        // 直接获取blob并转换为Uint8Array
-        const blob = await response.blob();
-        const arrayBuffer = await blob.arrayBuffer();
-        const binary = new Uint8Array(arrayBuffer);
-        // 获取图片类型，确保是合法的ImageRun类型
-            const contentType = blob.type;
-            let type: "png" | "jpg" | "gif" | "bmp" = "png";
-            if (contentType.includes('jpeg') || contentType.includes('jpg')) {
-              type = "jpg";
-            } else if (contentType.includes('png')) {
-              type = "png";
-            } else if (contentType.includes('gif')) {
-              type = "gif";
-            } else if (contentType.includes('bmp')) {
-              type = "bmp";
+          if (ar.ok) {
+            const tr = await ar.blob(),
+              Jt = await tr.arrayBuffer(),
+              fr = new Uint8Array(Jt),
+              xr = tr.type;
+            let Tr = "png";
+            return (
+              xr.includes("jpeg") || xr.includes("jpg")
+                ? (Tr = "jpg")
+                : xr.includes("png")
+                ? (Tr = "png")
+                : xr.includes("gif")
+                ? (Tr = "gif")
+                : xr.includes("bmp") && (Tr = "bmp"),
+              console.log(
+                "Direct fetch succeeded, converted to binary, length:",
+                fr.length,
+                "type:",
+                Tr
+              ),
+              { binary: fr, type: Tr }
+            );
+          }
+        } catch (ar) {
+          console.error("Direct fetch failed, trying with proxy:", ar),
+            wt.includes("/api/proxy/qqmusic/image") ||
+              ((wt = getProxyCoverUrl(wt)), console.log("Using proxy URL for image:", wt));
+          try {
+            const fr = await fetch(wt, {
+              mode: "cors",
+              referrerPolicy: "no-referrer",
+            });
+            if (fr.ok) {
+              const xr = await fr.blob(),
+                Tr = await xr.arrayBuffer(),
+                AA = new Uint8Array(Tr),
+                wr = xr.type;
+              let Ar = "png";
+              return (
+                wr.includes("jpeg") || wr.includes("jpg")
+                  ? (Ar = "jpg")
+                  : wr.includes("png")
+                  ? (Ar = "png")
+                  : wr.includes("gif")
+                  ? (Ar = "gif")
+                  : wr.includes("bmp") && (Ar = "bmp"),
+                console.log(
+                  "Proxy fetch succeeded, converted to binary, length:",
+                  AA.length,
+                  "type:",
+                  Ar
+                ),
+                { binary: AA, type: Ar }
+              );
             }
-        console.log('Fetch converted to binary, length:', binary.length, 'type:', type);
-        return { binary, type };
-      } catch (error) {
-        console.error('Error in getImageData:', error, url);
-        // 返回一个默认的空图片
-        return { binary: new Uint8Array(0), type: 'png' };
+          } catch (fr) {
+            console.error("Proxy fetch also failed:", fr);
+          }
+          return (
+            console.log("All fetch attempts failed, returning default image"),
+            {
+              binary: new TextEncoder().encode(
+                "<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'><rect width='150' height='150' fill='#333'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#666' font-family='Arial' font-size='14'>MeloRank</text></svg>"
+              ),
+              type: "png",
+            }
+          );
+        }
+        return (
+          console.log(
+            "Reached end of getImageData without returning, returning default image"
+          ),
+          {
+            binary: new TextEncoder().encode(
+              "<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'><rect width='150' height='150' fill='#333'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#666' font-family='Arial' font-size='14'>MeloRank</text></svg>"
+            ),
+            type: "png",
+          }
+        );
+      } catch (wt) {
+        return (
+          console.error("Error in getImageData:", wt, yt),
+          {
+            binary: new TextEncoder().encode(
+              "<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'><rect width='150' height='150' fill='#333'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#666' font-family='Arial' font-size='14'>MeloRank</text></svg>"
+            ),
+            type: "png",
+          }
+        );
       }
     };
-
-    if (scoringMode === 'scoring') {
-      // 评分模式下的逻辑
-      // 在生成DOCX之前，先重新计算所有项目的分数，确保finalScore是最新的
-      const updatedList = calculateLinearScores(rankingList);
-      // 使用更新后的列表数据
-      rankingData = updatedList;
-
-      // 准备两张图片的本地路径
-      // 图片1：红色圆圈带箭头
-      const redCircleWithArrow = '/images/red-circle-with-arrow.png';
-      
-      // 图片2：黑色圆圈
-      const blackCircle = '/images/black-circle.png';
-
-      // 函数：加载图片并在上面绘制分数
-      const generateScoreImage = async (score: number, isRed: boolean) => {
-        return new Promise<string>((resolve) => {
-          // 根据是否为红色圆圈设置不同的画布尺寸
-          const canvasWidth = isRed ? 250 : 142;
-          const canvasHeight = isRed ? 250 : 142;
-          
-          const canvas = document.createElement('canvas');
-          canvas.width = canvasWidth;
-          canvas.height = canvasHeight;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) {
-            resolve('');
+    je = await Promise.all(
+      rankingList.map(async (yt: any): Promise<any> => {
+        var wt, Kr;
+        if (yt.coverUrl && yt.coverUrl !== "") return yt;
+        try {
+          console.log(`为${yt.title} - ${yt.artist}自动搜索封面`);
+          const Qr = yt.artist ? `${yt.title} ${yt.artist}` : yt.title,
+            ar = await qqMusicService.searchWithType(Qr, 20, "songs", 1),
+            tr = ar.response || ar,
+            Jt = tr.data || tr;
+          let fr = "";
+          if (
+            ((Kr = (wt = Jt.song) == null ? void 0 : wt.list) == null
+              ? void 0
+              : Kr.length) > 0
+          ) {
+            const xr = Jt.song.list[0];
+            xr &&
+              xr.albummid &&
+              ((fr = `https://y.qq.com/music/photo_new/T002R300x300M000${xr.albummid}.jpg`),
+              console.log(`找到封面：${fr}`));
+          }
+          return { ...yt, coverUrl: fr };
+        } catch (Qr) {
+          return (
+            console.error(`为${yt.title} - ${yt.artist}搜索封面失败：`, Qr), yt
+          );
+        }
+      })
+    );
+    const gt = "/images/red-circle-with-arrow.png",
+      ft = "/images/black-circle.png",
+      lr = async (yt: any, wt: any): Promise<any> =>
+        new Promise<any>((Kr: any) => {
+          const Qr = wt ? 250 : 142,
+            ar = wt ? 250 : 142,
+            tr = document.createElement("canvas");
+          (tr.width = Qr), (tr.height = ar);
+          const Jt = tr.getContext("2d");
+          if (!Jt) {
+            Kr("");
             return;
           }
-          
-          // 创建图片对象
-          const img = new Image();
-          // 设置跨域支持
-          img.crossOrigin = 'anonymous';
-          
-          // 根据是否为红色圆圈选择图片
-          img.src = isRed ? redCircleWithArrow : blackCircle;
-          
-          img.onload = () => {
-            // 绘制图片
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            
-            // 统一字体大小为68px
-            const fontSize = isRed ?  'bold 90px Times New Roman': 'bold 60px Times New Roman';
-            
-            // 绘制分数
-            ctx.fillStyle = isRed ? '#FF0000' : '#000000';
-            ctx.font = fontSize;
-            ctx.textAlign = 'center';
-            
-            // 红色分数向下一点，黑色分数居中
-            if (isRed) {
-              ctx.textBaseline = 'bottom';
-              // 向下调整位置，距离底部20px
-              ctx.fillText(formatScore(score), canvas.width / 2, canvas.height - 55);
-            } else {
-              ctx.textBaseline = 'middle';
-              ctx.fillText(formatScore(score), canvas.width / 2, canvas.height / 2);
-            }
-            
-            // 转换为base64
-            resolve(canvas.toDataURL('image/png'));
-          };
-          
-          img.onerror = () => {
-            // 图片加载失败时，绘制默认样式
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // 绘制圆圈
-            const radius = isRed ? 80 : 65;
-            ctx.beginPath();
-            ctx.arc(canvas.width / 2, canvas.height / 2, radius, 0, Math.PI * 2);
-            ctx.strokeStyle = isRed ? '#FF0000' : '#000000';
-            ctx.lineWidth = 8;
-            ctx.stroke();
-            
-            // 统一字体大小为68px
-            const fontSize =isRed ?  'bold 80px Times New Roman': 'bold 50px Times New Roman';
-            
-            // 绘制分数
-            ctx.fillStyle = isRed ? '#FF0000' : '#000000';
-            ctx.font = fontSize;
-            ctx.textAlign = 'center';
-            
-            // 红色分数向下一点，黑色分数居中
-            if (isRed) {
-              ctx.textBaseline = 'bottom';
-              // 向下调整位置，距离底部20px
-              ctx.fillText(formatScore(score), canvas.width / 2, canvas.height - 20);
-            } else {
-              ctx.textBaseline = 'middle';
-              ctx.fillText(formatScore(score), canvas.width / 2, canvas.height / 2);
-            }
-            
-            resolve(canvas.toDataURL('image/png'));
-          };
+          const fr = new Image();
+          (fr.crossOrigin = "anonymous"),
+            (fr.src = wt ? gt : ft),
+            (fr.onload = () => {
+              Jt.drawImage(fr, 0, 0, tr.width, tr.height);
+              const xr = wt
+                ? "bold 90px Times New Roman"
+                : "bold 60px Times New Roman";
+              (Jt.fillStyle = wt ? "#FF0000" : "#000000"),
+                (Jt.font = xr),
+                (Jt.textAlign = "center"),
+                wt
+                  ? ((Jt.textBaseline = "bottom"),
+                    Jt.fillText(formatScore(yt), tr.width / 2, tr.height - 55))
+                  : ((Jt.textBaseline = "middle"),
+                    Jt.fillText(formatScore(yt), tr.width / 2, tr.height / 2)),
+                Kr(tr.toDataURL("image/png"));
+            }),
+            (fr.onerror = () => {
+              Jt.clearRect(0, 0, tr.width, tr.height);
+              const xr = wt ? 80 : 65;
+              Jt.beginPath(),
+                Jt.arc(tr.width / 2, tr.height / 2, xr, 0, Math.PI * 2),
+                (Jt.strokeStyle = wt ? "#FF0000" : "#000000"),
+                (Jt.lineWidth = 8),
+                Jt.stroke();
+              const Tr = wt
+                ? "bold 80px Times New Roman"
+                : "bold 50px Times New Roman";
+              (Jt.fillStyle = wt ? "#FF0000" : "#000000"),
+                (Jt.font = Tr),
+                (Jt.textAlign = "center"),
+                wt
+                  ? ((Jt.textBaseline = "bottom"),
+                    Jt.fillText(formatScore(yt), tr.width / 2, tr.height - 20))
+                  : ((Jt.textBaseline = "middle"),
+                    Jt.fillText(formatScore(yt), tr.width / 2, tr.height / 2)),
+                Kr(tr.toDataURL("image/png"));
+            });
         });
-      };
-
-      // 准备表格数据，包括图片二进制和类型
-      tableData = await Promise.all(
-        rankingData.map(async item => {
-          // 生成包含分数的图片
-          const isRed = item.durability === 2;
-          const scoreImageUrl = await generateScoreImage(item.finalScore, isRed);
-          
-          // 获取封面图片数据
-          const coverData = await getImageData(item.coverUrl);
-          // 获取分数图片数据
-          const scoreImageData = await getImageData(scoreImageUrl);
-          
-          return {
-            ...item,
-            coverBinary: coverData.binary,
-            coverType: coverData.type,
-            scoreImageBinary: scoreImageData.binary,
-            scoreImageType: scoreImageData.type
-          };
-        })
-      );
-    } else {
-      // 非评分模式下的逻辑
-      // 不评分模式下，使用自定义排序
-      const sortedList = [...rankingList].sort((a, b) => {
-        return customSort(a.title, b.title);
-      }).map((item, index) => ({
-        ...item,
-        rank: index + 1 // 更新排名
-      }));
-      rankingData = sortedList;
-
-      // 准备表格数据，包括图片二进制和类型
-      tableData = await Promise.all(
-        rankingData.map(async item => {
-          // 获取封面图片数据
-          const coverData = await getImageData(item.coverUrl);
-          
-          return {
-            ...item,
-            coverBinary: coverData.binary,
-            coverType: coverData.type,
-            scoreImageBinary: new Uint8Array(0), // 添加空的scoreImageBinary属性，确保类型一致
-            scoreImageType: 'png' // 添加默认类型，确保类型一致
-          };
-        })
-      );
-    }
-
-    // 创建文档
-    const doc = new Document({
-      sections: [
-        {
-          children: [
-            // 根据评分模式创建不同的表格
-            scoringMode === 'scoring' ? 
-            // 评分模式：3列表格
-            new Table({
-              rows: [
-                // 表头行
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [
-                        new Paragraph({
-                          children: [
-                            new TextRun({
-                              text: "封面",
-                              bold: true,
-                              size: 24, // 小四 (12pt = 24)
-                              font: "仿宋",
-                              color: "FFFFFF", // 白字
-                            })
-                          ],
-                          alignment: AlignmentType.CENTER,
-                          shading: { fill: "000000" }, // 黑底
-                        })
-                      ],
-                      width: {
-                        size: 3800, // 4cm ≈ 4536缇
-                        type: WidthType.DXA
-                      },
-                      borders: {
-                        top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                        bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                        left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                        right: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" }, // 右侧边框改为白色
-                      }
-                    }),
-                    new TableCell({
-                      children: [
-                        new Paragraph({
-                          children: [
-                            new TextRun({
-                              text: "详情",
-                              bold: true,
-                              size: 24, // 小四 (12pt = 24)
-                              font: "仿宋",
-                              color: "FFFFFF", // 白字
-                            })
-                          ],
-                          alignment: AlignmentType.CENTER,
-                          shading: { fill: "000000" }, // 黑底
-                        })
-                      ],
-                      width: {
-                        size: 6200, // 5cm ≈ 5670缇
-                        type: WidthType.DXA
-                      },
-                      borders: {
-                        top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                        bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                        left: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" }, // 左侧边框改为白色
-                        right: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" }, // 右侧边框改为白色
-                      }
-                    }),
-                    new TableCell({
-                      children: [
-                        new Paragraph({
-                          children: [
-                            new TextRun({
-                              text: "评分",
-                              bold: true,
-                              size: 24, // 小四 (12pt = 24)
-                              font: "仿宋",
-                              color: "FFFFFF", // 白字
-                            })
-                          ],
-                          alignment: AlignmentType.CENTER,
-                          shading: { fill: "000000" }, // 黑底
-                        })
-                      ],
-                      width: {
-                        size: 5000, // 5cm ≈ 5670缇
-                        type: WidthType.DXA
-                      },
-                      borders: {
-                        top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                        bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                        left: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" }, // 左侧边框改为白色
-                        right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                      }
-                    }),
-                  ],
-                }),
-                // 遍历数据，创建排名行
-                ...tableData.flatMap((item) => [
-                  // 第一行：排名+专辑/单曲名+艺人名
-                  new TableRow({
-                    children: [
-                      new TableCell({
+    scoringMode === "scoring"
+      ? (ze = await Promise.all(
+          je.map(async (yt: any): Promise<any> => {
+            const wt = yt.integrity > 0 && yt.durability > 0,
+              Kr = await lr(yt.finalScore, wt),
+              Qr = await Me(yt.coverUrl),
+              ar = await Me(Kr);
+            return {
+              ...yt,
+              coverBinary: Qr.binary,
+              coverType: Qr.type,
+              scoreImageBinary: ar.binary,
+              scoreImageType: ar.type,
+            };
+          })
+        ))
+      : (ze = await Promise.all(
+          je.map(async (yt: any): Promise<any> => {
+            const wt = await Me(yt.coverUrl);
+            return {
+              ...yt,
+              coverBinary: wt.binary,
+              coverType: wt.type,
+              scoreImageBinary: new Uint8Array(0),
+              scoreImageType: "png",
+            };
+          })
+        ));
+    const Fr = new Document({
+        sections: [
+          {
+            children: [
+              scoringMode === "scoring"
+                ? new Table({
+                    rows: [
+                      new TableRow({
                         children: [
-                          new Paragraph({
+                          new TableCell({
                             children: [
-                              new TextRun({
-                                text: `NO.${item.rank} `,
-                                bold: true,
-                                size: 24, // 小四 (12pt = 24)
-                                font: "Times New Roman",
-                              }),
-                              new TextRun({
-                                text: `${item.title} - ${item.artist}`,
-                                bold: false,
-                                size: 24, // 小四 (12pt = 24)
-                                font: "Times New Roman",
-                              })
-                            ],
-                            alignment: AlignmentType.CENTER,
-                          })
-                        ],
-                        // 合并三列
-                        columnSpan: 3,
-                        borders: {
-                          top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                        }
-                      })
-                    ]
-                  }),
-                  // 第二行：封面+详情（嵌套表格）+评分
-                  new TableRow({
-                    children: [
-                      // 封面列
-                      new TableCell({
-                        children: [
-                          new Paragraph({
-                            children: [
-                              new ImageRun({
-                                 type: (item.coverType as "png" | "jpg" | "gif" | "bmp") || "png",
-                                 data: item.coverBinary,
-                                 transformation: {
-                                   width: 142, // 5cm ≈ 142像素
-                                   height: 142,
-                                 },
-                               })
-                            ],
-                            alignment: AlignmentType.CENTER,
-                            spacing: {
-                              before: 0, // 图片上方间距，进一步减小距离
-                              after: 0, // 图片下方间距，进一步减小距离
-                              line: 1, // 行间距，进一步减小距离
-                              lineRule: "atLeast"
-                            }
-                          })
-                        ],
-                        width: {
-                          size: 4536, // 4cm ≈ 4536缇
-                          type: WidthType.DXA
-                        },
-                        verticalAlign: AlignmentType.CENTER,
-                        borders: {
-                          top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                        },
-                        margins: {
-                          top: 0, // 单元格顶部边距，进一步减小距离
-                          bottom: 0, // 单元格底部边距，进一步减小距离
-                          left: 0, // 单元格左侧边距，进一步减小距离
-                          right: 0, // 单元格右侧边距，进一步减小距离
-                        }
-                      }),
-                      // 详情列：使用嵌套表格分隔评分信息和评论
-                      new TableCell({
-                        children: [
-                          new Table({
-                            rows: [
-                              // 嵌套表格第一行：原始分数/整体性/保值度
-                              new TableRow({
+                              new Paragraph({
                                 children: [
-                                  new TableCell({
-                                    children: [
-                                      new Paragraph({
-                                        children: [
-                                          new TextRun({
-                                            text: `原始分数：${item.originalScore}`,
-                                            size: 22, // 11pt = 22
-                                            font: "仿宋",
-                                          })
-                                        ],
-                                        alignment: AlignmentType.CENTER,
-                                        spacing: {
-                                          before: 50, // 段落上方间距
-                                          after: 50 // 段落下方间距
-                                        }
-                                      }),
-                                      new Paragraph({
-                                        children: [
-                                          new TextRun({
-                                            text: `整体性：${item.integrity > 0 ? '+' + item.integrity.toFixed(1) : '0'}`,
-                                            size: 22, // 11pt = 22
-                                            font: "仿宋",
-                                          })
-                                        ],
-                                        alignment: AlignmentType.CENTER,
-                                        spacing: {
-                                          before: 50, // 段落上方间距
-                                          after: 50 // 段落下方间距
-                                        }
-                                      }),
-                                      new Paragraph({
-                                        children: [
-                                          new TextRun({
-                                            text: `保值度：${item.durability > 0 ? '+' + item.durability.toFixed(1) : '0'}`,
-                                            size: 22, // 11pt = 22
-                                            font: "仿宋",
-                                          })
-                                        ],
-                                        alignment: AlignmentType.CENTER,
-                                        spacing: {
-                                          before: 50, // 段落上方间距
-                                          after: 50 // 段落下方间距
-                                        }
-                                      })
-                                    ],
-                                    borders: {
-                                      top: { style: BorderStyle.NONE, size: 0, color: "000000" },
-                                      bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                                      left: { style: BorderStyle.NONE, size: 0, color: "000000" },
-                                      right: { style: BorderStyle.NONE, size: 0, color: "000000" },
-                                    }
-                                  })
-                                ]
+                                  new TextRun({
+                                    text: "封面",
+                                    bold: !0,
+                                    size: 24,
+                                    font: "仿宋",
+                                    color: "FFFFFF",
+                                  }),
+                                ],
+                                alignment: AlignmentType.CENTER,
+                                shading: { fill: "000000" },
                               }),
-                              // 嵌套表格第二行：评论
-                              new TableRow({
-                                children: [
-                                  new TableCell({
-                                    children: [
-                                      new Paragraph({
-                                        children: [
-                                          new TextRun({
-                                            text: item.review || '没有评价的义务！',
-                                            size: 22, // 11pt = 22
-                                            font: "仿宋",
-                                          })
-                                        ],
-                                        alignment: AlignmentType.CENTER,
-                                        spacing: { after: 100, before: 100 }
-                                      })
-                                    ],
-                                    borders: {
-                                      top: { style: BorderStyle.NONE, size: 0, color: "000000" },
-                                      bottom: { style: BorderStyle.NONE, size: 0, color: "000000" },
-                                      left: { style: BorderStyle.NONE, size: 0, color: "000000" },
-                                      right: { style: BorderStyle.NONE, size: 0, color: "000000" },
-                                    }
-                                  })
-                                ]
-                              })
                             ],
-                            width: {
-                              size: 100,
-                              type: WidthType.PERCENTAGE
-                            }
-                          })
-                        ],
-                        width: {
-                          size: 4536, // 4cm ≈ 4536缇
-                          type: WidthType.DXA
-                        },
-                        margins: {
-                          top: 200, // 单元格顶部边距
-                          bottom: 200, // 单元格底部边距
-                          left: 200, // 单元格左侧边距
-                          right: 200, // 单元格右侧边距
-                        },
-                        borders: {
-                          top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                        }
-                      }),
-                      // 评分列
-                      new TableCell({
-                        verticalAlign: AlignmentType.CENTER,
-                        children: [
-                          new Paragraph({
-                            alignment: AlignmentType.CENTER,
+                            width: { size: 3800, type: WidthType.DXA },
+                            borders: {
+                              top: {
+                                style: BorderStyle.SINGLE,
+                                size: 1,
+                                color: "000000",
+                              },
+                              bottom: {
+                                style: BorderStyle.SINGLE,
+                                size: 1,
+                                color: "000000",
+                              },
+                              left: {
+                                style: BorderStyle.SINGLE,
+                                size: 1,
+                                color: "000000",
+                              },
+                              right: {
+                                style: BorderStyle.SINGLE,
+                                size: 1,
+                                color: "FFFFFF",
+                              },
+                            },
+                          }),
+                          new TableCell({
                             children: [
-                              // 只显示生成的包含分数的图片
-                              new ImageRun({
-                                type: (item.scoreImageType as "png" | "jpg" | "gif" | "bmp") || "png",
-                                data: item.scoreImageBinary,
-                                transformation: {
-                                  width: 142,
-                                  height: 142,
-                                },
-                              })
+                              new Paragraph({
+                                children: [
+                                  new TextRun({
+                                    text: "详情",
+                                    bold: !0,
+                                    size: 24,
+                                    font: "仿宋",
+                                    color: "FFFFFF",
+                                  }),
+                                ],
+                                alignment: AlignmentType.CENTER,
+                                shading: { fill: "000000" },
+                              }),
                             ],
-                            spacing: {
-                              before: 0, // 图片上方间距，进一步减小距离
-                              after: 0 // 图片下方间距，进一步减小距离
-                            }
+                            width: { size: 6200, type: WidthType.DXA },
+                            borders: {
+                              top: {
+                                style: BorderStyle.SINGLE,
+                                size: 1,
+                                color: "000000",
+                              },
+                              bottom: {
+                                style: BorderStyle.SINGLE,
+                                size: 1,
+                                color: "000000",
+                              },
+                              left: {
+                                style: BorderStyle.SINGLE,
+                                size: 1,
+                                color: "FFFFFF",
+                              },
+                              right: {
+                                style: BorderStyle.SINGLE,
+                                size: 1,
+                                color: "FFFFFF",
+                              },
+                            },
+                          }),
+                          new TableCell({
+                            children: [
+                              new Paragraph({
+                                children: [
+                                  new TextRun({
+                                    text: "评分",
+                                    bold: !0,
+                                    size: 24,
+                                    font: "仿宋",
+                                    color: "FFFFFF",
+                                  }),
+                                ],
+                                alignment: AlignmentType.CENTER,
+                                shading: { fill: "000000" },
+                              }),
+                            ],
+                            width: { size: 5e3, type: WidthType.DXA },
+                            borders: {
+                              top: {
+                                style: BorderStyle.SINGLE,
+                                size: 1,
+                                color: "000000",
+                              },
+                              bottom: {
+                                style: BorderStyle.SINGLE,
+                                size: 1,
+                                color: "000000",
+                              },
+                              left: {
+                                style: BorderStyle.SINGLE,
+                                size: 1,
+                                color: "FFFFFF",
+                              },
+                              right: {
+                                style: BorderStyle.SINGLE,
+                                size: 1,
+                                color: "000000",
+                              },
+                            },
                           }),
                         ],
-                        width: {
-                          size: 5670, // 5cm ≈ 5670缇
-                          type: WidthType.DXA
-                        },
-                        margins: {
-                          top: 0, // 单元格顶部边距，进一步减小距离
-                          bottom: 0, // 单元格底部边距，进一步减小距离
-                          left: 0, // 单元格左侧边距，进一步减小距离
-                          right: 0, // 单元格右侧边距，进一步减小距离
-                        },
-                        borders: {
-                          top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                        }
-                      })
-                    ]
+                      }),
+                      ...ze.flatMap((yt: any) => [
+                        new TableRow({
+                          children: [
+                            new TableCell({
+                              children: [
+                                new Paragraph({
+                                  children: [
+                                    new TextRun({
+                                      text: `NO.${yt.rank} `,
+                                      bold: !0,
+                                      size: 24,
+                                      font: "Times New Roman",
+                                    }),
+                                    new TextRun({
+                                      text: `${yt.title} - ${yt.artist}`,
+                                      bold: !1,
+                                      size: 24,
+                                      font: "Times New Roman",
+                                    }),
+                                  ],
+                                  alignment: AlignmentType.CENTER,
+                                }),
+                              ],
+                              columnSpan: 3,
+                              borders: {
+                                top: {
+                                  style: BorderStyle.SINGLE,
+                                  size: 1,
+                                  color: "000000",
+                                },
+                                bottom: {
+                                  style: BorderStyle.SINGLE,
+                                  size: 1,
+                                  color: "000000",
+                                },
+                                left: {
+                                  style: BorderStyle.SINGLE,
+                                  size: 1,
+                                  color: "000000",
+                                },
+                                right: {
+                                  style: BorderStyle.SINGLE,
+                                  size: 1,
+                                  color: "000000",
+                                },
+                              },
+                            }),
+                          ],
+                        }),
+                        new TableRow({
+                          children: [
+                            new TableCell({
+                              children: [
+                                new Paragraph({
+                                  children: [
+                                    new ImageRun({
+                                      type: yt.coverType || "png",
+                                      data: yt.coverBinary,
+                                      transformation: {
+                                        width: 142,
+                                        height: 142,
+                                      },
+                                    }),
+                                  ],
+                                  alignment: AlignmentType.CENTER,
+                                  spacing: {
+                                    before: 0,
+                                    after: 0,
+                                    line: 1,
+                                    lineRule: "atLeast",
+                                  },
+                                }),
+                              ],
+                              width: { size: 4536, type: WidthType.DXA },
+                              verticalAlign: AlignmentType.CENTER,
+                              borders: {
+                                top: {
+                                  style: BorderStyle.SINGLE,
+                                  size: 1,
+                                  color: "000000",
+                                },
+                                bottom: {
+                                  style: BorderStyle.SINGLE,
+                                  size: 1,
+                                  color: "000000",
+                                },
+                                left: {
+                                  style: BorderStyle.SINGLE,
+                                  size: 1,
+                                  color: "000000",
+                                },
+                                right: {
+                                  style: BorderStyle.SINGLE,
+                                  size: 1,
+                                  color: "000000",
+                                },
+                              },
+                              margins: { top: 0, bottom: 0, left: 0, right: 0 },
+                            }),
+                            new TableCell({
+                              children: [
+                                new Table({
+                                  rows: [
+                                    new TableRow({
+                                      children: [
+                                        new TableCell({
+                                          children: [
+                                            new Paragraph({
+                                              children: [
+                                                new TextRun({
+                                                  text: `原始分数：${yt.originalScore}`,
+                                                  size: 22,
+                                                  font: "仿宋",
+                                                }),
+                                              ],
+                                              alignment: AlignmentType.CENTER,
+                                              spacing: {
+                                                before: 50,
+                                                after: 50,
+                                              },
+                                            }),
+                                            new Paragraph({
+                                              children: [
+                                                new TextRun({
+                                                  text: `整体性：${
+                                                    yt.integrity > 0
+                                                      ? "+" +
+                                                        yt.integrity.toFixed(1)
+                                                      : "0"
+                                                  }`,
+                                                  size: 22,
+                                                  font: "仿宋",
+                                                }),
+                                              ],
+                                              alignment: AlignmentType.CENTER,
+                                              spacing: {
+                                                before: 50,
+                                                after: 50,
+                                              },
+                                            }),
+                                            new Paragraph({
+                                              children: [
+                                                new TextRun({
+                                                  text: `保值度：${
+                                                    yt.durability > 0
+                                                      ? "+" +
+                                                        yt.durability.toFixed(1)
+                                                      : "0"
+                                                  }`,
+                                                  size: 22,
+                                                  font: "仿宋",
+                                                }),
+                                              ],
+                                              alignment: AlignmentType.CENTER,
+                                              spacing: {
+                                                before: 50,
+                                                after: 50,
+                                              },
+                                            }),
+                                          ],
+                                          borders: {
+                                            top: {
+                                              style: BorderStyle.NONE,
+                                              size: 0,
+                                              color: "000000",
+                                            },
+                                            bottom: {
+                                              style: BorderStyle.SINGLE,
+                                              size: 1,
+                                              color: "000000",
+                                            },
+                                            left: {
+                                              style: BorderStyle.NONE,
+                                              size: 0,
+                                              color: "000000",
+                                            },
+                                            right: {
+                                              style: BorderStyle.NONE,
+                                              size: 0,
+                                              color: "000000",
+                                            },
+                                          },
+                                        }),
+                                      ],
+                                    }),
+                                    new TableRow({
+                                      children: [
+                                        new TableCell({
+                                          children: [
+                                            new Paragraph({
+                                              children: [
+                                                new TextRun({
+                                                  text:
+                                                    yt.review ||
+                                                    "没有评价的义务！",
+                                                  size: 22,
+                                                  font: "仿宋",
+                                                }),
+                                              ],
+                                              alignment: AlignmentType.CENTER,
+                                              spacing: {
+                                                after: 100,
+                                                before: 100,
+                                              },
+                                            }),
+                                          ],
+                                          borders: {
+                                            top: {
+                                              style: BorderStyle.NONE,
+                                              size: 0,
+                                              color: "000000",
+                                            },
+                                            bottom: {
+                                              style: BorderStyle.NONE,
+                                              size: 0,
+                                              color: "000000",
+                                            },
+                                            left: {
+                                              style: BorderStyle.NONE,
+                                              size: 0,
+                                              color: "000000",
+                                            },
+                                            right: {
+                                              style: BorderStyle.NONE,
+                                              size: 0,
+                                              color: "000000",
+                                            },
+                                          },
+                                        }),
+                                      ],
+                                    }),
+                                  ],
+                                  width: {
+                                    size: 100,
+                                    type: WidthType.PERCENTAGE,
+                                  },
+                                }),
+                              ],
+                              width: { size: 4536, type: WidthType.DXA },
+                              margins: {
+                                top: 200,
+                                bottom: 200,
+                                left: 200,
+                                right: 200,
+                              },
+                              borders: {
+                                top: {
+                                  style: BorderStyle.SINGLE,
+                                  size: 1,
+                                  color: "000000",
+                                },
+                                bottom: {
+                                  style: BorderStyle.SINGLE,
+                                  size: 1,
+                                  color: "000000",
+                                },
+                                left: {
+                                  style: BorderStyle.SINGLE,
+                                  size: 1,
+                                  color: "000000",
+                                },
+                                right: {
+                                  style: BorderStyle.SINGLE,
+                                  size: 1,
+                                  color: "000000",
+                                },
+                              },
+                            }),
+                            new TableCell({
+                              verticalAlign: AlignmentType.CENTER,
+                              children: [
+                                new Paragraph({
+                                  alignment: AlignmentType.CENTER,
+                                  children: [
+                                    new ImageRun({
+                                      type: yt.scoreImageType || "png",
+                                      data: yt.scoreImageBinary,
+                                      transformation: {
+                                        width: 142,
+                                        height: 142,
+                                      },
+                                    }),
+                                  ],
+                                  spacing: { before: 0, after: 0 },
+                                }),
+                              ],
+                              width: { size: 5670, type: WidthType.DXA },
+                              margins: { top: 0, bottom: 0, left: 0, right: 0 },
+                              borders: {
+                                top: {
+                                  style: BorderStyle.SINGLE,
+                                  size: 1,
+                                  color: "000000",
+                                },
+                                bottom: {
+                                  style: BorderStyle.SINGLE,
+                                  size: 1,
+                                  color: "000000",
+                                },
+                                left: {
+                                  style: BorderStyle.SINGLE,
+                                  size: 1,
+                                  color: "000000",
+                                },
+                                right: {
+                                  style: BorderStyle.SINGLE,
+                                  size: 1,
+                                  color: "000000",
+                                },
+                              },
+                            }),
+                          ],
+                        }),
+                      ]),
+                    ],
                   })
-                ])
-              ]
-            }) : 
-            // 非评分模式：2列表格，每三行显示两个排名项
-            new Table({
-              rows: [
-                // 遍历数据，每两个项创建三行
-                ...Array.from({ length: Math.ceil(tableData.length / 2) }, (_, index) => {
-                  const item1 = tableData[index * 2];
-                  const item2 = tableData[index * 2 + 1];
-                  
-                  return [
-                    // 第一行：合并单元格显示歌曲信息
-                    new TableRow({
-                      children: [
-                        // 第一首歌信息
-                        new TableCell({
-                          children: [
-                            new Paragraph({
+                : new Table({
+                    rows: [
+                      ...Array.from(
+                        { length: Math.ceil(ze.length / 2) },
+                        (yt: any, wt: any) => {
+                          const Kr = ze[wt * 2],
+                            Qr = ze[wt * 2 + 1];
+                          return [
+                            new TableRow({
                               children: [
-                                new TextRun({
-                                  text: `${item1.title} - ${item1.artist}`,
-                                  bold: true,
-                                  size: 22, // 11pt = 22
-                                  font: "Times New Roman",
-                                })
-                              ],
-                              alignment: AlignmentType.CENTER,
-                            })
-                          ],
-                          borders: {
-                            top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          }
-                        }),
-                        // 第二首歌信息（如果存在）
-                        item2 ? new TableCell({
-                          children: [
-                            new Paragraph({
-                              children: [
-                                new TextRun({
-                                  text: `${item2.title} - ${item2.artist}`,
-                                  bold: true,
-                                  size: 22, // 11pt = 22
-                                  font: "Times New Roman",
-                                })
-                              ],
-                              alignment: AlignmentType.CENTER,
-                            })
-                          ],
-                          borders: {
-                            top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          }
-                        }) : new TableCell({
-                          // 空单元格，用于填充
-                          children: [new Paragraph({})],
-                          borders: {
-                            top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          }
-                        })
-                      ],
-                    }),
-                    // 第二行：只显示封面
-                    new TableRow({
-                      children: [
-                        // 第一首歌封面
-                        new TableCell({
-                          children: [
-                            new Paragraph({
-                              children: [
-                                new ImageRun({
-                                  type: (item1.coverType as "png" | "jpg" | "gif" | "bmp") || "png",
-                                  data: item1.coverBinary,
-                                  transformation: {
-                                    width: 142, // 5cm ≈ 142像素
-                                    height: 142,
+                                new TableCell({
+                                  children: [
+                                    new Paragraph({
+                                      children: [
+                                        new TextRun({
+                                          text: `${Kr.title} - ${Kr.artist}`,
+                                          bold: !0,
+                                          size: 22,
+                                          font: "Times New Roman",
+                                        }),
+                                      ],
+                                      alignment: AlignmentType.CENTER,
+                                    }),
+                                  ],
+                                  borders: {
+                                    top: {
+                                      style: BorderStyle.SINGLE,
+                                      size: 1,
+                                      color: "000000",
+                                    },
+                                    bottom: {
+                                      style: BorderStyle.SINGLE,
+                                      size: 1,
+                                      color: "000000",
+                                    },
+                                    left: {
+                                      style: BorderStyle.SINGLE,
+                                      size: 1,
+                                      color: "000000",
+                                    },
+                                    right: {
+                                      style: BorderStyle.SINGLE,
+                                      size: 1,
+                                      color: "000000",
+                                    },
                                   },
-                                })
+                                }),
+                                Qr
+                                  ? new TableCell({
+                                      children: [
+                                        new Paragraph({
+                                          children: [
+                                            new TextRun({
+                                              text: `${Qr.title} - ${Qr.artist}`,
+                                              bold: !0,
+                                              size: 22,
+                                              font: "Times New Roman",
+                                            }),
+                                          ],
+                                          alignment: AlignmentType.CENTER,
+                                        }),
+                                      ],
+                                      borders: {
+                                        top: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                        bottom: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                        left: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                        right: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                      },
+                                    })
+                                  : new TableCell({
+                                      children: [new Paragraph({})],
+                                      borders: {
+                                        top: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                        bottom: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                        left: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                        right: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                      },
+                                    }),
                               ],
-                              alignment: AlignmentType.CENTER,
-                              spacing: {
-                                before: 0,
-                                after: 0,
-                                line: 1,
-                                lineRule: "atLeast"
-                              }
-                            })
-                          ],
-                          width: {
-                            size: 9072, // 10cm ≈ 9072缇
-                            type: WidthType.DXA
-                          },
-                          verticalAlign: AlignmentType.CENTER,
-                          borders: {
-                            top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          },
-                          margins: {
-                            top: 0,
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                          }
-                        }),
-                        // 第二首歌封面（如果存在）
-                        item2 ? new TableCell({
-                          children: [
-                            new Paragraph({
+                            }),
+                            new TableRow({
                               children: [
-                                new ImageRun({
-                                  type: (item2.coverType as "png" | "jpg" | "gif" | "bmp") || "png",
-                                  data: item2.coverBinary,
-                                  transformation: {
-                                    width: 142, // 5cm ≈ 142像素
-                                    height: 142,
+                                new TableCell({
+                                  children: [
+                                    new Paragraph({
+                                      children: [
+                                        new ImageRun({
+                                          type: Kr.coverType || "png",
+                                          data: Kr.coverBinary,
+                                          transformation: {
+                                            width: 142,
+                                            height: 142,
+                                          },
+                                        }),
+                                      ],
+                                      alignment: AlignmentType.CENTER,
+                                      spacing: {
+                                        before: 0,
+                                        after: 0,
+                                        line: 1,
+                                        lineRule: "atLeast",
+                                      },
+                                    }),
+                                  ],
+                                  width: { size: 9072, type: WidthType.DXA },
+                                  verticalAlign: AlignmentType.CENTER,
+                                  borders: {
+                                    top: {
+                                      style: BorderStyle.SINGLE,
+                                      size: 1,
+                                      color: "000000",
+                                    },
+                                    bottom: {
+                                      style: BorderStyle.SINGLE,
+                                      size: 1,
+                                      color: "000000",
+                                    },
+                                    left: {
+                                      style: BorderStyle.SINGLE,
+                                      size: 1,
+                                      color: "000000",
+                                    },
+                                    right: {
+                                      style: BorderStyle.SINGLE,
+                                      size: 1,
+                                      color: "000000",
+                                    },
                                   },
-                                })
+                                  margins: {
+                                    top: 0,
+                                    bottom: 0,
+                                    left: 0,
+                                    right: 0,
+                                  },
+                                }),
+                                Qr
+                                  ? new TableCell({
+                                      children: [
+                                        new Paragraph({
+                                          children: [
+                                            new ImageRun({
+                                              type: Qr.coverType || "png",
+                                              data: Qr.coverBinary,
+                                              transformation: {
+                                                width: 142,
+                                                height: 142,
+                                              },
+                                            }),
+                                          ],
+                                          alignment: AlignmentType.CENTER,
+                                          spacing: {
+                                            before: 0,
+                                            after: 0,
+                                            line: 1,
+                                            lineRule: "atLeast",
+                                          },
+                                        }),
+                                      ],
+                                      width: {
+                                        size: 9072,
+                                        type: WidthType.DXA,
+                                      },
+                                      verticalAlign: AlignmentType.CENTER,
+                                      borders: {
+                                        top: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                        bottom: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                        left: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                        right: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                      },
+                                      margins: {
+                                        top: 0,
+                                        bottom: 0,
+                                        left: 0,
+                                        right: 0,
+                                      },
+                                    })
+                                  : new TableCell({
+                                      children: [new Paragraph({})],
+                                      width: {
+                                        size: 9072,
+                                        type: WidthType.DXA,
+                                      },
+                                      borders: {
+                                        top: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                        bottom: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                        left: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                        right: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                      },
+                                    }),
                               ],
-                              alignment: AlignmentType.CENTER,
-                              spacing: {
-                                before: 0,
-                                after: 0,
-                                line: 1,
-                                lineRule: "atLeast"
-                              }
-                            })
-                          ],
-                          width: {
-                            size: 9072, // 10cm ≈ 9072缇
-                            type: WidthType.DXA
-                          },
-                          verticalAlign: AlignmentType.CENTER,
-                          borders: {
-                            top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          },
-                          margins: {
-                            top: 0,
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                          }
-                        }) : new TableCell({
-                          // 空单元格，用于填充
-                          children: [new Paragraph({})],
-                          width: {
-                            size: 9072, // 10cm ≈ 9072缇
-                            type: WidthType.DXA
-                          },
-                          borders: {
-                            top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          }
-                        })
-                      ]
-                    }),
-                    // 第三行：只显示评价
-                    new TableRow({
-                      children: [
-                        // 第一首歌评价（移到第三行）
-                        new TableCell({
-                          children: [
-                            new Paragraph({
+                            }),
+                            new TableRow({
                               children: [
-                                new TextRun({
-                                  text: item1.review || '没有评价的义务！',
-                                  bold: false,
-                                  size: 22, // 11pt = 22
-                                  font: "仿宋",
-                                })
+                                new TableCell({
+                                  children: [
+                                    new Paragraph({
+                                      children: [
+                                        new TextRun({
+                                          text: Kr.review || "没有评价的义务！",
+                                          bold: !1,
+                                          size: 22,
+                                          font: "仿宋",
+                                        }),
+                                      ],
+                                      alignment: AlignmentType.CENTER,
+                                      spacing: { after: 100, before: 100 },
+                                    }),
+                                  ],
+                                  width: { size: 9072, type: WidthType.DXA },
+                                  verticalAlign: AlignmentType.CENTER,
+                                  borders: {
+                                    top: {
+                                      style: BorderStyle.SINGLE,
+                                      size: 1,
+                                      color: "000000",
+                                    },
+                                    bottom: {
+                                      style: BorderStyle.SINGLE,
+                                      size: 1,
+                                      color: "000000",
+                                    },
+                                    left: {
+                                      style: BorderStyle.SINGLE,
+                                      size: 1,
+                                      color: "000000",
+                                    },
+                                    right: {
+                                      style: BorderStyle.SINGLE,
+                                      size: 1,
+                                      color: "000000",
+                                    },
+                                  },
+                                  margins: {
+                                    top: 200,
+                                    bottom: 200,
+                                    left: 200,
+                                    right: 200,
+                                  },
+                                }),
+                                Qr
+                                  ? new TableCell({
+                                      children: [
+                                        new Paragraph({
+                                          children: [
+                                            new TextRun({
+                                              text:
+                                                Qr.review || "没有评价的义务！",
+                                              bold: !1,
+                                              size: 22,
+                                              font: "仿宋",
+                                            }),
+                                          ],
+                                          alignment: AlignmentType.CENTER,
+                                          spacing: { after: 100, before: 100 },
+                                        }),
+                                      ],
+                                      width: {
+                                        size: 9072,
+                                        type: WidthType.DXA,
+                                      },
+                                      verticalAlign: AlignmentType.CENTER,
+                                      borders: {
+                                        top: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                        bottom: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                        left: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                        right: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                      },
+                                      margins: {
+                                        top: 200,
+                                        bottom: 200,
+                                        left: 200,
+                                        right: 200,
+                                      },
+                                    })
+                                  : new TableCell({
+                                      children: [new Paragraph({})],
+                                      width: {
+                                        size: 9072,
+                                        type: WidthType.DXA,
+                                      },
+                                      borders: {
+                                        top: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                        bottom: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                        left: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                        right: {
+                                          style: BorderStyle.SINGLE,
+                                          size: 1,
+                                          color: "000000",
+                                        },
+                                      },
+                                    }),
                               ],
-                              alignment: AlignmentType.CENTER,
-                              spacing: { after: 100, before: 100 }
-                            })
-                          ],
-                          width: {
-                            size: 9072, // 10cm ≈ 9072缇
-                            type: WidthType.DXA
-                          },
-                          verticalAlign: AlignmentType.CENTER,
-                          borders: {
-                            top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          },
-                          margins: {
-                            top: 200,
-                            bottom: 200,
-                            left: 200,
-                            right: 200,
-                          }
-                        }),
-                        // 第二首歌评价（移到第三行，如果存在）
-                        item2 ? new TableCell({
-                          children: [
-                            new Paragraph({
-                              children: [
-                                new TextRun({
-                                  text: item2.review || '没有评价的义务！',
-                                  bold: false,
-                                  size: 22, // 11pt = 22
-                                  font: "仿宋",
-                                })
-                              ],
-                              alignment: AlignmentType.CENTER,
-                              spacing: { after: 100, before: 100 }
-                            })
-                          ],
-                          width: {
-                            size: 9072, // 10cm ≈ 9072缇
-                            type: WidthType.DXA
-                          },
-                          verticalAlign: AlignmentType.CENTER,
-                          borders: {
-                            top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          },
-                          margins: {
-                            top: 200,
-                            bottom: 200,
-                            left: 200,
-                            right: 200,
-                          }
-                        }) : new TableCell({
-                          // 空单元格，用于填充
-                          children: [new Paragraph({})],
-                          width: {
-                            size: 9072, // 10cm ≈ 9072缇
-                            type: WidthType.DXA
-                          },
-                          borders: {
-                            top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                            right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                          }
-                        })
-                      ]
-                    })
-                  ];
-                }).flat()
-              ]
-            })
-          ]
-        }
-      ]
-    });
-
-    const blob = await Packer.toBlob(doc);
-    saveAs(blob, `MeloRank_${currentYear}年度榜单.docx`);
+                            }),
+                          ];
+                        }
+                      ).flat(),
+                    ],
+                  }),
+            ],
+          },
+        ],
+      }),
+      hA = await Packer.toBlob(Fr);
+    saveAs(hA, `MeloRank_${Ne}年度榜单.docx`);
   };
-  
+
   return (
     <div className="yearly-ranking-page">
-      <h2>MeloRank · {currentYear} 年度榜单</h2>
-      <p className="platform-position">音乐评分与榜单平台</p>
-      
-      <div className="ranking-mode-selector" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <label htmlFor="ranking-mode">选择榜单类型：</label>
-          <select 
-            id="ranking-mode" 
-            value={rankingMode} 
-            onChange={(e) => setRankingMode(e.target.value)}
+      <h2>
+        {"MeloRank · "}
+        {currentYear}
+        {" 年度榜单"}
+      </h2>
+      <p className="platform-position">
+        {
+          "导出docx时，记得：“弹出图片→下载到本地→重新上传刚下载的本地图片”，否则图片不显示（我也不知道什么bug）"
+        }
+        <br />
+        {"历史榜单保存于浏览器中，各个浏览器之间看不到彼此的数据"}
+      </p>
+      <div
+        className="ranking-mode-selector"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <label htmlFor="ranking-mode">{"选择榜单类型："}</label>
+          <select
+            id="ranking-mode"
+            value={rankingMode}
+            onChange={(Ne) => setRankingMode(Ne.target.value)}
           >
-            {rankingModes.map((mode) => (
-              <option key={mode} value={mode}>{mode}</option>
+            {rankingModes.map((Ne) => (
+              <option value={Ne} key={Ne}>
+                {Ne}
+              </option>
             ))}
           </select>
-          
-          <label htmlFor="scoring-mode" style={{ marginLeft: '15px' }}>选择是否评分：</label>
-          <select 
-            id="scoring-mode" 
-            value={scoringMode} 
-            onChange={(e) => setScoringMode(e.target.value as 'scoring' | 'non-scoring')}
+          <label htmlFor="scoring-mode" style={{ marginLeft: "15px" }}>
+            {"选择是否评分："}
+          </label>
+          <select
+            id="scoring-mode"
+            value={scoringMode}
+            onChange={(Ne) =>
+              setScoringMode(Ne.target.value as "scoring" | "non-scoring")
+            }
           >
-            {scoringModes.map((mode) => (
-              <option key={mode.value} value={mode.value}>{mode.label}</option>
+            {scoringModes.map((Ne) => (
+              <option value={Ne.value} key={Ne.value}>
+                {Ne.label}
+              </option>
             ))}
           </select>
         </div>
-        <button className="export-btn" onClick={() => setShowImportDialog(true)}>
-          导入排行榜
+        <button className="export-btn" onClick={() => setShowImportDialog(!0)}>
+          {"导入排行榜"}
         </button>
       </div>
-
       <div className="ranking-container">
         <div className="ranking-form">
-          <h3>添加到 {rankingMode}</h3>
-          <form onSubmit={handleSubmit}>
-            {/* 搜索功能区域 */}
-            <div className="form-group search-container">
-              <label>搜索 {getCurrentRankingTypeName()}</label>
-              <div className="search-input-wrapper">
-                <input 
-                  type="text" 
-                  placeholder={`搜索${getCurrentRankingTypeName()}...`} 
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setShowSearchResults(true);
-                  }}
-                  onFocus={() => {
-                    if (searchResults.length > 0) {
-                      setShowSearchResults(true);
-                    }
-                  }}
-                  autoComplete="off"
-                  className="search-input"
-                />
-                {isSearching && <span className="search-loading">搜索中...</span>}
-              </div>
-              
-              {/* 搜索结果显示区域 */}
-              {showSearchResults && searchResults.length > 0 && (
-                <div className="search-results-dropdown">
-                  {searchResults.map((result) => (
-                    <div 
-                      key={result.id} 
-                      className="search-result-item"
-                      onClick={(e) => {
-                        // 只有点击结果项主体时才触发填充表单，点击按钮时不触发
-                        const target = e.target as Element;
-                        if (!target.closest('.cover-action-buttons')) {
-                          handleSearchResultClick(result);
-                        }
-                      }}
-                    >
-                      <div className="search-result-cover">
-                        {result.coverUrl && (
-                          <img src={result.coverUrl} alt={`${result.title} 封面`} />
-                        )}
-                      </div>
-                      <div className="search-result-info">
-                        <div className="search-result-title">
-                          {result.title}
-                          <span className="search-result-type">
-                            {result.type === 'album' && ' [专辑]'}
-                            {result.type === 'song' && ' [单曲]'}
-                            {result.type === 'artist' && ' [艺人]'}
-                          </span>
-                        </div>
-                        <div className="search-result-subtitle">
-                          {result.artist}
-                          {result.album && result.type === 'song' && <span className="search-result-album"> · {result.album}</span>}
-                        </div>
-                      </div>
-                      <div className="cover-action-buttons">
-                        <button 
-                          className="cover-action-btn copy-btn"
-                          onClick={(e) => {
-                            e.stopPropagation(); // 阻止事件冒泡到父元素
-                            e.preventDefault(); // 阻止默认行为
-                            showCoverPreview(result.coverUrl);
-                          }}
-                          title="弹出封面"
-                        >
-                          弹出封面
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              {/* 搜索错误提示 */}
-              {searchError && (
-                <div className="search-error">{searchError}</div>
-              )}
+          <h3>
+            {"添加到 "}
+            {rankingMode}
+          </h3>
+          <div className="yearly-search-container" ref={searchInputRef}>
+            <div className="yearly-search-input-wrapper">
+              <input
+                type="text"
+                className="yearly-search-input"
+                placeholder="搜索歌曲..."
+                value={searchQuery}
+                onChange={(Ne) => {
+                  const je = Ne.target.value;
+                  setSearchQuery(je), debouncedSearch(je);
+                }}
+                onKeyPress={handleSearchKeyDown}
+              />
             </div>
-            
+            {isSearching && (
+              <div className="yearly-search-loading">{"正在搜索..."}</div>
+            )}
+            {searchResults && (
+              <div className="yearly-search-results" ref={searchResultsRef}>
+                {(() => {
+                  let Ne: any[] = [];
+                  const je = searchResults.response || searchResults,
+                    ze = je.data || je;
+                  return (
+                    ze.song && ze.song.list && (Ne = ze.song.list),
+                    Ne.length > 0 ? (
+                      Ne.map((Me) => {
+                        var st;
+                        return !Me || !Me.songmid ? null : (
+                          <div
+                            className="yearly-search-result-item"
+                            onClick={() => handleSearchResultClick(Me)}
+                            key={Me.songmid}
+                          >
+                            <div className="yearly-search-result-cover">
+                              {Me.albummid && (
+                                <img
+                                  src={`https://y.qq.com/music/photo_new/T002R300x300M000${Me.albummid}.jpg`}
+                                  alt={Me.songname || "歌曲封面"}
+                                />
+                              )}
+                            </div>
+                            <div className="yearly-search-result-info">
+                              <div className="yearly-search-result-title">
+                                {Me.songname || "未知歌曲"}
+                              </div>
+                              <div className="yearly-search-result-subtitle">
+                                {((st = Me.singer) == null
+                                  ? void 0
+                                  : st
+                                      .map((gt: any) => gt.name || "未知歌手")
+                                      .join(", ")) || "未知歌手"}
+                                {" · "}
+                                {Me.albumname || "未知专辑"}
+                              </div>
+                            </div>
+                            <button
+                              className="cover-preview-btn"
+                              onClick={(gt) => {
+                                if ((gt.stopPropagation(), Me.albummid)) {
+                                  const ft = `https://y.qq.com/music/photo_new/T002R300x300M000${Me.albummid}.jpg`;
+                                  showCoverPreview(ft);
+                                }
+                              }}
+                              title="查看封面"
+                            >
+                              {"弹出封面"}
+                            </button>
+                          </div>
+                        );
+                      }).filter(Boolean)
+                    ) : (
+                      <div className="yearly-search-no-results">
+                        {"没有找到相关结果"}
+                      </div>
+                    )
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+          <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>封面图片</label>
+              <label>{"封面图片"}</label>
               <div className="cover-upload-container">
-                <input 
-                  type="text" 
-                  name="coverUrl" 
-                  placeholder="输入图片URL/粘贴图片" 
+                <input
+                  type="text"
+                  name="coverUrl"
+                  placeholder="输入图片URL/粘贴图片"
                   value={coverUrl}
-                  onChange={(e) => {
-                    setCoverUrl(e.target.value);
-                    setCoverPreview(e.target.value);
+                  onChange={(Ne) => {
+                    setCoverUrl(Ne.target.value),
+                      setCoverPreview(Ne.target.value);
                   }}
-                  onPaste={(e) => {
-                    // 处理粘贴事件
-                    const items = e.clipboardData?.items;
-                    if (items) {
-                      for (let i = 0; i < items.length; i++) {
-                        if (items[i].type.indexOf('image') !== -1) {
-                          // 获取粘贴的图片文件
-                          const file = items[i].getAsFile();
-                          if (file) {
-                            // 创建FileReader读取图片
-                            const reader = new FileReader();
-                            reader.onload = (e) => {
-                              const result = e.target?.result as string;
-                              // 设置为封面URL和预览
-                              setCoverUrl(result);
-                              setCoverPreview(result);
-                            };
-                            reader.readAsDataURL(file);
-                            // 阻止默认粘贴行为
-                            e.preventDefault();
+                  onPaste={(Ne) => {
+                    var ze;
+                    const je =
+                      (ze = Ne.clipboardData) == null ? void 0 : ze.items;
+                    if (je) {
+                      for (let Me = 0; Me < je.length; Me++)
+                        if (je[Me].type.indexOf("image") !== -1) {
+                          const st = je[Me].getAsFile();
+                          if (st) {
+                            const gt = new FileReader();
+                            (gt.onload = (ft) => {
+                              var Fr;
+                              const lr =
+                                (Fr = ft.target) == null ? void 0 : Fr.result;
+                              if (typeof lr === "string") {
+                                setCoverUrl(lr);
+                                setCoverPreview(lr);
+                              }
+                            }),
+                              gt.readAsDataURL(st),
+                              Ne.preventDefault();
                             break;
                           }
                         }
-                      }
                     }
                   }}
                   autoComplete="off"
                 />
-                <input 
-                  type="file" 
-                  accept="image/*" 
+                <input
+                  type="file"
+                  accept="image/*"
                   ref={fileInputRef}
                   onChange={handleFileUpload}
-                  style={{ display: 'none' }}
+                  style={{ display: "none" }}
                 />
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="upload-btn"
                   onClick={triggerFileSelect}
                 >
-                  上传本地图片
+                  {"上传本地图片"}
                 </button>
               </div>
-              {/* 图片预览区域 */}
               {coverPreview && (
                 <div className="cover-preview">
                   <img src={coverPreview} alt="封面预览" />
@@ -2226,412 +2535,855 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
               )}
             </div>
             <div className="form-group">
-              <label>作品名称</label>
-              <input type="text" name="title" placeholder="输入歌曲/专辑名称" autoComplete="off" />
+              <label>{"作品名称"}</label>
+              <input
+                type="text"
+                name="title"
+                placeholder="输入歌曲/专辑名称"
+                autoComplete="off"
+              />
             </div>
             <div className="form-group">
-              <label>艺术家</label>
-              <input type="text" name="artist" placeholder="输入艺术家名称" autoComplete="off" />
+              <label>{"艺术家"}</label>
+              <input
+                type="text"
+                name="artist"
+                placeholder="输入艺术家名称"
+                autoComplete="off"
+              />
             </div>
             <div className="form-group">
-              <label>评分</label>
-              <input type="number" name="score" min="0" max="100" step="0.01" placeholder="0-100" autoComplete="off" disabled={scoringMode === 'non-scoring'} />
+              <label>{"评分"}</label>
+              <input
+                type="number"
+                name="score"
+                min="0"
+                max="100"
+                step="0.01"
+                placeholder="0-100"
+                autoComplete="off"
+                disabled={scoringMode === "non-scoring"}
+              />
             </div>
             <div className="form-group">
-              <label>整体性</label>
+              <label>{"整体性"}</label>
               <div className="score-adjuster">
                 <div className="score-input-with-arrows">
-                  <input 
-                    type="number" 
-                    min="0" 
-                    max="2" 
-                    step="0.5" 
-                    defaultValue="0.0" 
-                    placeholder="0-2" 
-                    readOnly 
+                  <input
+                    type="number"
+                    min="0"
+                    max="2"
+                    step="0.5"
+                    defaultValue="0.0"
+                    placeholder="0-2"
+                    readOnly={!0}
                     ref={integrityRef}
-                    disabled={scoringMode === 'non-scoring'}
+                    disabled={scoringMode === "non-scoring"}
                   />
                   <div className="arrow-controls">
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="arrow-btn arrow-up"
-                      onClick={() => adjustScore(integrityRef, true)}
-                      disabled={scoringMode === 'non-scoring'}
+                      onClick={() => adjustScore(integrityRef, !0)}
+                      disabled={scoringMode === "non-scoring"}
                     >
-                      ▲
+                      {"▲"}
                     </button>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="arrow-btn arrow-down"
-                      onClick={() => adjustScore(integrityRef, false)}
-                      disabled={scoringMode === 'non-scoring'}
+                      onClick={() => adjustScore(integrityRef, !1)}
+                      disabled={scoringMode === "non-scoring"}
                     >
-                      ▼
+                      {"▼"}
                     </button>
                   </div>
                 </div>
               </div>
             </div>
             <div className="form-group">
-              <label>保值度</label>
+              <label>{"保值度"}</label>
               <div className="score-adjuster">
                 <div className="score-input-with-arrows">
-                  <input 
-                    type="number" 
-                    min="0" 
-                    max="2" 
-                    step="0.5" 
-                    defaultValue="0.0" 
-                    placeholder="0-2" 
-                    readOnly 
+                  <input
+                    type="number"
+                    min="0"
+                    max="2"
+                    step="0.5"
+                    defaultValue="0.0"
+                    placeholder="0-2"
+                    readOnly={!0}
                     ref={durabilityRef}
-                    disabled={scoringMode === 'non-scoring'}
+                    disabled={scoringMode === "non-scoring"}
                   />
                   <div className="arrow-controls">
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="arrow-btn arrow-up"
-                      onClick={() => adjustScore(durabilityRef, true)}
-                      disabled={scoringMode === 'non-scoring'}
+                      onClick={() => adjustScore(durabilityRef, !0)}
+                      disabled={scoringMode === "non-scoring"}
                     >
-                      ▲
+                      {"▲"}
                     </button>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="arrow-btn arrow-down"
-                      onClick={() => adjustScore(durabilityRef, false)}
-                      disabled={scoringMode === 'non-scoring'}
+                      onClick={() => adjustScore(durabilityRef, !1)}
+                      disabled={scoringMode === "non-scoring"}
                     >
-                      ▼
+                      {"▼"}
                     </button>
                   </div>
                 </div>
               </div>
             </div>
             <div className="form-group">
-              <label>评价</label>
-              <textarea name="review" rows={4} placeholder="写下你的评价..." autoComplete="off"></textarea>
+              <label>{"评价"}</label>
+              <textarea
+                name="review"
+                rows={4}
+                placeholder="写下你的评价..."
+                autoComplete="off"
+              />
             </div>
-            <button type="submit" className="add-btn">{editMode ? '修改完成' : '添加到榜单'}</button>
+            <button type="submit" className="add-btn">
+              {editMode ? "修改完成" : "添加到榜单"}
+            </button>
           </form>
         </div>
-
         <div className="ranking-display">
           <div className="ranking-display-header">
             <div className="ranking-title-with-restore">
-              <h3>{currentYear} {rankingMode}</h3>
-              <button 
-                className="restore-btn"
-                onClick={restoreDefaultRanking}
-              >
-                恢复默认榜单
+              <h3>
+                {currentYear} {rankingMode}
+              </h3>
+              <button className="restore-btn" onClick={restoreDefaultRanking}>
+                {"恢复默认榜单"}
               </button>
             </div>
             <div className="export-buttons">
-              <button className="export-btn" onClick={saveRanking} disabled={isSaving}>
-                {isSaving ? '保存中...' : '保存榜单'}
+              <button
+                className="export-btn"
+                onClick={handleSaveClick}
+                disabled={isSaving}
+              >
+                {isSaving ? "保存中..." : "保存榜单"}
               </button>
-
-              <button className="export-btn" onClick={fetchHistoryRankings} disabled={isSaving}>
-                历史榜单记录
+              <button
+                className="export-btn"
+                onClick={handleSaveAsClick}
+                disabled={isSaving}
+              >
+                {isSaving ? "保存中..." : "另存为"}
               </button>
-              <button className="export-btn" onClick={exportPDF}>导出 PDF</button>
-              <button className="export-btn" onClick={exportDOCX}>导出 DOCX</button>
+              <button
+                className="export-btn"
+                onClick={fetchHistoryRankings}
+                disabled={isSaving}
+              >
+                {"历史榜单记录"}
+              </button>
+              <button className="export-btn" onClick={exportDOCX}>
+                {"导出 DOCX"}
+              </button>
             </div>
           </div>
-
           <div className="user-ranking-list">
-            {/* 根据评分模式处理榜单数据 */}
-            {(() => {
-              // 如果是不评分模式，使用当前排序（允许用户手动调整）
-              if (scoringMode === 'non-scoring') {
-                return rankingList.map((item, index) => (
-                  <div key={item.id} className="user-rank-item">
-                    <div className="user-rank-number">{index + 1}</div>
+            {scoringMode === "non-scoring"
+              ? rankingList.map((Ne, je) => (
+                  <div className="user-rank-item" key={Ne.id}>
+                    <div className="user-rank-number">{je + 1}</div>
                     <div className="user-rank-cover">
-                      <img 
-                        src={item.coverUrl} 
-                        alt={`${item.title} 封面`} 
+                      <img
+                        src={
+                          Ne.coverUrl ||
+                          "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Crect width='150' height='150' fill='%23333'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='14'%3EMeloRank%3C/text%3E%3C/svg%3E"
+                        }
+                        alt={`${Ne.title} 封面`}
+                        onClick={() =>
+                          showCoverPreview(
+                            Ne.coverUrl ||
+                              "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Crect width='150' height='150' fill='%23333'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='14'%3EMeloRank%3C/text%3E%3C/svg%3E"
+                          )
+                        }
+                        style={{ cursor: "pointer" }}
                       />
                     </div>
                     <div className="user-rank-content">
-                      <div className="user-rank-title">{item.title}</div>
-                      <div className="user-rank-artist">{item.artist}</div>
+                      <div className="user-rank-title">{Ne.title}</div>
+                      <div className="user-rank-artist">{Ne.artist}</div>
                       <div className="user-rank-review">
-                        {item.review || '没有评价的义务！'}
+                        {Ne.review || "没有评价的义务！"}
                       </div>
                     </div>
-                    {/* 不评分模式下不显示分数相关内容，但显示移动按钮 */}
-                    <div className="user-rank-actions" style={{ marginLeft: 'auto' }}>
-                      <button 
-                        className="action-btn move-btn" 
-                        onClick={() => moveItemUp(item)}
-                        disabled={index === 0}
-                        title="上移"
-                      >
-                        ▲
-                      </button>
-                      <button 
-                        className="action-btn move-btn" 
-                        onClick={() => moveItemDown(item)}
-                        disabled={index === rankingList.length - 1}
-                        title="下移"
-                      >
-                        ▼
-                      </button>
-                      <button 
-                        className="action-btn edit-btn" 
-                        onClick={() => handleEdit(item)}
-                      >
-                        编辑
-                      </button>
-                      <button 
-                        className="action-btn delete-btn" 
-                        onClick={() => handleDelete(item.id)}
-                      >
-                        删除
-                      </button>
-                    </div>
-                  </div>
-                ));
-              }
-              
-              // 评分模式下按原有逻辑显示
-              return rankingList.map((item) => (
-                <div key={item.id} className="user-rank-item">
-                  <div className="user-rank-number">{item.rank}</div>
-                  <div className="user-rank-cover">
-                    <img 
-                      src={item.coverUrl} 
-                      alt={`${item.title} 封面`} 
-                    />
-                  </div>
-                  <div className="user-rank-content">
-                    <div className="user-rank-title">{item.title}</div>
-                    <div className="user-rank-artist">{item.artist}</div>
-                    <div className="user-rank-review">
-                      {item.review || '没有评价的义务！'}
-                    </div>
-                  </div>
-                  <div className="user-rank-score">
-                    <div className="user-rank-bonus">
-                      {item.integrity > 0 && (
-                        <span className="bonus-item">
-                          <span className="bonus-label">整体性</span>
-                          <span className="bonus-star">⭐</span>
-                          <span className="bonus-value">+{item.integrity}</span>
-                        </span>
-                      )}
-                      {item.durability > 0 && (
-                        <span className="bonus-item">
-                          <span className="bonus-label">保值度</span>
-                          <span className="bonus-star">⭐</span>
-                          <span className="bonus-value">+{item.durability}</span>
-                        </span>
-                      )}
-                    </div>
-                    <div className="score-box">
-                      {item.originalScore}
-                    </div>
-                  </div>
-                  <div className="user-rank-actions">
-                    <button 
-                      className="action-btn edit-btn" 
-                      onClick={() => handleEdit(item)}
+                    <div
+                      className="user-rank-actions"
+                      style={{ marginLeft: "auto" }}
                     >
-                      编辑
-                    </button>
-                    <button 
-                      className="action-btn delete-btn" 
-                      onClick={() => handleDelete(item.id)}
-                    >
-                      删除
-                    </button>
+                      <div className="move-buttons">
+                        <button
+                          className="action-btn move-btn"
+                          onClick={() => moveItemUp(Ne)}
+                          disabled={je === 0}
+                          title="上移"
+                        >
+                          {"▲"}
+                        </button>
+                        <button
+                          className="action-btn move-btn"
+                          onClick={() => moveItemDown(Ne)}
+                          disabled={je === rankingList.length - 1}
+                          title="下移"
+                        >
+                          {"▼"}
+                        </button>
+                      </div>
+                      <button
+                        className="action-btn edit-btn"
+                        onClick={() => handleEdit(Ne)}
+                      >
+                        {"编辑"}
+                      </button>
+                      <button
+                        className="action-btn delete-btn"
+                        onClick={() => handleDelete(Ne.id)}
+                      >
+                        {"删除"}
+                      </button>
+                      <button
+                        className="action-btn cover-btn"
+                        onClick={() =>
+                          showCoverPreview(
+                            Ne.coverUrl ||
+                              "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Crect width='150' height='150' fill='%23333'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='14'%3EMeloRank%3C/text%3E%3C/svg%3E"
+                          )
+                        }
+                        title="查看封面"
+                      >
+                        {"弹出封面"}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ));
-            })()}
+                ))
+              : rankingList.map((Ne) => (
+                  <div className="user-rank-item" key={Ne.id}>
+                    <div className="user-rank-number">{Ne.rank}</div>
+                    <div className="user-rank-cover">
+                      <img
+                        src={
+                          Ne.coverUrl ||
+                          "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Crect width='150' height='150' fill='%23333'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='14'%3EMeloRank%3C/text%3E%3C/svg%3E"
+                        }
+                        alt={`${Ne.title} 封面`}
+                        onClick={() =>
+                          showCoverPreview(
+                            Ne.coverUrl ||
+                              "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Crect width='150' height='150' fill='%23333'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='14'%3EMeloRank%3C/text%3E%3C/svg%3E"
+                          )
+                        }
+                        style={{ cursor: "pointer" }}
+                      />
+                    </div>
+                    <div className="user-rank-content">
+                      <div className="user-rank-title">{Ne.title}</div>
+                      <div className="user-rank-artist">{Ne.artist}</div>
+                      <div className="user-rank-review">
+                        {Ne.review || "没有评价的义务！"}
+                      </div>
+                    </div>
+                    <div className="user-rank-score">
+                      <div className="user-rank-bonus">
+                        {Ne.integrity > 0 && (
+                          <span className="bonus-item">
+                            <span className="bonus-label">{"整体性"}</span>
+                            <span className="bonus-star">{"⭐"}</span>
+                            <span className="bonus-value">
+                              {"+"}
+                              {Ne.integrity}
+                            </span>
+                          </span>
+                        )}
+                        {Ne.durability > 0 && (
+                          <span className="bonus-item">
+                            <span className="bonus-label">{"保值度"}</span>
+                            <span className="bonus-star">{"⭐"}</span>
+                            <span className="bonus-value">
+                              {"+"}
+                              {Ne.durability}
+                            </span>
+                          </span>
+                        )}
+                      </div>
+                      <div className="score-box">{Ne.originalScore}</div>
+                    </div>
+                    <div className="user-rank-actions">
+                      <button
+                        className="action-btn edit-btn"
+                        onClick={() => handleEdit(Ne)}
+                      >
+                        {"编辑"}
+                      </button>
+                      <button
+                        className="action-btn delete-btn"
+                        onClick={() => handleDelete(Ne.id)}
+                      >
+                        {"删除"}
+                      </button>
+                      <button
+                        className="action-btn cover-btn"
+                        onClick={() => showCoverPreview(Ne.coverUrl)}
+                        title="查看封面"
+                      >
+                        {"弹出封面"}
+                      </button>
+                    </div>
+                  </div>
+                ))}
           </div>
         </div>
       </div>
-
-      {/* ====== 隐藏导出榜单（不影响网页） ====== */}
-      <div
-        ref={exportRef}
-        style={{
-          position: "absolute",
-          left: "-9999px",
-          top: 0,
-          width: "800px",
-          background: "#fff",
-        }}
-      >
-        {/* 使用表格布局，与DOCX结构一致 */}
-        <table className="rank-export-table">
-          {/* 表头 */}
-          <thead>
-            <tr>
-              <th style={{ width: '33.33%' }}>封面</th>
-              <th style={{ width: '33.33%' }}>详情</th>
-              {scoringMode === 'scoring' && <th style={{ width: '33.33%' }}>评分</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {/* 这里使用动态数据，确保导出格式正确 */}
-            {(() => {
-              if (scoringMode === 'non-scoring') {
-                // 不评分模式下按首字母排序
-                const sortedList = [...rankingList].sort((a, b) => {
-                  return customSort(a.title, b.title);
-                });
-                
-                return sortedList.map((item, index) => (
-                  <>
-                    {/* 排名+标题行 */}
-                    <tr>
-                      <td colSpan={3} className="rank-export-title-row">
-                        <strong>NO.{index + 1}</strong> {item.title} - {item.artist}
-                      </td>
-                    </tr>
-                    {/* 内容行 */}
-                    <tr className="rank-export-content-row">
-                      <td className="rank-export-cover">
-                        <img src={item.coverUrl} alt={item.title} />
-                      </td>
-                      <td className="rank-export-details">
-                        <div className="rank-export-review">
-                          <p>{item.review || '没有评价的义务！'}</p>
-                        </div>
-                      </td>
-                    </tr>
-                  </>
-                ));
-              }
-              
-              // 评分模式下按原有逻辑显示
-              return rankingList.map((item) => (
-                <>
-                  {/* 排名+标题行 */}
-                  <tr>
-                    <td colSpan={3} className="rank-export-title-row">
-                      <strong>NO.{item.rank}</strong> {item.title} - {item.artist}
-                    </td>
-                  </tr>
-                  {/* 内容行 */}
-                  <tr className="rank-export-content-row">
-                    <td className="rank-export-cover">
-                      <img src={item.coverUrl} alt={item.title} />
-                    </td>
-                    <td className="rank-export-details">
-                      <div className="rank-export-score-info">
-                        <p>原始分数：{item.originalScore}</p>
-                        <p>整体性：{item.integrity > 0 ? '+' + item.integrity.toFixed(1) : '0'}</p>
-                        <p>保值度：{item.durability > 0 ? '+' + item.durability.toFixed(1) : '0'}</p>
+      {showEditDialog && (
+        <div className="confirm-dialog-overlay">
+          <div
+            className="confirm-dialog"
+            style={{ width: "600px", maxHeight: "80vh", overflowY: "auto" }}
+          >
+            <div className="confirm-dialog-header">
+              <h4>{"编辑排名项"}</h4>
+              <button
+                className="confirm-dialog-close"
+                onClick={() => {
+                  setShowEditDialog(!1),
+                    setEditMode(!1),
+                    setEditingItemId(null),
+                    setEditingItem(null);
+                }}
+              >
+                {"×"}
+              </button>
+            </div>
+            <div className="confirm-dialog-content">
+              <form id="edit-form" onSubmit={handleSubmit}>
+                <div className="yearly-search-container" ref={searchInputRef}>
+                  <div className="yearly-search-input-wrapper">
+                    <input
+                      type="text"
+                      className="yearly-search-input"
+                      placeholder="搜索歌曲..."
+                      value={searchQuery}
+                      onChange={(Ne) => {
+                        const je = Ne.target.value;
+                        setSearchQuery(je), debouncedSearch(je);
+                      }}
+                      onKeyPress={handleSearchKeyDown}
+                    />
+                  </div>
+                  {isSearching && (
+                    <div className="yearly-search-loading">{"正在搜索..."}</div>
+                  )}
+                  {searchResults && (
+                    <div
+                      className="yearly-search-results"
+                      ref={searchResultsRef}
+                    >
+                      {(() => {
+                        let Ne: any[] = [];
+                        const je = searchResults.response || searchResults,
+                          ze = je.data || je;
+                        return (
+                          ze.song && ze.song.list && (Ne = ze.song.list),
+                          Ne.length > 0 ? (
+                            Ne.map((Me) => {
+                              var st;
+                              return !Me || !Me.songmid ? null : (
+                                <div
+                                  className="yearly-search-result-item"
+                                  onClick={() => handleSearchResultClick(Me)}
+                                  key={Me.songmid}
+                                >
+                                  <div className="yearly-search-result-cover">
+                                    {Me.albummid && (
+                                      <img
+                                        src={`https://y.qq.com/music/photo_new/T002R300x300M000${Me.albummid}.jpg`}
+                                        alt={Me.songname || "歌曲封面"}
+                                      />
+                                    )}
+                                  </div>
+                                  <div className="yearly-search-result-info">
+                                    <div className="yearly-search-result-title">
+                                      {Me.songname || "未知歌曲"}
+                                    </div>
+                                    <div className="yearly-search-result-subtitle">
+                                      {((st = Me.singer) == null
+                                        ? void 0
+                                        : st
+                                            .map(
+                                              (gt: any) => gt.name || "未知歌手"
+                                            )
+                                            .join(", ")) || "未知歌手"}
+                                      {" · "}
+                                      {Me.albumname || "未知专辑"}
+                                    </div>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="cover-preview-btn"
+                                    onClick={(gt) => {
+                                      if ((gt.stopPropagation(), Me.albummid)) {
+                                        const ft = `https://y.qq.com/music/photo_new/T002R300x300M000${Me.albummid}.jpg`;
+                                        showCoverPreview(ft);
+                                      }
+                                    }}
+                                    title="查看封面"
+                                  >
+                                    {"弹出封面"}
+                                  </button>
+                                </div>
+                              );
+                            }).filter(Boolean)
+                          ) : (
+                            <div className="yearly-search-no-results">
+                              {"没有找到相关结果"}
+                            </div>
+                          )
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label>{"封面图片"}</label>
+                  <div className="cover-upload-container">
+                    <input
+                      type="text"
+                      name="coverUrl"
+                      placeholder="输入图片URL/粘贴图片"
+                      value={coverUrl}
+                      onChange={(Ne) => {
+                        setCoverUrl(Ne.target.value),
+                          setCoverPreview(Ne.target.value);
+                      }}
+                      onPaste={(Ne) => {
+                        var ze;
+                        const je =
+                          (ze = Ne.clipboardData) == null ? void 0 : ze.items;
+                        if (je) {
+                          for (let Me = 0; Me < je.length; Me++)
+                            if (je[Me].type.indexOf("image") !== -1) {
+                              const st = je[Me].getAsFile();
+                              if (st) {
+                                const gt = new FileReader();
+                                (gt.onload = (ft) => {
+                                  var Fr;
+                                  const lr =
+                                    (Fr = ft.target) == null
+                                      ? void 0
+                                      : Fr.result;
+                                  if (typeof lr === "string") {
+                                    setCoverUrl(lr);
+                                    setCoverPreview(lr);
+                                  }
+                                }),
+                                  gt.readAsDataURL(st),
+                                  Ne.preventDefault();
+                                break;
+                              }
+                            }
+                        }
+                      }}
+                      autoComplete="off"
+                    />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      style={{ display: "none" }}
+                    />
+                    <button
+                      type="button"
+                      className="upload-btn"
+                      onClick={triggerFileSelect}
+                    >
+                      {"上传本地图片"}
+                    </button>
+                  </div>
+                  {coverPreview && (
+                    <div className="cover-preview">
+                      <img src={coverPreview} alt="封面预览" />
+                    </div>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label>{"作品名称"}</label>
+                  <input
+                    type="text"
+                    name="title"
+                    placeholder="输入歌曲/专辑名称"
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{"艺术家"}</label>
+                  <input
+                    type="text"
+                    name="artist"
+                    placeholder="输入艺术家名称"
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{"评分"}</label>
+                  <input
+                    type="number"
+                    name="score"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    placeholder="0-100"
+                    autoComplete="off"
+                    disabled={scoringMode === "non-scoring"}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{"整体性"}</label>
+                  <div className="score-adjuster">
+                    <div className="score-input-with-arrows">
+                      <input
+                        type="number"
+                        min="0"
+                        max="2"
+                        step="0.5"
+                        defaultValue="0.0"
+                        placeholder="0-2"
+                        readOnly={!0}
+                        ref={integrityRef}
+                        disabled={scoringMode === "non-scoring"}
+                      />
+                      <div className="arrow-controls">
+                        <button
+                          type="button"
+                          className="arrow-btn arrow-up"
+                          onClick={() => adjustScore(integrityRef, !0)}
+                          disabled={scoringMode === "non-scoring"}
+                        >
+                          {"▲"}
+                        </button>
+                        <button
+                          type="button"
+                          className="arrow-btn arrow-down"
+                          onClick={() => adjustScore(integrityRef, !1)}
+                          disabled={scoringMode === "non-scoring"}
+                        >
+                          {"▼"}
+                        </button>
                       </div>
-                      <div className="rank-export-review">
-                        <p>{item.review || '没有评价的义务！'}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>{"保值度"}</label>
+                  <div className="score-adjuster">
+                    <div className="score-input-with-arrows">
+                      <input
+                        type="number"
+                        min="0"
+                        max="2"
+                        step="0.5"
+                        defaultValue="0.0"
+                        placeholder="0-2"
+                        readOnly={!0}
+                        ref={durabilityRef}
+                        disabled={scoringMode === "non-scoring"}
+                      />
+                      <div className="arrow-controls">
+                        <button
+                          type="button"
+                          className="arrow-btn arrow-up"
+                          onClick={() => adjustScore(durabilityRef, !0)}
+                          disabled={scoringMode === "non-scoring"}
+                        >
+                          {"▲"}
+                        </button>
+                        <button
+                          type="button"
+                          className="arrow-btn arrow-down"
+                          onClick={() => adjustScore(durabilityRef, !1)}
+                          disabled={scoringMode === "non-scoring"}
+                        >
+                          {"▼"}
+                        </button>
                       </div>
-                    </td>
-                    <td className="rank-export-final-score">
-                      <div className={`rank-export-score-circle ${item.durability === 2 ? 'high-durability' : ''}`}>
-                        {formatScore(item.finalScore)}
-                      </div>
-                    </td>
-                  </tr>
-                </>
-              ));
-            })()}
-          </tbody>
-        </table>
-      </div>
-
-      {/* 确认对话框 */}
+                    </div>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>{"评价"}</label>
+                  <textarea
+                    name="review"
+                    rows={4}
+                    placeholder="写下你的评价..."
+                    autoComplete="off"
+                  />
+                </div>
+              </form>
+            </div>
+            <div className="confirm-dialog-footer">
+              <button
+                type="submit"
+                form="edit-form"
+                className="confirm-dialog-confirm"
+              >
+                {"保存修改"}
+              </button>
+              <button
+                type="button"
+                className="confirm-dialog-cancel"
+                onClick={() => {
+                  setShowEditDialog(!1),
+                    setEditMode(!1),
+                    setEditingItemId(null),
+                    setEditingItem(null);
+                }}
+              >
+                {"取消"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {showConfirmDialog && (
         <div className="confirm-dialog-overlay">
           <div className="confirm-dialog">
             <div className="confirm-dialog-header">
-              <h4>确认恢复默认榜单</h4>
-              <button 
-                className="confirm-dialog-close" 
+              <h4>{"确认恢复默认榜单"}</h4>
+              <button
+                className="confirm-dialog-close"
                 onClick={cancelRestoreDefault}
               >
-                ×
+                {"×"}
               </button>
             </div>
             <div className="confirm-dialog-content">
-              <p>将清除所输入内容，是否确认清除？（推荐先保存）</p>
+              <p>{"将清除所输入内容，是否确认清除？（推荐先保存）"}</p>
             </div>
             <div className="confirm-dialog-footer">
-              <button 
-                className="confirm-dialog-confirm" 
+              <button
+                className="confirm-dialog-confirm"
                 onClick={confirmRestoreDefault}
               >
-                确认清除
+                {"确认清除"}
               </button>
-              <button 
-                className="confirm-dialog-cancel" 
+              <button
+                className="confirm-dialog-cancel"
                 onClick={cancelRestoreDefault}
               >
-                取消
+                {"取消"}
               </button>
             </div>
           </div>
         </div>
       )}
-
-      {/* 保存成功提示 */}
-      {saveSuccess && (
-        <div className="save-success-toast">
-          榜单保存成功！
+      {showSaveDialog && (
+        <div className="confirm-dialog-overlay">
+          <div className="confirm-dialog">
+            <div className="confirm-dialog-header">
+              <h4>{"保存榜单"}</h4>
+              <button
+                className="confirm-dialog-close"
+                onClick={() => {
+                  setShowSaveDialog(!1), setRankingName("");
+                }}
+              >
+                {"×"}
+              </button>
+            </div>
+            <div className="confirm-dialog-content">
+              <div className="form-group">
+                <label>{"榜单名称"}</label>
+                <input
+                  type="text"
+                  placeholder={`例如：${rankingMode}_${currentYear}_自定义名称`}
+                  value={rankingName}
+                  onChange={(Ne) => setRankingName(Ne.target.value)}
+                  autoComplete="off"
+                  maxLength={50}
+                />
+                <small>{"不填写则使用默认名称"}</small>
+              </div>
+              <div className="form-info">
+                <p>
+                  <strong>{"榜单信息："}</strong>
+                </p>
+                <p>
+                  {"类型："}
+                  {rankingMode}
+                </p>
+                <p>
+                  {"评分模式："}
+                  {scoringMode === "scoring" ? "评分" : "不评分"}
+                </p>
+                <p>
+                  {"包含 "}
+                  {rankingList.length}
+                  {" 个项目"}
+                </p>
+              </div>
+            </div>
+            <div className="confirm-dialog-footer">
+              <button
+                className="confirm-dialog-confirm"
+                onClick={saveRanking}
+                disabled={isSaving}
+              >
+                {isSaving ? "保存中..." : "保存"}
+              </button>
+              <button
+                className="confirm-dialog-cancel"
+                onClick={() => {
+                  setShowSaveDialog(!1), setRankingName("");
+                }}
+              >
+                {"取消"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
-
-      {/* 历史榜单记录对话框 */}
+      {showRenameDialog && (
+        <div className="confirm-dialog-overlay" style={{ zIndex: 10001 }}>
+          <div className="confirm-dialog" style={{ zIndex: 10002 }}>
+            <div className="confirm-dialog-header">
+              <h4>{"重命名榜单"}</h4>
+              <button
+                className="confirm-dialog-close"
+                onClick={() => {
+                  setShowRenameDialog(!1),
+                    setRenamingRankingId(null),
+                    setNewRankingName("");
+                }}
+              >
+                {"×"}
+              </button>
+            </div>
+            <div className="confirm-dialog-content">
+              <div className="form-group">
+                <label>{"新名称"}</label>
+                <input
+                  type="text"
+                  placeholder="输入新的榜单名称"
+                  value={newRankingName}
+                  onChange={(Ne) => setNewRankingName(Ne.target.value)}
+                  autoComplete="off"
+                  maxLength={50}
+                />
+                <small>{"不填写则使用默认名称"}</small>
+              </div>
+            </div>
+            <div className="confirm-dialog-footer">
+              <button
+                className="confirm-dialog-confirm"
+                onClick={renameHistoryRanking}
+                disabled={isSaving}
+              >
+                {"保存"}
+              </button>
+              <button
+                className="confirm-dialog-cancel"
+                onClick={() => {
+                  setShowRenameDialog(!1),
+                    setRenamingRankingId(null),
+                    setNewRankingName("");
+                }}
+              >
+                {"取消"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {saveSuccess && (
+        <div className="save-success-toast">{"榜单保存成功！"}</div>
+      )}
       {showHistoryDialog && (
         <div className="confirm-dialog-overlay">
-          <div className="confirm-dialog" style={{ width: '800px', maxHeight: '600px', overflowY: 'auto' }}>
+          <div
+            className="confirm-dialog"
+            style={{ width: "800px", maxHeight: "600px", overflowY: "auto" }}
+          >
             <div className="confirm-dialog-header">
-              <h4>历史榜单记录</h4>
-              <button 
-                className="confirm-dialog-close" 
+              <h4>{"历史榜单记录"}</h4>
+              <button
+                className="confirm-dialog-close"
                 onClick={closeHistoryDialog}
               >
-                ×
+                {"×"}
               </button>
             </div>
             <div className="confirm-dialog-content">
               {historyRankings.length === 0 ? (
-                <p>暂无历史榜单记录</p>
+                <p>{"暂无历史榜单记录"}</p>
               ) : (
                 <div className="history-rankings-list">
-                  {historyRankings.map((ranking, index) => (
-                    <div key={ranking.id || index} className="history-ranking-item">
+                  {historyRankings.map((Ne, je) => (
+                    <div className="history-ranking-item" key={Ne.id || je}>
                       <div className="history-ranking-info">
-                        <h5>{ranking.year} {ranking.type}</h5>
-                        <p>评分模式：{ranking.scoringMode === 'scoring' ? '评分' : '不评分'}</p>
-                        <p>创建时间：{new Date(ranking.createdAt).toLocaleString()}</p>
-                        <p>包含 {ranking.rankingList.length} 个项目</p>
+                        <h5>{Ne.name || `${Ne.year} ${Ne.type}`}</h5>
+                        <p>
+                          {"类型："}
+                          {Ne.type}
+                        </p>
+                        <p>
+                          {"评分模式："}
+                          {Ne.scoringMode === "scoring" ? "评分" : "不评分"}
+                        </p>
+                        <p>
+                          {"创建时间："}
+                          {new Date(Ne.createdAt).toLocaleString()}
+                        </p>
+                        <p>
+                          {"包含 "}
+                          {Ne.rankingList.length}
+                          {" 个项目"}
+                        </p>
                       </div>
-                      <div className="history-ranking-actions" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <button 
-                          className="confirm-dialog-confirm" 
-                          onClick={() => loadHistoryRanking(ranking)}
-                          style={{ width: '120px' }}
+                      <div
+                        className="history-ranking-actions"
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "8px",
+                        }}
+                      >
+                        <button
+                          className="confirm-dialog-confirm"
+                          onClick={() => loadHistoryRanking(Ne)}
+                          style={{ width: "120px" }}
                         >
-                          加载此榜单
+                          {"加载此榜单"}
                         </button>
-                        <button 
-                          className="confirm-dialog-cancel" 
-                          onClick={() => deleteHistoryRanking(ranking.id || index)}
-                          style={{ 
-                            backgroundColor: '#ff4d4f', 
-                            borderColor: '#ff4d4f',
-                            color: '#fff',
-                            width: '120px'
+                        <button
+                          className="confirm-dialog-confirm"
+                          onClick={() => handleRenameClick(Ne)}
+                          style={{
+                            width: "120px",
+                            backgroundColor: "#1890ff",
+                            borderColor: "#1890ff",
                           }}
                         >
-                          删除
+                          {"重命名"}
+                        </button>
+                        <button
+                          className="confirm-dialog-cancel"
+                          onClick={() => deleteHistoryRanking(Ne.id || je)}
+                          style={{
+                            backgroundColor: "#ff4d4f",
+                            borderColor: "#ff4d4f",
+                            color: "#fff",
+                            width: "120px",
+                          }}
+                        >
+                          {"删除"}
                         </button>
                       </div>
                     </div>
@@ -2640,64 +3392,94 @@ export function YearlyRanking({ pageType = 'yearly-ranking' }: YearlyRankingProp
               )}
             </div>
             <div className="confirm-dialog-footer">
-              <button 
-                className="confirm-dialog-cancel" 
+              <button
+                className="confirm-dialog-cancel"
                 onClick={closeHistoryDialog}
               >
-                关闭
+                {"关闭"}
               </button>
             </div>
           </div>
         </div>
       )}
-
-      {/* 导入排行榜对话框 */}
       {showImportDialog && (
         <div className="confirm-dialog-overlay">
-          <div className="confirm-dialog" style={{ width: '800px', overflow: 'hidden' }}>
+          <div
+            className="confirm-dialog"
+            style={{ width: "800px", overflow: "hidden" }}
+          >
             <div className="confirm-dialog-header">
-              <h4>导入排行榜</h4>
-              <button 
-                className="confirm-dialog-close" 
-                onClick={() => setShowImportDialog(false)}
+              <h4>{"导入排行榜"}</h4>
+              <button
+                className="confirm-dialog-close"
+                onClick={() => setShowImportDialog(!1)}
               >
-                ×
+                {"×"}
               </button>
             </div>
             <div className="confirm-dialog-content">
-              <p>将您编写的排行榜粘贴至此，我们会为您自动填充排行榜，格式为：</p>
-              <div style={{ backgroundColor: '#f5f5f5', padding: '10px', borderRadius: '4px', margin: '10px 0', overflowX: 'auto', fontSize: '14px', lineHeight: '1.5' }}>
-                <div style={{ marginBottom: '10px' }}>
-                  <strong>1. xx.xx xxx - xxx xx+xx++xx</strong><br />
-                  <span style={{ marginLeft: '20px' }}>（月.日 作品名 - 作者名 原始分数+整体性++保值度）</span>
-                </div>
-                <div>
-                  <strong>2. xxx - xxx</strong><br />
-                  <span style={{ marginLeft: '20px' }}>（作品名 - 作者名）</span>
-                </div>
-              </div>
-              <textarea 
-                style={{ width: '100%', height: '200px', marginTop: '10px', backgroundColor: 'white', color: '#333', border: '1px solid #ddd', borderRadius: '4px', padding: '10px', fontSize: '14px' }}
-                placeholder="请在此粘贴排行榜..."
-                value={importedRankingText}
-                onChange={(e) => setImportedRankingText(e.target.value)}
-              ></textarea>
-            </div>
-            <div className="confirm-dialog-footer">
-              <button 
-                className="confirm-dialog-confirm" 
-                onClick={handleImportRanking}
-              >
-                确认导入
-              </button>
-              <button 
-                className="confirm-dialog-cancel" 
-                onClick={() => {
-                  setShowImportDialog(false);
-                  setImportedRankingText('');
+              <p>
+                {"将您编写的排行榜粘贴至此，我们会为您自动填充排行榜，格式为："}
+              </p>
+              <div
+                style={{
+                  backgroundColor: "#f5f5f5",
+                  padding: "10px",
+                  borderRadius: "4px",
+                  margin: "10px 0",
+                  overflowX: "auto",
+                  fontSize: "14px",
+                  lineHeight: "1.5",
+                  color: "#000",
                 }}
               >
-                取消
+                <div style={{ marginBottom: "10px" }}>
+                  <strong>{"1. xx.xx xxx - xxx xx+xx++xx"}</strong>
+                  <br />
+                  <span style={{ marginLeft: "20px" }}>
+                    {"（月.日 作品名 - 作者名 原始分数+整体性++保值度）"}
+                  </span>
+                </div>
+                <div>
+                  <strong>{"2. xxx - xxx"}</strong>
+                  <br />
+                  <span style={{ marginLeft: "20px" }}>
+                    {"（作品名 - 作者名）"}
+                  </span>
+                </div>
+              </div>
+              <textarea
+                className="import-ranking-textarea"
+                style={{
+                  width: "100%",
+                  height: "200px",
+                  marginTop: "10px",
+                  backgroundColor: "white",
+                  color: "#333",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  padding: "10px",
+                  fontSize: "14px",
+                }}
+                placeholder="请在此粘贴排行榜..."
+                value={importedRankingText}
+                onChange={(Ne) => setImportedRankingText(Ne.target.value)}
+              />
+            </div>
+            <div className="confirm-dialog-footer">
+              <button
+                className="confirm-dialog-confirm"
+                onClick={handleImportRanking}
+              >
+                {"确认导入"}
+              </button>
+              <button
+                className="confirm-dialog-cancel"
+                onClick={() => {
+                  setShowImportDialog(!1), setImportedRankingText("");
+                }}
+              >
+                {"取消"}
               </button>
             </div>
           </div>

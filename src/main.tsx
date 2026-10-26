@@ -2,6 +2,7 @@
   import { createRoot } from "react-dom/client";
 import App from "./app/App.tsx";
 import "./styles/index.css"
+import "./styles/DeployedParity.css"
 
 // Defensive check for __jstcache property access - add to both Object.prototype and window
 Object.defineProperty(Object.prototype, '__jstcache', {
@@ -71,4 +72,3 @@ try {
 }
 
 createRoot(document.getElementById("root")!).render(<App />);
-  

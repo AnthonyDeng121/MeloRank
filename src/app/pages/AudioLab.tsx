@@ -12,7 +12,7 @@ export function AudioLab() {
   const [pitchShift, setPitchShift] = useState(0);
   const [startTime, setStartTime] = useState('0:00');
   const [endTime, setEndTime] = useState('0:00');
-  const [volume, setVolume] = useState(70); // 默认音量70%
+  const [volume, setVolume] = useState(50); // 与部署版本一致的默认音量
   
   // 引用
   const audioRef = useRef<HTMLAudioElement>(null);

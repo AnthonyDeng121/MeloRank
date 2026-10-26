@@ -1,0 +1,310 @@
+/* Differences verified against deployed index-CR9tbX51.css, 2026-10-25. */
+.search-input::placeholder {
+  color: #888;
+}
+@media (max-width: 1200px) {
+  .cover-image {
+    width: 400px;
+    height: 400px;
+  }
+}
+@media (max-width: 768px) {
+  .cover-image {
+    width: 360px;
+    height: 360px;
+  }
+}
+@media (max-width: 480px) {
+  .cover-image {
+    width: 320px;
+    height: 320px;
+  }
+}
+.yearly-ranking-page > h1 {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #fff;
+}
+.play-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px #667eea4d;
+}
+.user-rank-actions .move-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.yearly-search-container {
+  position: relative;
+  margin-bottom: 20px;
+}
+.yearly-search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.yearly-search-input-wrapper input {
+  width: 100%;
+  padding: 12px 40px 12px 12px;
+  background-color: #252525;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.yearly-search-input-wrapper input::placeholder {
+  color: #666;
+}
+.yearly-search-input-wrapper input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px #667eea1a;
+}
+.yearly-search-loading {
+  position: absolute;
+  right: 12px;
+  color: #888;
+  font-size: 12px;
+}
+.yearly-search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #252525;
+  border: 1px solid #333;
+  border-radius: 8px;
+  margin-top: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 4px 12px #0000004d;
+}
+.yearly-search-results::-webkit-scrollbar {
+  width: 6px;
+}
+.yearly-search-results::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 3px;
+}
+.yearly-search-results::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 3px;
+}
+.yearly-search-results::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+.yearly-search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #333;
+}
+.yearly-search-result-item:last-child {
+  border-bottom: none;
+}
+.yearly-search-result-item:hover {
+  background-color: #333;
+}
+.yearly-search-result-cover {
+  flex-shrink: 0;
+}
+.yearly-search-result-cover img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  background-color: #444;
+}
+.yearly-search-result-info {
+  flex: 1;
+  min-width: 0;
+}
+.yearly-search-result-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.yearly-search-result-subtitle {
+  font-size: 12px;
+  color: #888;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.yearly-search-result-item {
+  position: relative;
+}
+.cover-preview-btn {
+  padding: 6px 12px;
+  background-color: #333;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: auto;
+  white-space: nowrap;
+}
+.cover-preview-btn:hover {
+  background-color: #444;
+  border-color: #555;
+  transform: translateY(-1px);
+}
+.action-btn.cover-btn {
+  background-color: #667eea;
+  border-color: #667eea;
+  color: #fff;
+  font-size: 11px;
+  padding: 6px;
+  width: 70px;
+  min-width: auto;
+}
+.action-btn.cover-btn:hover {
+  background-color: #5568d3;
+  border-color: #5568d3;
+}
+.yearly-search-result-album {
+  color: #aaa;
+}
+.yearly-search-result-type {
+  font-size: 12px;
+  color: #667eea;
+  margin-left: 8px;
+  font-weight: 400;
+}
+.yearly-search-no-results {
+  padding: 16px;
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+}
+.yearly-search-error {
+  color: #ff4d4f;
+  font-size: 12px;
+  margin-top: 4px;
+  text-align: left;
+}
+.import-ranking-textarea::placeholder {
+  color: #b0b0b0;
+}
+.album-type-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.type-tab {
+  padding: 12px 24px;
+  background-color: #252525;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: #aaa;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.type-tab:hover {
+  background-color: #333;
+  border-color: #444;
+  color: #fff;
+}
+.type-tab.active {
+  background-color: #667eea;
+  border-color: #667eea;
+  color: #fff;
+  box-shadow: 0 4px 12px #667eea4d;
+}
+.type-tab.active:hover {
+  background-color: #5568d3;
+  border-color: #5568d3;
+}
+.play-btn {
+  padding: 8px 16px;
+  font-weight: 600;
+  gap: 6px;
+}
+.search-results {
+  scrollbar-width: thin;
+  scrollbar-color: #444 #1a1a1a;
+}
+.action-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  width: 70px;
+}
+.album-cover-large {
+  width: 400px;
+  height: 400px;
+}
+@media (max-width: 1200px) {
+  .album-cover-large {
+    width: 400px;
+    height: 400px;
+  }
+}
+.cover-image {
+  width: 400px;
+  height: 400px;
+}
+.user-rank-actions {
+  right: -90px;
+  gap: 4px;
+}
+.move-btn {
+  width: 32px;
+  padding: 3px;
+  font-size: 12px;
+}
+
+/* Keep responsive declarations after their desktop overrides. */
+@media (max-width: 1200px) {
+  .album-cover-large {
+    width: 400px;
+    height: 400px;
+    margin-bottom: 30px;
+  }
+}
+@media (max-width: 768px) {
+  .album-cover-large {
+    width: 360px;
+    height: 360px;
+    margin-bottom: 24px;
+  }
+}
+@media (max-width: 480px) {
+  .album-cover-large {
+    width: 320px;
+    height: 320px;
+    margin-bottom: 20px;
+  }
+}
+@media (max-width: 1200px) {
+  .cover-image {
+    width: 400px;
+    height: 400px;
+  }
+}
+@media (max-width: 768px) {
+  .cover-image {
+    width: 360px;
+    height: 360px;
+  }
+}
+@media (max-width: 480px) {
+  .cover-image {
+    width: 320px;
+    height: 320px;
+  }
+}

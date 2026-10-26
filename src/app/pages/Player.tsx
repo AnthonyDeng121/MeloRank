@@ -345,21 +345,21 @@ export function Player() {
           {/* QQ音乐播放器 */}
           <div className="qq-music-player">
             <div className="player-header">
-              <h2>QQ音乐播放器</h2>
+              <h2>播放器</h2>
             </div>
             
             <div className="player-content">
-              <div className="album-cover">
+              <div className="album-cover-large">
                 <img 
                   src={displayTrack.album.coverUrl} 
                   alt={displayTrack.name} 
-                  className="cover-image"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '16px' }}
                 />
               </div>
               
               <div className="track-info">
-                <h3 className="track-title">{displayTrack.name}</h3>
-                <p className="track-artist">{displayTrack.artists.map((artist: any) => artist.name).join(', ')}</p>
+                <h3 className="track-title">{currentSong ? displayTrack.name : '暂未选择歌曲'}</h3>
+                {currentSong && <p className="track-artist">{displayTrack.artists.map((artist: any) => artist.name).join(', ')}</p>}
               </div>
               
               <div className="player-controls-row">

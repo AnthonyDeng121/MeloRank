@@ -12,11 +12,13 @@ export const PlayQueue: React.FC<PlayQueueProps> = ({ isVisible, onClose }) => {
     playQueue,
     currentSong,
     currentIndex,
+    isPlaying,
     setCurrentSong,
     removeSongFromQueue,
     clearPlayQueue,
     playMode,
-    setPlayMode
+    setPlayMode,
+    togglePlay
   } = useMusic();
 
   // 播放模式切换
@@ -125,9 +127,12 @@ export const PlayQueue: React.FC<PlayQueueProps> = ({ isVisible, onClose }) => {
                   <div className="queue-item-actions">
                     <button 
                       className="play-btn" 
-                      onClick={() => setCurrentSong(song)}
+                      onClick={() => {
+                        if (currentSong && currentSong.songmid === song.songmid) togglePlay();
+                        else setCurrentSong(song);
+                      }}
                     >
-                      播放
+                      {currentSong && currentSong.songmid === song.songmid && isPlaying ? '⏸️' : '▶️'}
                     </button>
                     <button 
                       className="remove-btn" 
