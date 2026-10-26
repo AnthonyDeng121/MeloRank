@@ -535,6 +535,7 @@
 }
 
 .lyrics-panel {
+  min-width: 0;
   background-color: #1a1a1a;
   border: 1px solid #333;
   border-radius: 16px;
@@ -579,14 +580,17 @@
   font-size: 14px;
   line-height: 1.8;
   color: #aaa;
-  height: 200px;
+  min-height: 200px;
+  max-height: min(60vh, 600px);
   display: flex;
-  align-items: center;
+  align-items: safe center;
   justify-content: center;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .dynamic-lyrics {
+  flex-shrink: 0;
   width: 100%;
   text-align: center;
   display: flex;
@@ -596,6 +600,8 @@
 }
 
 .lyric-line {
+  overflow-wrap: anywhere;
+  white-space: normal;
   font-size: 16px;
   line-height: 2;
   color: #888;
@@ -607,7 +613,7 @@
   font-size: 20px;
   font-weight: 600;
   color: #667eea;
-  transform: scale(1.05);
+  transform: none;
 }
 
 .no-lyrics {

@@ -3,6 +3,8 @@ import React, { createContext, useState, useContext, ReactNode } from 'react';
 // 搜索上下文类型定义
 interface SearchContextType {
   searchQuery: string;
+  submittedQuery: string;
+  setSubmittedQuery: (query: string) => void;
   setSearchQuery: (query: string) => void;
   searchResults: any | null;
   setSearchResults: (results: any | null) => void;
@@ -28,6 +30,7 @@ interface SearchProviderProps {
 
 export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [submittedQuery, setSubmittedQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'songs'>('songs');
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,6 +40,8 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
 
   const value: SearchContextType = {
     searchQuery,
+    submittedQuery,
+    setSubmittedQuery,
     setSearchQuery,
     searchResults,
     setSearchResults,

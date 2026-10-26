@@ -34,13 +34,21 @@ export default function App() {
     const qqMusicCookie = localStorage.getItem('qqMusicCookie');
     if (qqMusicCookie) {
       // 如果有QQ音乐cookie，设置默认的QQ音乐用户状态
-      setQQMusicUser({ nickname: 'QQ Music User' });
+      setQQMusicUser({ nickname: localStorage.getItem('qqMusicNickname') || 'QQ音乐用户' });
+      qqMusicService.getUserInfo().then(result => {
+        const nickname = (result.body || result).nickname;
+        if (nickname && nickname !== 'QQ Music User') {
+          localStorage.setItem('qqMusicNickname', nickname);
+          setQQMusicUser({ nickname });
+        }
+      }).catch(() => {});
     }
   }, []);
 
   // QQ音乐登录处理函数
   const handleQQMusicLogin = (loggedInQQUser: QQMusicUser) => {
     setQQMusicUser(loggedInQQUser);
+    localStorage.setItem('qqMusicNickname', loggedInQQUser.nickname);
     console.log('QQ音乐用户已登录:', loggedInQQUser);
   };
 

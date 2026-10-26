@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { Play, Pause, X, Repeat1, ListMusic, Shuffle } from 'lucide-react';
 import { useMusic } from '../contexts/MusicContext';
 import '../../styles/PlayQueue.css';
 
@@ -8,6 +9,12 @@ interface PlayQueueProps {
 }
 
 export const PlayQueue: React.FC<PlayQueueProps> = ({ isVisible, onClose }) => {
+  useEffect(() => {
+    if (!isVisible) return;
+    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', close);
+    return () => document.removeEventListener('keydown', close);
+  }, [isVisible, onClose]);
   const {
     playQueue,
     currentSong,
@@ -47,13 +54,13 @@ export const PlayQueue: React.FC<PlayQueueProps> = ({ isVisible, onClose }) => {
   const getPlayModeIcon = () => {
     switch (playMode) {
       case 'single':
-        return '🔂';
+        return <Repeat1 size={15} />;
       case 'sequence':
-        return '▶️';
+        return <ListMusic size={15} />;
       case 'random':
-        return '🔀';
+        return <Shuffle size={15} />;
       default:
-        return '🔂';
+        return <Repeat1 size={15} />;
     }
   };
 
@@ -63,7 +70,7 @@ export const PlayQueue: React.FC<PlayQueueProps> = ({ isVisible, onClose }) => {
 
   return (
     <div className="playqueue-overlay" onClick={onClose}>
-      <div className="playqueue-container" onClick={(e) => e.stopPropagation()}>
+      <div className="playqueue-container" role="dialog" aria-modal="true" aria-label="播放队列" onClick={(e) => e.stopPropagation()}>
         <div className="playqueue-header">
           <h2>播放队列</h2>
           <div className="playqueue-actions">
@@ -81,8 +88,8 @@ export const PlayQueue: React.FC<PlayQueueProps> = ({ isVisible, onClose }) => {
             >
               清空队列
             </button>
-            <button className="close-btn" onClick={onClose}>
-              ✕
+            <button className="close-btn" aria-label="关闭播放队列" onClick={onClose}>
+              <X size={18} />
             </button>
           </div>
         </div>
@@ -103,7 +110,7 @@ export const PlayQueue: React.FC<PlayQueueProps> = ({ isVisible, onClose }) => {
                   <div className="queue-item-info">
                     <div className="queue-item-index">
                       {index === currentIndex ? (
-                        <span className="playing-indicator">▶️</span>
+                        <span className="playing-indicator"><ListMusic size={15} /></span>
                       ) : (
                         index + 1
                       )}
@@ -127,18 +134,20 @@ export const PlayQueue: React.FC<PlayQueueProps> = ({ isVisible, onClose }) => {
                   <div className="queue-item-actions">
                     <button 
                       className="play-btn" 
+                      aria-label={`${currentSong?.songmid === song.songmid && isPlaying ? '暂停' : '播放'} ${song.songname}`}
                       onClick={() => {
                         if (currentSong && currentSong.songmid === song.songmid) togglePlay();
                         else setCurrentSong(song);
                       }}
                     >
-                      {currentSong && currentSong.songmid === song.songmid && isPlaying ? '⏸️' : '▶️'}
+                      {currentSong && currentSong.songmid === song.songmid && isPlaying ? <Pause size={16} /> : <Play size={16} />}
                     </button>
                     <button 
                       className="remove-btn" 
+                      aria-label={`移除 ${song.songname}`}
                       onClick={() => removeSongFromQueue(index)}
                     >
-                      ✕
+                      <X size={16} />
                     </button>
                   </div>
                 </li>

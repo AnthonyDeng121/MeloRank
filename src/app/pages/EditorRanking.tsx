@@ -18,7 +18,8 @@ export function EditorRanking({ kind }: { kind: 'songs' | 'albums' }) {
   const [albumType, setAlbumType] = useState<'album' | 'ep'>('album');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { setCurrentSong, currentSong, isPlaying, togglePlay } = useMusic();
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const { setCurrentSong, setPlayMode, currentSong, isPlaying, togglePlay } = useMusic();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -39,23 +40,33 @@ export function EditorRanking({ kind }: { kind: 'songs' | 'albums' }) {
     return () => controller.abort();
   }, [kind]);
 
-  const isCurrent = (item: EditorItem) => currentSong?.songname === item.title
-    && currentSong.singer.some(singer => singer.name === item.artist.split('/')[0]);
+  const isCurrent = (item: EditorItem) => (kind === 'albums' ? currentSong?.albumname === item.title : currentSong?.songname === item.title)
+    && !!currentSong?.singer.some(singer => singer.name === item.artist.split('/')[0]);
 
   const play = async (item: EditorItem) => {
+    if (playingId) return;
     if (isCurrent(item)) {
       togglePlay();
       return;
     }
     try {
+      setPlayingId(item.id);
+      if (kind === 'albums') {
+        const tracks = await qqMusicService.getAlbumTracks(item.title, item.artist, item.coverUrl);
+        setPlayMode('sequence');
+        setCurrentSong(tracks[0], tracks);
+        return;
+      }
       const result = await qqMusicService.search(`${item.title} ${item.artist}`, 1, 1);
       const response = result.response || result;
       const data = response.data || response;
       const song = data.song?.list?.[0];
       if (song) setCurrentSong(song, [song]);
       else alert('未搜索到歌曲，请稍后重试');
-    } catch {
-      alert('播放失败，请检查浏览器设置或网络连接');
+    } catch (error) {
+      alert(error instanceof Error ? error.message : '播放失败，请稍后重试');
+    } finally {
+      setPlayingId(null);
     }
   };
 
@@ -82,8 +93,8 @@ export function EditorRanking({ kind }: { kind: 'songs' | 'albums' }) {
               <div className="user-rank-artist">{item.artist}</div>
               {item.review && <div className="user-rank-review">{item.review}</div>}
             </div>
-            <button className="play-btn" aria-label={`${isCurrent(item) && isPlaying ? '暂停' : '播放'} ${item.title}`} onClick={() => play(item)}>
-              {isCurrent(item) && isPlaying ? '⏸️' : '▶️'}
+            <button className="play-btn" disabled={!!playingId} aria-label={`${isCurrent(item) && isPlaying ? '暂停' : '播放'} ${item.title}`} onClick={() => play(item)}>
+              {playingId === item.id ? '…' : isCurrent(item) && isPlaying ? '⏸️' : '▶️'}
             </button>
           </div>
         ))}

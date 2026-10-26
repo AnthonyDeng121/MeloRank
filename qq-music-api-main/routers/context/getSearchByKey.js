@@ -15,6 +15,7 @@ module.exports = async (ctx, next) => {
 			n: +n || 10,
 			p: +p || 1,
 			catZhida: +catZhida || 0,
+            t: +catZhida === 3 ? 8 : +catZhida === 2 ? 9 : 0,
 			remoteplace: `txt.yqq.${remoteplace}`,
 		},
 		option: {},

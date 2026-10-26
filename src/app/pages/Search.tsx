@@ -9,6 +9,8 @@ export function Search() {
   const { setCurrentSong, addSongToQueue } = useMusic();
   const {
     searchQuery,
+    submittedQuery,
+    setSubmittedQuery,
     setSearchQuery,
     searchResults,
     setSearchResults,
@@ -27,12 +29,21 @@ export function Search() {
   // 使用榜单上下文
   const { rankingList, setRankingList, setRankingMode } = useRankingContext();
   
-  // 自动刷新定时器引用
-  const autoRefreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const requestId = useRef(0);
+  useEffect(() => {
+    if (!showSuggestions || !searchQuery.trim()) { setSuggestions([]); return; }
+    let active = true;
+    const timer = setTimeout(() => {
+      qqMusicService.getSuggestions(searchQuery.trim()).then(items => {
+        if (active) setSuggestions(items);
+      }).catch(() => { if (active) setSuggestions([]); });
+    }, 300);
+    return () => { active = false; clearTimeout(timer); };
+  }, [searchQuery, showSuggestions]);
+  useEffect(() => () => { requestId.current++; setLoading(false); }, []);
 
-  // 防抖函数引用
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
-  
   // 评论弹窗状态
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [selectedSong, setSelectedSong] = useState<any>(null);
@@ -53,20 +64,24 @@ export function Search() {
   const totalScore = ratings.lyrics + ratings.composition + ratings.arrangement + ratings.singing + ratings.innovation + ratings.preference;
 
   // 执行搜索 - 使用useCallback优化，避免无限循环
-  const handleSearch = useCallback(async (page: number = 1) => {
-    if (!searchQuery.trim()) return;
+  const handleSearch = useCallback(async (page: number = 1, query: string = searchQuery) => {
+    if (!query.trim()) return;
+    const id = ++requestId.current;
+    setSubmittedQuery(query.trim());
+    setShowSuggestions(false);
 
     setLoading(true);
     try {
       console.log('开始搜索:', searchQuery, '页码:', page);
       // 只搜索歌曲类型
-      const searchResponse = await qqMusicService.searchWithType(searchQuery, pageSize, 'songs', page);
+      const searchResponse = await qqMusicService.searchWithType(query.trim(), pageSize, 'songs', page);
       console.log('搜索响应:', searchResponse);
       
       // 处理API响应
       const searchResultsData = searchResponse;
       console.log('处理后的搜索结果数据:', searchResultsData);
       
+      if (id !== requestId.current) return;
       setSearchResults(searchResultsData);
       setCurrentPage(page);
       
@@ -82,74 +97,27 @@ export function Search() {
       }
     } catch (error) {
       console.error('搜索失败:', error);
+      if (id !== requestId.current) return;
       // 搜索失败时清空结果
       setSearchResults(null);
       setTotalResults(0);
     } finally {
-      setLoading(false);
+      if (id === requestId.current) setLoading(false);
     }
   }, [searchQuery, pageSize]);
 
-  // 自动刷新搜索结果的逻辑 - 每30秒自动刷新一次
-  useEffect(() => {
-    // 清除现有定时器
-    const clearTimer = () => {
-      if (autoRefreshTimerRef.current) {
-        clearTimeout(autoRefreshTimerRef.current);
-        autoRefreshTimerRef.current = null;
-      }
-    };
-
-    // 只有在有搜索内容时才自动刷新
-    if (searchQuery.trim()) {
-      // 设置30秒自动刷新定时器
-      const refreshInterval = 30000; // 30秒
-      const startAutoRefresh = async () => {
-        console.log('自动刷新搜索结果');
-        await handleSearch(currentPage);
-        // 继续下一次刷新
-        autoRefreshTimerRef.current = setTimeout(startAutoRefresh, refreshInterval);
-      };
-      autoRefreshTimerRef.current = setTimeout(startAutoRefresh, refreshInterval);
-    }
-
-    // 组件卸载时清除定时器
-    return () => clearTimer();
-  }, [searchQuery, currentPage, handleSearch]);
-
-  // 最近搜索时间，用于防止连续请求
-  const lastSearchTimeRef = useRef<number>(0);
-  const MIN_SEARCH_INTERVAL = 1000; // 最小搜索间隔（毫秒）
-
-  // 带防抖和频率限制的搜索
-  const debouncedSearch = useCallback((page: number = 1) => {
-    // 清除之前的定时器
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-    
-    // 设置新的定时器，500ms后执行搜索
-    debounceRef.current = setTimeout(() => {
-      const now = Date.now();
-      if (now - lastSearchTimeRef.current < MIN_SEARCH_INTERVAL) {
-        console.log('搜索频率过高，已忽略请求');
-        return;
-      }
-      lastSearchTimeRef.current = now;
-      handleSearch(page);
-    }, 500);
-  }, [searchQuery, pageSize, handleSearch]);
+  const debouncedSearch = (page = 1) => handleSearch(page, page === 1 ? searchQuery : submittedQuery);
 
   // 处理键盘事件
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
       debouncedSearch(1); // 从第一页开始搜索
     }
   };
 
   // 处理分页点击
   const handlePageChange = (page: number) => {
-    debouncedSearch(page);
+    handleSearch(page, submittedQuery);
   };
 
   // 处理标签页切换
@@ -336,8 +304,8 @@ export function Search() {
       return <div className="loading-results">正在搜索...</div>;
     }
 
-    if (!searchQuery.trim()) {
-      return <div className="no-results">输入关键词开始搜索</div>;
+    if (!submittedQuery) {
+      return <div className="no-results">输入关键词后点击搜索或选择关联词条</div>;
     }
 
     if (!searchResults) {
@@ -430,7 +398,9 @@ export function Search() {
         <div className="header-top">
           <h2>搜索音乐</h2>
         </div>
-        <div className="search-input-container">
+        <div className="search-input-container" onBlur={event => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setShowSuggestions(false);
+        }}>
           <input
             type="text"
             className="search-input"
@@ -438,11 +408,20 @@ export function Search() {
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
-              // 用户输入时触发防抖搜索
-              debouncedSearch(1);
+              setShowSuggestions(true);
             }}
-            onKeyPress={handleKeyPress}
+            onKeyDown={(e) => { if (e.key === 'Escape') setShowSuggestions(false); handleKeyPress(e); }}
+            onFocus={() => setShowSuggestions(true)}
+            aria-label="搜索音乐"
+            aria-expanded={showSuggestions && suggestions.length > 0}
           />
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="search-suggestions" aria-label="关联搜索建议">
+              {suggestions.map(text => <button key={text} onMouseDown={e => e.preventDefault()} onClick={() => {
+                setSearchQuery(text); handleSearch(1, text);
+              }}>{text}</button>)}
+            </div>
+          )}
           <button className="search-button" onClick={() => debouncedSearch(1)}>
             搜索
           </button>

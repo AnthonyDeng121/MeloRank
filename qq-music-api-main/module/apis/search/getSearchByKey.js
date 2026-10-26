@@ -10,7 +10,7 @@ module.exports = ({ method = 'get', params = {}, option = {} }) => {
 		// new_json: 1,
 		remoteplace: 'txt.yqq.song',
 		// searchid: 58932895599763136,
-		t: 0,
+		t: params.t || 0,
 		aggr: 1,
 		cr: 1,
 		lossless: 0,

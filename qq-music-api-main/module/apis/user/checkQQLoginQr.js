@@ -1,5 +1,6 @@
 const { getGtk, getGuid } = require('../../../util/loginUtils');
 const { refreshData } = require('../../../config/user-info');
+const qrNickname = require('../../../util/qrNickname');
 
 module.exports = async ({ method = 'get', params = {}, option = {} }) => {
   const { ptqrtoken, qrsig } = params;
@@ -82,13 +83,13 @@ module.exports = async ({ method = 'get', params = {}, option = {} }) => {
     }
   });
   const loginResData = await loginRes.json();
-  console.log('Login response data:', JSON.stringify(loginResData, null, 2));
+
   
   setCookie(loginRes.headers.get('Set-Cookie').split(';, '));
   const userInfo = refreshData(allCookie.join('; '));
   
   // 尝试从登录响应中提取用户昵称
-  let nickname = 'QQ Music User';
+  let nickname = qrNickname(data) || 'QQ音乐用户';
   if (loginResData && loginResData.req && loginResData.req.data) {
     if (loginResData.req.data.nickname) {
       nickname = loginResData.req.data.nickname;

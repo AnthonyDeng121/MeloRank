@@ -568,3 +568,8 @@
   80% { opacity: 1; transform: translateX(-50%) translateY(0); }
   100% { opacity: 0; transform: translateX(-50%) translateY(20px); }
 }
+
+.search-input-container { position:relative; }
+.search-suggestions { position:absolute; top:calc(100% + 8px); left:0; right:0; z-index:20; background:#202027; border:1px solid #ffffff20; border-radius:12px; padding:6px; box-shadow:0 16px 40px #0006; }
+.search-suggestions button { display:block; width:100%; text-align:left; background:transparent; border:0; border-radius:8px; color:#dddde8; padding:12px 14px; cursor:pointer; }
+.search-suggestions button:hover, .search-suggestions button:focus-visible { background:#8b7bf525; }

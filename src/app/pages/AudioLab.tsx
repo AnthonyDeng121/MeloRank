@@ -1,7 +1,47 @@
 import React, { useState, useRef, useEffect } from 'react';
 import '../../styles/AudioLab.css';
+import { qqMusicService } from '../services/qqMusicService';
+import { useMusic } from '../contexts/MusicContext';
 
 export function AudioLab() {
+  const { currentSong, setIsPlaying: setGlobalPlaying } = useMusic();
+  const [query, setQuery] = useState('');
+  const [songs, setSongs] = useState<any[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [sourceError, setSourceError] = useState('');
+  const sourceRequest = useRef(0);
+  const searchSongs = async () => {
+    if (!query.trim()) return;
+    const id = ++sourceRequest.current;
+    setBusy(true); setSourceError('');
+    try {
+      const result = await qqMusicService.search(query.trim(), 10);
+      const response = result.response || result;
+      const data = response.data || response;
+      if (id === sourceRequest.current) {
+        setSongs(data.song?.list || []);
+        if (!data.song?.list?.length) setSourceError('没有找到歌曲，请尝试其他关键词');
+      }
+    } catch { if (id === sourceRequest.current) setSourceError('搜索失败，请稍后重试'); }
+    finally { if (id === sourceRequest.current) setBusy(false); }
+  };
+  const importSong = async (song: any) => {
+    setBusy(true); setSourceError('');
+    try {
+      const url = await qqMusicService.getPlayableUrl(song.songmid);
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('音源下载失败');
+      const blob = await response.blob();
+      if (!blob.size || blob.type.includes('text') || blob.type.includes('json')) throw new Error('音源无效');
+      const file = new File([blob], `${song.songname}.mp3`, { type: blob.type || 'audio/mpeg' });
+      setGlobalPlaying(false);
+      setAudioFile(file); setAudioUrl(URL.createObjectURL(file));
+      setIsPlaying(false); setCurrentTime(0); setStartTime('0:00');
+      setPlaybackRate(1); setPitchShift(0);
+    } catch (error) {
+      setSourceError(`${error instanceof Error ? error.message : '导入失败'}。音源需允许跨域读取；也可上传本地音频。`);
+    } finally { setBusy(false); }
+  };
   // 状态管理
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [audioUrl, setAudioUrl] = useState<string>('');
@@ -16,6 +56,7 @@ export function AudioLab() {
   
   // 引用
   const audioRef = useRef<HTMLAudioElement>(null);
+  useEffect(() => () => { if (audioUrl.startsWith('blob:')) URL.revokeObjectURL(audioUrl); }, [audioUrl]);
   
   // 处理文件上传
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -268,6 +309,21 @@ export function AudioLab() {
   return (
     <div className="audio-lab-page">
       <h2>音频实验室</h2>
+      <section className="lab-song-picker">
+        <h3>从歌曲开始制作</h3>
+        <form onSubmit={e => { e.preventDefault(); searchSongs(); }}>
+          <input aria-label="搜索制作音源" placeholder="搜索歌曲或歌手" value={query} onChange={e => setQuery(e.target.value)} />
+          <button disabled={busy || !query.trim()}>搜索</button>
+          {currentSong && <button type="button" disabled={busy} onClick={() => importSong(currentSong)}>使用当前播放歌曲</button>}
+        </form>
+        {busy && <p role="status">正在加载音源…</p>}
+        {sourceError && <p role="alert">{sourceError}</p>}
+        {songs.map(song => <div className="lab-song-result" key={song.songmid}>
+          <span>{song.songname} · {song.singer?.map((s: any) => s.name).join(', ')}</span>
+          <button disabled={busy} onClick={() => importSong(song)}>选择制作</button>
+        </div>)}
+        {audioFile && <p>当前素材：{audioFile.name}</p>}
+      </section>
 
       <div className="upload-section">
         <div 

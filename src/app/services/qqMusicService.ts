@@ -195,6 +195,7 @@ class QQMusicService {
     localStorage.removeItem('qqMusicTokenExpiry');
     localStorage.removeItem('qqMusicUserId');
     localStorage.removeItem('qqMusicCookie');
+    localStorage.removeItem('qqMusicNickname');
   }
   
   // 设置cookie
@@ -221,7 +222,7 @@ class QQMusicService {
       // 发生错误时，返回包含默认昵称的响应
       return { 
         body: {
-          nickname: 'QQ Music User'
+          nickname: localStorage.getItem('qqMusicNickname') || 'QQ音乐用户'
         }
       };
     }
@@ -326,6 +327,70 @@ class QQMusicService {
   }
 
   // 获取歌曲详情
+  async getSuggestions(key: string): Promise<string[]> {
+    const result = await this.request('/getSmartbox', { key });
+    const response = (result.body || result).response || result;
+    const data = response.data || response;
+    return [...new Set<string>(['song', 'singer', 'album'].flatMap(type =>
+      (data[type]?.itemlist || []).map((item: any) => item.name).filter(Boolean)
+    ))].slice(0, 8);
+  }
+
+  async getAlbumTracks(title: string, artist: string, coverUrl = ''): Promise<any[]> {
+    let mid = coverUrl.match(/T002R\d+x\d+M000([a-zA-Z0-9]+)\./)?.[1];
+    if (!mid) {
+      const result = await this.searchWithType(`${title} ${artist}`, 30, 'albums');
+      const response = result.response || result;
+      const data = response.data || response;
+      const normalize = (value: string) => value.normalize('NFKC').trim().toLocaleLowerCase();
+      const album = (data.album?.list || []).find((item: any) =>
+        normalize(item.albumname || item.name || '') === normalize(title) &&
+        normalize(item.singername || item.singer?.map((s: any) => s.name).join(', ') || '').includes(normalize(artist.split('/')[0])));
+      mid = album?.albummid || album?.albumMID || album?.mid;
+      // The legacy search endpoint can return no albums, especially for punctuation-only titles.
+      if (!mid) {
+        const primaryArtist = artist.split('/')[0].trim();
+        const smartbox = await this.request('/getSmartbox', { key: primaryArtist });
+        const smartResponse = (smartbox.body || smartbox).response || smartbox;
+        const singer = (smartResponse.data?.singer?.itemlist || []).find((s: any) => normalize(s.name) === normalize(primaryArtist));
+        if (singer?.mid) {
+          const cleanTitle = (value: string) => normalize(value.replace(/\s*(\(Explicit\)|\[Explicit\])\s*$/i, ''));
+          for (let offset = 0; offset < 500 && !mid; offset += 100) {
+            const result = await this.request('/getSingerAlbum', { singermid: singer.mid, limit: 100, page: offset });
+            const response = (result.body || result).response || result;
+            const albums = response.singer?.data?.albumList || [];
+            const match = albums.find((a: any) => cleanTitle(a.albumName) === cleanTitle(title));
+            mid = match?.albumMid;
+            if (albums.length < 100) break;
+          }
+        }
+      }
+    }
+    if (!mid) throw new Error('未找到匹配的专辑，请补充这张专辑的 QQ 音乐标识');
+    const result = await this.request('/getAlbumInfo', { albummid: mid });
+    const response = (result.body || result).response || result;
+    const data = response.data || response;
+    const tracks = data.list || data.songlist || data.songs || [];
+    if (Number(data.total_song_num) > tracks.length) throw new Error('专辑曲目返回不完整，请稍后重试');
+    const songs = tracks.map((entry: any) => {
+      const song = entry.songInfo || entry;
+      return { ...song, songmid: song.songmid || song.mid, songname: song.songname || song.name,
+        singer: song.singer || [], albummid: song.albummid || song.album?.mid || mid,
+        albumname: title };
+    }).filter((song: any) => song.songmid).sort((a: any, b: any) =>
+      (Number(a.cdIdx || 0) - Number(b.cdIdx || 0)) || (Number(a.belongCD || 0) - Number(b.belongCD || 0)));
+    if (!songs.length) throw new Error('该专辑暂未返回曲目，请稍后重试');
+    return songs;
+  }
+
+  async getPlayableUrl(songmid: string): Promise<string> {
+    const response = await this.getSongUrl(songmid);
+    const data = response.data || response;
+    const url = data.playUrl?.[songmid]?.url || data.url || data[0]?.url || (typeof data.playUrl === 'string' ? data.playUrl : '');
+    if (!url) throw new Error('该歌曲暂无可用音源，可能需要会员或受版权限制');
+    return url;
+  }
+
   async getSongDetail(songId: string): Promise<any> {
     return await this.request('/song/detail', {
       ids: songId

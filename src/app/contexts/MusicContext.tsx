@@ -205,12 +205,18 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
 
   // 当currentSong变化时，获取播放URL并播放
   useEffect(() => {
+    let cancelled = false;
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current.removeAttribute('src'); }
+    setCurrentTime(0);
+    setDuration(0);
+    setIsPlaying(false);
     const playSong = async () => {
       if (currentSong && audioRef.current) {
         try {
           // 获取歌曲播放URL
           console.log('获取歌曲播放URL，songmid:', currentSong.songmid);
           const response = await qqMusicService.getSongUrl(currentSong.songmid);
+          if (cancelled) return;
           console.log('获取歌曲播放URL响应:', response);
           
           // 处理响应，获取播放URL
@@ -270,6 +276,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
               }
           }
         } catch (error) {
+          if (cancelled) return;
           console.error('播放歌曲失败:', error);
           // 显示更友好的错误提示
           alert('播放失败，请检查网络连接或稍后重试');
@@ -278,15 +285,19 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     };
     
     playSong();
+    return () => { cancelled = true; };
   }, [currentSong]);
 
   // 当currentSong变化时，获取歌词
   useEffect(() => {
+    let cancelled = false;
+    setLyrics('');
     const fetchLyrics = async () => {
       if (currentSong) {
         try {
           console.log('获取歌词，songmid:', currentSong.songmid);
           const response = await qqMusicService.getLyric(currentSong.songmid);
+          if (cancelled) return;
           console.log('获取歌词响应:', response);
           
           // 适配不同的API返回格式
@@ -308,6 +319,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
           console.log('获取到歌词:', lyricText);
           setLyrics(lyricText);
         } catch (error) {
+          if (cancelled) return;
           console.error('获取歌词失败:', error);
           setLyrics('');
         }
@@ -317,6 +329,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     };
     
     fetchLyrics();
+    return () => { cancelled = true; };
   }, [currentSong]);
 
   // 当isPlaying变化时，控制播放或暂停

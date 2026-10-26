@@ -7,6 +7,7 @@
     "build": "vite build",
     "dev": "vite --host --port 5188 --strictPort",
     "typecheck": "tsc --noEmit",
+    "check:music": "node scripts/check-music-behavior.cjs",
     "check:ranking": "node scripts/check-ranking-behavior.cjs",
     "check:deployed": "npm run build && node scripts/verify-deployed-parity.cjs --assets"
   },

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { qqMusicService } from '../services/qqMusicService';
 import { useMusic } from '../contexts/MusicContext';
 import { useRankingContext } from '../contexts/RankingContext';
@@ -131,6 +131,19 @@ export function Player() {
 
   // 当前歌词索引
   const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
+  const lyricsViewport = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const viewport = lyricsViewport.current;
+    if (!viewport) return;
+    const centerCurrent = () => {
+      const line = viewport.querySelector<HTMLElement>('.current-lyric');
+      if (line) viewport.scrollTop += line.getBoundingClientRect().top - viewport.getBoundingClientRect().top - (viewport.clientHeight - line.clientHeight) / 2;
+    };
+    centerCurrent();
+    const observer = new ResizeObserver(centerCurrent);
+    observer.observe(viewport);
+    return () => observer.disconnect();
+  }, [currentLyricIndex, parsedLyrics]);
 
   // 根据当前播放时间更新歌词索引
   useEffect(() => {
@@ -457,7 +470,7 @@ export function Player() {
                 </div>
               )}
             </div>
-            <div className="lyrics-content">
+            <div className="lyrics-content" ref={lyricsViewport}>
               {parsedLyrics.length > 0 ? (
                 <div className="dynamic-lyrics">
                   {getDisplayLyrics().map((lyric, index) => {
