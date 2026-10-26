@@ -269,12 +269,12 @@ class QQMusicService {
   }
 
   // 搜索音乐
-  async search(query: string, limit: number = 10, page: number = 1): Promise<any> {
-    return this.searchWithType(query, limit, 'songs', page);
+  async search(query: string, limit: number = 10, page: number = 1, fresh = false): Promise<any> {
+    return this.searchWithType(query, limit, 'songs', page, fresh);
   }
 
   // 根据类型搜索音乐
-  async searchWithType(query: string, limit: number = 10, type: 'songs' | 'albums' | 'artists', page: number = 1): Promise<any> {
+  async searchWithType(query: string, limit: number = 10, type: 'songs' | 'albums' | 'artists', page: number = 1, fresh = false): Promise<any> {
     // 根据qq-music-api仓库的路由配置，正确的搜索端点是/getSearchByKey
     // 使用GET请求，参数作为查询字符串传递
     try {
@@ -300,7 +300,7 @@ class QQMusicService {
       
       // 先检查缓存
       const cachedResult = this.getCache(cacheKey);
-      if (cachedResult) {
+      if (cachedResult && !fresh) {
         console.log('Using cached search result for:', cacheKey);
         return cachedResult;
       }
@@ -317,7 +317,12 @@ class QQMusicService {
       }
       
       // 将结果存入缓存（10分钟过期）
-      this.setCache(cacheKey, processedResult, 10 * 60 * 1000);
+      const responseData = processedResult.response || processedResult;
+      const actualData = responseData.data || responseData;
+      const list = actualData[type === 'albums' ? 'album' : type === 'artists' ? 'singer' : 'song']?.list;
+      // Empty/error responses must not suppress a later retry for ten minutes.
+      if (Array.isArray(list) && list.length) this.setCache(cacheKey, processedResult, 10 * 60 * 1000);
+      else this.cache.delete(cacheKey);
       
       return processedResult;
     } catch (error) {
@@ -391,7 +396,18 @@ class QQMusicService {
     return url;
   }
 
-  async findCover(title: string, artist: string, kind: string): Promise<string> {
+  async findCover(title: string, artist: string, kind: string, fresh = false): Promise<string> {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const cover = await this.lookupCover(title, artist, kind, fresh || attempt > 0);
+        if (cover) return cover;
+      } catch { /* Retry transient failures, with a fresh request. */ }
+      if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 400 * (attempt + 1)));
+    }
+    return '';
+  }
+
+  private async lookupCover(title: string, artist: string, kind: string, fresh: boolean): Promise<string> {
     const normalize = (value: string) => value.normalize('NFKC').toLowerCase()
       .replace(/\s*(\(explicit\)|\[explicit\])\s*$/i, '').replace(/\s+/g, ' ').trim();
     if (kind === '年度艺人榜') {
@@ -401,12 +417,64 @@ class QQMusicService {
       return singer?.pic?.replace(/^http:/, 'https:') || '';
     }
     if (kind === '年度专辑榜') {
+      // Covers need album identity, not a complete playable track list. The song
+      // search used by editing often exposes that identity when album lookup fails.
+      const result = await this.search(`${title} ${artist}`, 30, 1, fresh);
+      const response = result.response || result;
+      const data = response.data || response;
+      const compact = (value: string) => normalize(value).replace(/[^\p{L}\p{N}]/gu, '');
+      const oneEdit = (a: string, b: string) => {
+        if (Math.abs(a.length - b.length) > 1) return false;
+        let i = 0, j = 0, edits = 0;
+        while (i < a.length && j < b.length) {
+          if (a[i] === b[j]) { i++; j++; continue; }
+          if (++edits > 1) return false;
+          if (a.length >= b.length) i++;
+          if (b.length >= a.length) j++;
+        }
+        return edits + (a.length - i) + (b.length - j) <= 1;
+      };
+      const aliases = (value: string) => [value, ...normalize(value).split(/[();]/)].map(compact).filter(Boolean);
+      const wantedArtists = [artist, ...artist.split('/')].flatMap(aliases);
+      const artistMatches = (name: string) => aliases(name).some(actual => wantedArtists.some(wanted => actual === wanted
+        || (Math.min(actual.length, wanted.length) >= 6 && /^[a-z]+$/.test(actual + wanted) && oneEdit(actual, wanted))));
+      const titleVariants = (value: string) => {
+        const name = normalize(value);
+        const variants = [name, name.replace(/\s*[-:]\s*(?:the\s+)?(?:\d{4}\s+)?(?:\d+(?:st|nd|rd|th)\s+)?(?:(?:special|digital|mini|studio|full|single)\s+)*(?:album|ep|single)\s*$/i, '')];
+        const bracket = /\b\d+(?:st|nd|rd|th)\s+(?:(?:mini|studio|full|single)\s+)*(?:album|ep)\s*\[([^\]]+)\]\s*$/i.exec(name);
+        if (bracket) variants.push(bracket[1]);
+        const translated = /^(.*?)\s*\(([^()]*)\)\s*$/.exec(name);
+        if (translated && /[^\x00-\x7f]/.test(name) && !/deluxe|remix|mix|live|remaster|instrumental|acoustic|version|edition|anniversary|现场|伴奏|混音|豪华|重制|版/i.test(translated[2])) variants.push(translated[1], translated[2]);
+        return variants.filter(Boolean);
+      };
+      const wantedTitles = titleVariants(title);
+      const titleScore = (value: string) => Math.max(0, ...titleVariants(value).flatMap(actual => wantedTitles.map(wanted => {
+        if (normalize(actual) === normalize(wanted)) return 3;
+        const a = compact(actual), b = compact(wanted);
+        if (a && a === b) return 2;
+        if ((a.match(/\d+/g) || []).join('|') !== (b.match(/\d+/g) || []).join('|')) return 0;
+        return Math.min(a.length, b.length) >= 7 && oneEdit(a, b) ? 1 : 0;
+      })));
+      const titleCandidates = (data.song?.list || []).filter((song: any) => song.albummid)
+        .map((song: any) => ({ song, score: titleScore(song.albumname || song.album?.name || '') }))
+        .filter((candidate: any) => candidate.score > 0).sort((a: any, b: any) => b.score - a.score);
+      let candidates = titleCandidates.filter((candidate: any) => candidate.song.singer?.some((s: any) => artistMatches(s.name)));
+      if (!candidates.length && titleCandidates.length) {
+        // A unique smartbox singer can link a Latin query to its Korean display
+        // name. Compare MID instead of guessing that unrelated names are aliases.
+        const smartbox = await this.request('/getSmartbox', { key: artist });
+        const smartResponse = (smartbox.body || smartbox).response || smartbox;
+        const singers = smartResponse.data?.singer?.itemlist || [];
+        const identities = singers.filter((s: any) => artistMatches(s.name) || singers.length === 1).map((s: any) => s.mid).filter(Boolean);
+        candidates = titleCandidates.filter((candidate: any) => candidate.song.singer?.some((s: any) => identities.includes(s.mid)));
+      }
+      if (candidates.length) return `https://y.qq.com/music/photo_new/T002R300x300M000${candidates[0].song.albummid}.jpg`;
       try {
         const tracks = await this.getAlbumTracks(title, artist);
         return `https://y.qq.com/music/photo_new/T002R300x300M000${tracks[0].albummid}.jpg`;
       } catch { return ''; }
     }
-    const result = await this.search(`${title} ${artist}`, 30);
+    const result = await this.search(`${title} ${artist}`, 30, 1, fresh);
     const response = result.response || result;
     const data = response.data || response;
     const song = data.song?.list?.find((item: any) => normalize(item.songname || '') === normalize(title)

@@ -77,6 +77,8 @@ export function YearlyRanking({
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState('');
   const [coverProgress, setCoverProgress] = useState({ loading: false, completed: 0, total: 0, unmatched: 0 });
+  const missingCoverItems = rankingList.filter(item => !item.coverUrl || item.coverUrl === DEFAULT_RANKING_LIST[0].coverUrl);
+  const hasRealRanking = rankingList.some(item => !['1', '2', '3'].includes(item.id));
   const coverGeneration = useRef(0);
   useEffect(() => () => { coverGeneration.current++; }, []);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -454,53 +456,8 @@ export function YearlyRanking({
       (!finalCoverUrl || finalCoverUrl === DEFAULT_RANKING_LIST[0].coverUrl)
     ) {
       try {
-        // 构建搜索查询
-        const searchQuery = artist ? `${title} ${artist}` : title;
-
-        // 部署版本统一搜索歌曲，使用所属专辑的封面。
-        const searchType = "songs";
-
-        console.log("开始自动搜索封面:", {
-          searchQuery,
-          searchType,
-          title,
-          artist,
-        });
-
-        // 调用QQ音乐搜索API
-        const result = await qqMusicService.searchWithType(
-          searchQuery,
-          20,
-          searchType,
-          1
-        );
-
-        console.log("搜索原始结果:", result);
-
-        // 处理搜索结果，适配API返回格式
-        const searchResult = result.response || result;
-        const actualData = searchResult.data || searchResult;
-
-        console.log("处理后的搜索结果:", actualData);
-
-        // 提取第一个结果的封面URL
-        let firstResult = null;
-        if (actualData.song?.list?.length > 0) {
-          firstResult = actualData.song.list[0];
-        }
-
-        console.log("第一个结果:", firstResult);
-
-        // 如果有结果，获取封面URL并使用代理
-        if (firstResult) {
-          let originalUrl = "";
-          originalUrl = firstResult.albummid
-            ? `https://y.qq.com/music/photo_new/T002R300x300M000${firstResult.albummid}.jpg`
-            : "";
-
-          if (originalUrl) finalCoverUrl = originalUrl;
-          console.log("最终封面URL:", finalCoverUrl);
-        }
+        const matchedCover = await qqMusicService.findCover(title, artist, rankingMode, true);
+        if (matchedCover) finalCoverUrl = matchedCover;
       } catch (error) {
         console.error("自动搜索封面失败:", error);
         // 搜索失败不影响表单提交，继续使用默认封面
@@ -649,18 +606,21 @@ export function YearlyRanking({
     setShowImportDialog(false);
     setImportedRankingText('');
     setImportError('');
-    void fillImportedCovers(importedItems, rankingMode);
+    void fillImportedCovers(importedItems, rankingMode, listToUpdate);
   };
 
-  const fillImportedCovers = async (items: RankingItem[], mode: string) => {
+  const fillImportedCovers = async (items: RankingItem[], mode: string, allItems = rankingList, fresh = false) => {
     const generation = ++coverGeneration.current;
-    let next = 0, completed = 0, unmatched = 0;
-    setCoverProgress({ loading: true, completed: 0, total: items.length, unmatched: 0 });
+    const selected = new Set(items.map(item => item.id));
+    const total = allItems.length;
+    let next = 0, completed = total - items.length;
+    let unmatched = allItems.filter(item => !selected.has(item.id) && (!item.coverUrl || item.coverUrl === DEFAULT_RANKING_LIST[0].coverUrl)).length;
+    setCoverProgress({ loading: true, completed, total, unmatched });
     await Promise.all(Array.from({ length: Math.min(3, items.length) }, async () => {
       while (next < items.length && generation === coverGeneration.current) {
         const item = items[next++];
         let cover = '';
-        try { cover = await qqMusicService.findCover(item.title, item.artist, mode); } catch {}
+        try { cover = await qqMusicService.findCover(item.title, item.artist, mode, fresh); } catch {}
         if (generation !== coverGeneration.current) return;
         if (cover) setRankingList(current => current.map(existing =>
           existing.id === item.id && existing.title === item.title && existing.artist === item.artist
@@ -668,7 +628,7 @@ export function YearlyRanking({
             ? { ...existing, coverUrl: cover } : existing));
         else unmatched++;
         completed++;
-        setCoverProgress({ loading: completed < items.length, completed, total: items.length, unmatched });
+        setCoverProgress({ loading: completed < total, completed, total, unmatched });
       }
     }));
   };
@@ -1165,10 +1125,6 @@ export function YearlyRanking({
         <br />
         {"历史榜单保存于浏览器中，各个浏览器之间看不到彼此的数据"}
       </p>
-      {coverProgress.total > 0 && <p role="status" className="ranking-import-status">
-        {coverProgress.loading ? `正在匹配封面 ${coverProgress.completed}/${coverProgress.total}…` : `封面匹配完成：${coverProgress.completed - coverProgress.unmatched}/${coverProgress.total}`}
-        {coverProgress.unmatched > 0 && `；${coverProgress.unmatched} 项未找到准确匹配，可手动上传封面`}
-      </p>}
       {isExporting && <p role="status">正在生成文档与分页，请稍候…</p>}
       {exportError && <p role="alert" className="ranking-error">{exportError}</p>}
       <div
@@ -1519,6 +1475,13 @@ export function YearlyRanking({
               <button className="export-btn" disabled={isExporting || coverProgress.loading} onClick={() => exportRanking('pages')}>导出每页图片</button>
             </div>
           </div>
+          {(coverProgress.total > 0 || (hasRealRanking && missingCoverItems.length > 0)) && <div className="ranking-cover-status">
+            <p role="status" className="ranking-import-status">
+              {coverProgress.loading ? `正在匹配封面 ${coverProgress.completed}/${coverProgress.total}…` : `封面匹配完成：${rankingList.length - missingCoverItems.length}/${rankingList.length}`}
+              {!coverProgress.loading && missingCoverItems.length > 0 && `；${missingCoverItems.length} 项未找到准确匹配，可重试或手动上传封面`}
+            </p>
+            {!coverProgress.loading && missingCoverItems.length > 0 && <button className="export-btn" onClick={() => fillImportedCovers(missingCoverItems, rankingMode, rankingList, true)}>重试未匹配封面</button>}
+          </div>}
           <div className="user-ranking-list">
             {scoringMode === "non-scoring"
               ? rankingList.map((Ne, je) => (
@@ -2264,23 +2227,10 @@ export function YearlyRanking({
                   color: "#000",
                 }}
               >
-                <div style={{ marginBottom: "10px" }}>
-                  <strong>{"月.日 作品名 - 作者名 原始分数+整体性++保值度"}</strong>
-                  <br />
-                  <span style={{ marginLeft: "20px" }}>
-                    {"（月.日 作品名 - 作者名 原始分数+整体性++保值度）"}
-                  </span>
-                </div>
-                <p><strong>或者（任选一种格式，也可混合粘贴）</strong></p>
-                <div>
-                  <strong>{"作品名 - 作者名"}</strong>
-                  <br />
-                  <span style={{ marginLeft: "20px" }}>
-                    {"（作品名 - 作者名）"}
-                  </span>
-                </div>
-                <p>评分可省略；填写时分数前必须有空格。+ 表示整体性，++ 表示保值度。例：Not Anymore - 16 43；CRACK CODE - Kep1er 55.4。</p>
-                <p>不评分模式会完整保留作者字段，包括数字结尾的姓名。</p>
+                <div><strong>评分模式：</strong></div>
+                <div>月.日 作品名 - 作者名 原始分数+整体性++保值度</div>
+                <div style={{ marginTop: '12px' }}><strong>非评分模式：</strong></div>
+                <div>作品名 - 作者名</div>
               </div>
               <textarea
                 className="import-ranking-textarea"

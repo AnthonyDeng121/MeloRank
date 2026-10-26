@@ -12,6 +12,7 @@
     "check:import": "node scripts/check-ranking-import.cjs",
     "check:queue": "node scripts/check-queue-clear.cjs",
     "check:export": "node scripts/check-ranking-export.cjs",
+    "check:covers": "node scripts/check-cover-matching.cjs",
     "check:deployed": "npm run build && node scripts/verify-deployed-parity.cjs --assets"
   },
   "dependencies": {

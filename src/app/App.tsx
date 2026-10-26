@@ -111,7 +111,7 @@ export default function App() {
           />
           <main className="main-content">
             {['yearly-songs', 'yearly-albums', 'artist-recommendations'].includes(currentPage) && (
-              <button className="page-back-button" onClick={goBack}>← 返回上一页</button>
+              <button className="page-back-button" onClick={goBack} aria-label="返回" title="返回">{'<'}</button>
             )}
             {renderPage()}
           </main>

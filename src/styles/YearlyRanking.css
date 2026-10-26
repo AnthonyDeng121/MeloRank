@@ -1523,5 +1523,7 @@
 
 .ranking-error { color:#ff9a9a; line-height:1.6; }
 .ranking-import-status { color:#b3a9ee; line-height:1.6; }
+.ranking-cover-status { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin:0 0 20px; }
+.ranking-cover-status .ranking-import-status { margin:0; }
 .export-buttons { flex-wrap:wrap; }
 .export-btn:disabled { opacity:.5; cursor:wait; }
