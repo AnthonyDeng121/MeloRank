@@ -1,0 +1,37 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const ts = require('typescript');
+const { webcrypto, createHash } = require('node:crypto');
+const storage = () => { const map = new Map(); return { getItem: key => map.get(key) ?? null, setItem: (key, value) => map.set(key, value), removeItem: key => map.delete(key) }; };
+const sessionStorage = storage(), localStorage = storage();
+let assigned, calls = [];
+const sandbox = { exports: {}, env: {}, sessionStorage, localStorage, URL, URLSearchParams, TextEncoder, AbortSignal, crypto: webcrypto, btoa, location: { protocol: 'http:', origin: 'http://127.0.0.1:5188', hostname: '127.0.0.1', pathname: '/', search: '', assign: value => { assigned = value; } }, history: { replaceState() {} }, fetch: async (url, options) => {
+  calls.push({ url, options });
+  if (url.includes('/api/token')) return { ok: true, json: async () => ({ access_token: 'fixture-access', refresh_token: 'fixture-refresh', expires_in: 3600 }) };
+  return { ok: true, status: 200, json: async () => ({ items: [{ track: { id: 'track', name: 'Track', artists: [{ name: 'Artist' }], album: { images: [{ url: 'https://example.com/image' }] }, external_urls: { spotify: 'https://open.spotify.com/track/track' } } }], next: null }) };
+} };
+const source = fs.readFileSync('src/app/services/musicPlatforms.ts', 'utf8').replaceAll('import.meta.env', 'env');
+vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText, sandbox);
+const { spotify } = sandbox.exports;
+(async () => {
+  await spotify.begin('a'.repeat(32));
+  const url = new URL(assigned), pending = JSON.parse(sessionStorage.getItem('spotifyPkce'));
+  assert.equal(url.origin, 'https://accounts.spotify.com');
+  assert.equal(url.searchParams.get('code_challenge_method'), 'S256');
+  assert.equal(url.searchParams.get('code_challenge'), createHash('sha256').update(pending.verifier).digest('base64url'));
+  assert.equal(url.searchParams.get('redirect_uri'), 'http://127.0.0.1:5188/');
+  sandbox.location.search = '?code=fixture&state=wrong';
+  await assert.rejects(() => spotify.finish()); assert.equal(calls.length, 0);
+  await spotify.begin('a'.repeat(32));
+  sandbox.location.search = '?code=fixture&state=' + new URL(assigned).searchParams.get('state');
+  assert.equal(await spotify.finish(), true);
+  const page = await spotify.library('liked', 30);
+  assert.equal(page.items[0].title, 'Track'); assert.equal(page.hasMore, false);
+  assert.ok(calls[1].url.endsWith('/me/tracks?limit=30&offset=30'));
+  const token = JSON.parse(sessionStorage.getItem('melorankSpotifyTokens')); token.expiresAt = 0; sessionStorage.setItem('melorankSpotifyTokens', JSON.stringify(token));
+  await spotify.token(); assert.equal(calls[2].options.body.get('grant_type'), 'refresh_token');
+  spotify.logout(); assert.equal(spotify.connected(), false);
+  await assert.rejects(() => spotify.token());
+  console.log('PASS PKCE challenge/state validation, official callback/token flow, library pagination, refresh and logout');
+})().catch(error => { console.error(error); process.exitCode = 1; });

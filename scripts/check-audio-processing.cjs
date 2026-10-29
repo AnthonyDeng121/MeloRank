@@ -10,7 +10,7 @@ const assert = require('node:assert/strict');
   const { processPcm } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
   for (const sampleRate of [44100, 48000]) {
     const input = Float32Array.from({ length: sampleRate * 4 }, (_, i) => Math.sin(2 * Math.PI * 440 * i / sampleRate) * 0.5);
-    for (const [tempo, pitch, expected] of [[1, 12, 880], [1.5, 0, 440], [0.75, -12, 220], [1.5, 7, 440 * 2 ** (7 / 12)]]) {
+    for (const [tempo, pitch, expected] of [[1, 12, 880], [1.5, 0, 440], [0.75, -12, 220], [1.5, 7, 440 * 2 ** (7 / 12)], [0.25, 0, 440], [2, 12, 880]]) {
       const [output] = await processPcm([input], sampleRate, 0.5, 3.5, tempo, pitch);
       assert.equal(output.length, Math.ceil(sampleRate * 3 / tempo));
       const first = Math.floor(output.length * 0.2), last = Math.floor(output.length * 0.8);

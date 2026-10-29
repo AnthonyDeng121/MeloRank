@@ -10,16 +10,14 @@ module.exports = {
 		ctx.body = {
 			data: {
 				code: 200,
-				cookie: global.userInfo.cookie,
-				cookieList: global.userInfo.cookieList,
-				cookieObject: global.userInfo.cookieObject,
+				authenticated: !!ctx.request.cookie,
 			},
 		};
 
 		await next();
 	},
 	set: async (ctx, next) => {
-		ctx.request.cookies = global.userInfo.cookie;
+		ctx.request.cookies = ctx.request.cookie || '';
 		ctx.request.header['Access-Control-Allow-Origin'] = 'https://y.qq.com';
 		ctx.request.header['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE';
 		ctx.request.header['Access-Control-Allow-Headers'] = 'Content-Type';

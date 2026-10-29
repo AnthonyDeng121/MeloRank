@@ -10,6 +10,7 @@ import { EditorRanking } from './pages/EditorRanking';
 
 import { LyricsTool } from './pages/LyricsTool';
 import { AudioLab } from './pages/AudioLab';
+import { MusicLibrary } from './pages/MusicLibrary';
 import { RankingProvider } from './contexts/RankingContext';
 import { MusicProvider } from './contexts/MusicContext';
 import { SearchProvider } from './contexts/SearchContext';
@@ -22,7 +23,7 @@ interface QQMusicUser {
 }
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState('home');
+  const [currentPage, setCurrentPage] = useState(() => /[?&](code|connectSpotify|error)=/.test(location.search) ? 'music-library' : 'home');
   const [pageHistory, setPageHistory] = useState<string[]>([]);
   const navigate = (page: string) => {
     if (page === currentPage) return;
@@ -91,6 +92,8 @@ export default function App() {
         return <LyricsTool />;
       case 'audio-lab':
         return <AudioLab />;
+      case 'music-library':
+        return <MusicLibrary />;
       default:
         return <Home onNavigate={navigate} qqMusicUser={qqMusicUser} onQQMusicLogin={() => document.getElementById('qq-music-login-btn')?.click()} />;
     }

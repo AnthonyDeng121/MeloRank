@@ -264,6 +264,23 @@
   gap: 24px;
   margin-bottom: 40px;
 }
+.audio-lab-page .controls-section { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; gap: 20px; }
+.audio-lab-page .controls-section > .control-group { min-height: 210px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: flex-start; padding: 24px; }
+.audio-lab-page .controls-section h3 { margin: 0 0 22px; font-size: 17px; font-weight: 600; line-height: 24px; }
+.audio-lab-page .lab-selection-summary { margin: 0 0 18px; color: #969cad; font-size: 14px; line-height: 20px; }
+.audio-lab-page .lab-trim-open { align-self: flex-start; }
+.audio-lab-page .lab-control-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.audio-lab-page .lab-control-heading output { color: #a6b3ff; font-size: 16px; font-variant-numeric: tabular-nums; }
+.audio-lab-page .lab-speed-slider { margin: 16px 10px 30px; }
+.audio-lab-page .lab-speed-slider input { display: block; width: 100%; margin: 0; accent-color: #8597ff; height: 18px; cursor: pointer; }
+.audio-lab-page .lab-speed-marks { position: relative; height: 40px; margin: 0 7px; }
+.audio-lab-page .lab-speed-marks button { position: absolute; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 5px 0; background: transparent; border: 0; color: #9298aa; font: inherit; font-size: 11px; white-space: nowrap; cursor: pointer; }
+.audio-lab-page .lab-speed-marks i { width: 4px; height: 4px; border-radius: 50%; background: #626a80; }
+.audio-lab-page .lab-speed-marks button[aria-pressed="true"], .audio-lab-page .lab-speed-marks button:hover { color: #bec8ff; }
+.audio-lab-page .lab-speed-marks button[aria-pressed="true"] i { background: #a6b4ff; }
+.audio-lab-page .controls-section .pitch-btn { padding: 10px 12px; font-family: inherit; font-size: 14px; flex: 0 1 auto; }
+.audio-lab-page .controls-section .pitch-value { white-space: nowrap; min-width: 48px; }
+@media (max-width: 1050px) { .audio-lab-page .controls-section { grid-template-columns: 1fr; } .audio-lab-page .controls-section > .control-group { min-height: 190px; } }
 
 .control-group {
   background-color: #1a1a1a;

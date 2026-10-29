@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { resolveCookie } = require('./requestAuth');
 require('../util/colors');
 
 // `withCredentials` 表示跨域请求时是否需要使用凭证
@@ -10,7 +11,7 @@ axios.defaults.responseType = 'json;text/plain;charset=utf-8;';
 const setHeaders = (headers, cookie) => {
   return {
     ...headers,
-    cookie: cookie || global.userInfo.cookie
+    cookie: resolveCookie(cookie)
   };
 };
 

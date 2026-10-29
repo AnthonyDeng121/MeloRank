@@ -37,7 +37,7 @@ export function Player() {
     } finally { setDownloading(false); }
   };
   // 使用音乐播放上下文
-  const { currentSong, isPlaying, togglePlay, volume, setVolume, setLyrics, lyrics, currentTime, duration, seekTo, previousSong, nextSong, playMode, setPlayMode } = useMusic();
+  const { currentSong, isPlaying, togglePlay, volume, setVolume, setLyrics, lyrics, currentTime, duration, seekTo, previousSong, nextSong, playMode, setPlayMode, playbackNotice } = useMusic();
   
   // 使用榜单上下文
   const { rankingList, setRankingList, setRankingMode } = useRankingContext();
@@ -441,6 +441,7 @@ export function Player() {
                 </button>
               </div>
               {downloadError && <p role="alert">{downloadError}</p>}
+              {playbackNotice && <p className="playback-notice" role="status">{playbackNotice}</p>}
               
               <div className="progress-bar">
                   <div className="progress-slider">

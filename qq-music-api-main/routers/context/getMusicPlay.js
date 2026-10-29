@@ -1,27 +1,17 @@
 const { UCommon } = require('../../module');
 const { _guid } = require('../../module/config');
 const get = require('lodash.get');
+const { resolveCookie, getUin } = require('../../util/requestAuth');
 
 // songmid=003rJSwm3TechU
 // songmid=001yNIo41SJjuC,001wPuVc4ZiMhj
 module.exports = async (ctx, next) => {
-	// 从请求头获取cookie
-	const requestCookie = ctx.request.headers['cookie'] || '';
-	// 从请求头获取X-QQ-Music-Cookie
-	const xQqMusicCookie = ctx.request.headers['x-qq-music-cookie'] || '';
-	// 优先使用X-QQ-Music-Cookie，其次是普通Cookie，最后是全局配置
-	const cookie = xQqMusicCookie || requestCookie || global.userInfo.cookie;
+	// Only the current request's explicit music credential is used.
+	const cookie = resolveCookie();
 	
-	// 从cookie中提取uin
-	let uin = '0';
-	if (cookie) {
-		const uinMatch = cookie.match(/uin=(\w+)/) || cookie.match(/ uin=(\w+)/);
-		if (uinMatch && uinMatch[1]) {
-			uin = uinMatch[1];
-		}
-	}
+	const uin = getUin(cookie);
 	
-	const songmid = ctx.query.songmid + '';
+	const songmid = String(ctx.query.songmid || ctx.params.songmid || '');
 	// response data only need play url value (all play)
 	const justPlayUrl = (ctx.query.resType || 'play') === 'play';
 	const guid = _guid ? _guid + '' : '1429839143';
@@ -49,7 +39,7 @@ module.exports = async (ctx, next) => {
 		}
 	};
 	const songmidList = songmid.split(',');
-	const fileInfo = fileType[quality];
+	const fileInfo = fileType[quality] || fileType[128];
 	const file = songmidList.map(_ => `${fileInfo.s}${_}${mediaId || _}${fileInfo.e}`);
 	// 设置loginflag为1表示已登录，0表示未登录
 	const loginflag = cookie ? 1 : 0;
@@ -93,19 +83,37 @@ module.exports = async (ctx, next) => {
 
 	if (songmid) {
 		await UCommon(props)
-			.then(res => {
+			.then(async res => {
 				const response = res.data;
+				const missing = get(response, 'req_0.data.midurlinfo', []).filter(item => !item.purl);
+				const previews = {};
+				if (missing.length && ctx.query.preview !== '0') {
+					const previewData = JSON.parse(JSON.stringify(data));
+					previewData.req_0.param.songmid = missing.map(item => item.songmid);
+					previewData.req_0.param.songtype = missing.map(() => 0);
+					previewData.req_0.param.filename = missing.map(item => `RS02${item.songmid}${item.songmid}.mp3`);
+					try {
+						const result = await UCommon({ ...props, params: { format: 'json', data: JSON.stringify(previewData) } });
+						for (const item of get(result.data, 'req_0.data.midurlinfo', [])) {
+							if (item.purl) previews[item.songmid] = { item, domain: get(result.data, 'req_0.data.sip[0]') };
+						}
+					} catch { /* Preview is only available when issued by QQ Music. */ }
+				}
 				const domain = get(response, 'req_0.data.sip', [])
 					.find(i => !i.startsWith('http://ws'))
 					|| get(response, 'req_0.data.sip[0]');
 
 				let playUrl = {};
 				get(response, 'req_0.data.midurlinfo', []).forEach((item) => {
-					const hasUrl = !!item.purl;
+					const preview = previews[item.songmid];
+					const hasUrl = !!item.purl || !!preview;
 					playUrl[item.songmid] = {
-						url: hasUrl ? `${domain}${item.purl}`  : '',
+						url: preview ? `${preview.domain}${preview.item.purl}` : hasUrl ? `${domain}${item.purl}` : '',
+						isPreview: !!preview || /RS02/.test(item.purl || ''),
+						previewLimit: preview ? 30 : undefined,
+						result: item.result,
 						error: !hasUrl && (
-							loginflag ? 'VIP歌曲或当前版权受限' : '请先登录以获取播放链接'
+							loginflag ? '当前账号未获得完整播放授权，且平台未提供试听片段；可能需要单独购买或重新登录' : '平台未提供游客试听片段，请登录后重试'
 						)
 					};
 				});

@@ -18,6 +18,7 @@ export function TopNav({ currentPage, onNavigate, qqMusicUser, onLogout, onQQMus
     { id: 'player', label: '播放器' },
     { id: 'yearly-ranking', label: '年度榜单' },
     { id: 'audio-lab', label: '音频实验室' },
+    { id: 'music-library', label: '我的音乐' },
   ];
 
   // QQ音乐登录相关状态
@@ -34,7 +35,6 @@ export function TopNav({ currentPage, onNavigate, qqMusicUser, onLogout, onQQMus
       try {
         // 步骤1：获取登录二维码
         const qrResponse = await qqMusicService.getLoginQr();
-        console.log('获取二维码响应:', qrResponse);
         
         // 处理API响应 - 检查img字段是否存在
         if (qrResponse.img) {
@@ -46,7 +46,6 @@ export function TopNav({ currentPage, onNavigate, qqMusicUser, onLogout, onQQMus
           const interval = setInterval(async () => {
             try {
               const statusResponse = await qqMusicService.checkLoginStatus({ ptqrtoken, qrsig });
-              console.log('检查登录状态响应:', statusResponse);
               
               // 检查API是否直接返回了body
               const statusData = statusResponse.body || statusResponse;
@@ -67,7 +66,6 @@ export function TopNav({ currentPage, onNavigate, qqMusicUser, onLogout, onQQMus
                 // 保存返回的cookie
                 if (statusData.cookie) {
                   qqMusicService.setCookie(statusData.cookie);
-                  console.log('保存的cookie:', statusData.cookie);
                 }
                 
                 // 直接使用登录响应中的nickname（如果有）

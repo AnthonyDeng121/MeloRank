@@ -1,10 +1,10 @@
 const request = require('../../util/request');
 const config = require('../config');
-const userInfoConfig = require('../../config/user-info');
+const { resolveCookie } = require('../../util/requestAuth');
 
 module.exports = ({ options = {}, method = 'get', cookie = null }) => {
 	// 优先使用传递过来的cookie，其次是options.headers中的cookie，最后是全局配置
-	const cookieToUse = cookie || options.headers?.cookie || global.userInfo.cookie;
+	const cookieToUse = resolveCookie(cookie ?? options.headers?.cookie);
 	
 	let opts = Object.assign(options, config.commonParams, {
 		headers: {

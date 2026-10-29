@@ -2,6 +2,7 @@ import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Pause, Play, X } from 'lucide-react';
 import { processPcm } from '../services/audioProcessing';
 import '../../styles/AudioTrimDialog.css';
+import { lyricCues, parseLrc, type LyricLine } from '../services/lyrics';
 
 interface Props {
   buffer: AudioBuffer;
@@ -9,13 +10,14 @@ interface Props {
   tempo: number;
   pitch: number;
   volume: number;
+  lyrics: LyricLine[];
   onClose: () => void;
   onApply: (selection: [number, number]) => void;
 }
 
 const time = (seconds: number) => `${Math.floor(seconds / 60)}:${(seconds % 60).toFixed(2).padStart(5, '0')}`;
 
-export function AudioTrimDialog({ buffer, selection, tempo, pitch, volume, onClose, onApply }: Props) {
+export function AudioTrimDialog({ buffer, selection, tempo, pitch, volume, lyrics, onClose, onApply }: Props) {
   const dialog = useRef<HTMLDialogElement>(null);
   const timeline = useRef<HTMLDivElement>(null);
   const [range, setRange] = useState<[number, number]>(selection || [0, buffer.duration]);
@@ -23,6 +25,10 @@ export function AudioTrimDialog({ buffer, selection, tempo, pitch, volume, onClo
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [localLyrics, setLocalLyrics] = useState<LyricLine[] | null>(null);
+  const [lyricAnchor, setLyricAnchor] = useState<number | null>(null);
+  const cues = useMemo(() => lyricCues(localLyrics ?? lyrics, buffer.duration), [localLyrics, lyrics, buffer.duration]);
+  const currentCue = cues.find(cue => cursor >= cue.time && cursor < cue.end);
   const engine = useRef<{ context: AudioContext; source?: AudioBufferSourceNode; frame?: number } | null>(null);
   const generation = useRef(0);
   const clipId = useId().replace(/:/g, '');
@@ -109,7 +115,17 @@ export function AudioTrimDialog({ buffer, selection, tempo, pitch, volume, onClo
           onKeyDown={e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); moveBoundary(side, range[side] + (e.key === 'ArrowLeft' ? -1 : 1) * (e.shiftKey ? 1 : 0.1)); } }}><span /></button>)}
       </div>
       <div className="trim-ruler"><span>0:00</span><span>{time(buffer.duration / 2)}</span><span>{time(buffer.duration)}</span></div>
-      <div className="trim-selection-details"><div><span>开始</span><strong>{time(range[0])}</strong></div><div><span>结束</span><strong>{time(range[1])}</strong></div><div><span>选中时长</span><strong>{time(range[1] - range[0])}</strong></div></div>
+      <p className="trim-current-lyric" aria-live="polite">{currentCue?.text || (cues.length ? '点击波形定位，或试听选区' : '当前素材暂无同步歌词')}</p>
+      <div className="trim-selection-details"><div><label htmlFor="trim-start">开始（秒）</label><input id="trim-start" aria-label="裁剪开始秒数" type="number" step="0.01" min="0" max={range[1]} value={Number(range[0].toFixed(3))} onChange={e => { if (e.target.value) moveBoundary(0, Number(e.target.value)); }} /></div><div><label htmlFor="trim-end">结束（秒）</label><input id="trim-end" aria-label="裁剪结束秒数" type="number" step="0.01" min={range[0]} max={buffer.duration} value={Number(range[1].toFixed(3))} onChange={e => { if (e.target.value) moveBoundary(1, Number(e.target.value)); }} /></div><div><span>选中时长</span><strong>{time(range[1] - range[0])}</strong></div></div>
+      <section className="trim-lyrics-section">
+        <div className="trim-lyrics-heading"><h3>按歌词选句</h3><label className="trim-load-lrc">导入 LRC<input type="file" accept=".lrc,text/plain" aria-label="导入同步歌词" onChange={async e => { const file = e.target.files?.[0]; if (file) { const lines = parseLrc(await file.text()); setLocalLyrics(lines); setLyricAnchor(null); if (!lines.length) setError('此文件没有可用的歌词时间戳'); } }} /></label></div>
+        {cues.length > 0 ? <><p>点击选一句，Shift + 点击选择连续多句</p><div className="trim-lyric-list">{cues.map((cue, index) => <button key={`${cue.time}-${index}`} type="button" className={currentCue === cue ? 'is-current' : ''} aria-pressed={cue.time >= range[0] - 0.001 && cue.end <= range[1] + 0.001} onClick={e => {
+          const first = e.shiftKey && lyricAnchor !== null ? Math.min(lyricAnchor, index) : index;
+          const last = e.shiftKey && lyricAnchor !== null ? Math.max(lyricAnchor, index) : index;
+          if (!e.shiftKey || lyricAnchor === null) setLyricAnchor(index);
+          updateRange([cues[first].time, Math.min(buffer.duration, cues[last].end)]);
+        }}><time>{time(cue.time)}</time><span>{cue.text}</span></button>)}</div></> : <p>从歌曲导入素材可自动读取歌词；本地音频可导入对应的 LRC 文件。</p>}
+      </section>
       {error && <p role="alert">{error}</p>}
       <footer><button className="trim-preview-button" onClick={play}>{playing ? <Pause size={16} /> : <Play size={16} />}{loading ? '停止处理' : playing ? '暂停试听' : '试听选区'}</button><div><button className="trim-secondary-button" onClick={onClose}>取消</button><button className="trim-primary-button" onClick={() => { stop(); onApply(range); }}>保留选区</button></div></footer>
     </div>

@@ -20,6 +20,7 @@ type PlayMode = 'single' | 'sequence' | 'random';
 interface MusicContextType {
   currentSong: Song | null;
   isPlaying: boolean;
+  playbackNotice: string;
   volume: number;
   currentTime: number;
   duration: number;
@@ -61,6 +62,22 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
   const [currentIndex, setCurrentIndex] = useState(-1); // 当前歌曲在队列中的索引
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const playbackGeneration = useRef(0);
+  const [playbackNotice, setPlaybackNotice] = useState('');
+  const previewLimit = useRef<number | null>(null);
+  const [authVersion, setAuthVersion] = useState(0);
+  useEffect(() => {
+    const changed = () => {
+      playbackGeneration.current++;
+      audioRef.current?.pause();
+      audioRef.current?.removeAttribute('src');
+      audioRef.current?.load();
+      setIsPlaying(false);
+      setCurrentSong(null);
+      setAuthVersion(version => version + 1);
+    };
+    window.addEventListener('qqmusic-auth-change', changed);
+    return () => window.removeEventListener('qqmusic-auth-change', changed);
+  }, []);
 
   // 使用useCallback包装nextSong和previousSong函数，确保它们总是使用最新的状态
   const nextSong = React.useCallback(() => {
@@ -168,13 +185,17 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     // 监听播放时间更新事件
     const handleTimeUpdate = () => {
       if (audioRef.current) {
+        if (previewLimit.current && audioRef.current.currentTime >= previewLimit.current) {
+          audioRef.current.pause();
+          audioRef.current.currentTime = 0;
+        }
         setCurrentTime(audioRef.current.currentTime);
       }
     };
     // 监听总时长变化事件
     const handleDurationChange = () => {
       if (audioRef.current) {
-        setDuration(Number.isFinite(audioRef.current.duration) ? audioRef.current.duration : 0);
+        setDuration(Number.isFinite(audioRef.current.duration) ? Math.min(audioRef.current.duration, previewLimit.current || Infinity) : 0);
       }
     };
     
@@ -211,6 +232,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current.removeAttribute('src'); audioRef.current.load(); }
     setCurrentTime(0);
     setDuration(0);
+    setPlaybackNotice(''); previewLimit.current = null;
     setIsPlaying(false);
     const playSong = async () => {
       if (currentSong && audioRef.current) {
@@ -231,6 +253,10 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
             if (response.data.playUrl && response.data.playUrl[currentSong.songmid]) {
               const songInfo = response.data.playUrl[currentSong.songmid];
               if (songInfo) {
+                if (songInfo.isPreview) {
+                  previewLimit.current = 30;
+                  setPlaybackNotice('当前为平台提供的试听片段，最长播放 30 秒');
+                }
                 if (songInfo.url) {
                   songUrl = songInfo.url;
                 }
@@ -288,7 +314,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     
     playSong();
     return () => { cancelled = true; };
-  }, [currentSong]);
+  }, [currentSong, authVersion]);
 
   // 当currentSong变化时，获取歌词
   useEffect(() => {
@@ -444,6 +470,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     currentSong,
     isPlaying,
     volume,
+    playbackNotice,
     currentTime,
     duration,
     lyrics,

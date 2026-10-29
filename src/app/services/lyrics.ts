@@ -15,5 +15,11 @@ export function parseLrc(value: string): LyricLine[] {
 export function matchLyric(lines: LyricLine[], time: number): string {
   let closest: LyricLine | undefined;
   for (const line of lines) if (Math.abs(line.time - time) <= 0.3 && (!closest || Math.abs(line.time - time) < Math.abs(closest.time - time))) closest = line;
-  return closest?.text || '';
+  const text = closest?.text || '';
+  return /^[\s/／]+$/.test(text) ? '' : text;
+}
+
+export function lyricCues(lines: LyricLine[], duration: number) {
+  return lines.filter(line => line.text && !/^[\s/／]+$/.test(line.text) && line.time >= 0 && line.time < duration)
+    .map((line, i, all) => ({ ...line, end: all.slice(i + 1).find(next => next.time > line.time)?.time ?? duration }));
 }

@@ -1,6 +1,14 @@
 const Router = require('koa-router');
 const router = new Router();
 const context = require('./context');
+router.get('/user/library', require('./context/userLibrary'));
+router.post('/user/logout', async ctx => {
+  const legacyNames = (ctx.get('Cookie') || '').split(';').map(s => s.trim().split('=')[0]).filter(key => /^(?:qqmusic_|qm_|ptnick_|p_skey$|p_uin$|skey$|uin$|wxuin$|musicid$|login_type$)/.test(key));
+  for (const key of new Set(['uin', 'qqmusic_uin', 'musicid', 'qm_keyst', 'qqmusic_key', 'p_skey', 'skey', 'wxuin', ...legacyNames])) {
+    if (/^[\w-]+$/.test(key)) ctx.cookies.set(key, null, { path: '/', maxAge: 0, signed: false });
+  }
+  ctx.body = { success: true };
+});
 
 // cookies
 router.get('/user/getCookie', context.getCookie);

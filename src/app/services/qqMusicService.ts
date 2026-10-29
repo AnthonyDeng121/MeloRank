@@ -33,6 +33,13 @@ class QQMusicService {
   constructor() {
     this.baseUrl = QQ_MUSIC_CONFIG.baseUrl;
     this.loadTokens();
+    window.addEventListener('storage', event => {
+      if (event.key === 'qqMusicCookie') {
+        this.cookie = event.newValue;
+        this.cache.clear();
+        window.dispatchEvent(new Event('qqmusic-auth-change'));
+      }
+    });
   }
 
   // 从本地存储加载令牌
@@ -52,6 +59,7 @@ class QQMusicService {
         this.userId = savedUserId;
       } else {
         this.logout();
+        return;
       }
     }
     
@@ -86,7 +94,7 @@ class QQMusicService {
 
       // 如果有cookie，添加到请求头
       if (this.cookie) {
-        headers['Cookie'] = this.cookie;
+        headers['X-QQ-Music-Cookie'] = this.cookie;
       }
       
       // 如果需要认证且有令牌，添加认证头
@@ -97,7 +105,8 @@ class QQMusicService {
       const options: RequestInit = {
         method,
         headers,
-        mode: 'cors' // 允许跨域请求
+        mode: 'cors',
+        credentials: 'omit'
       };
 
       if (method === 'GET' && params) {
@@ -111,9 +120,6 @@ class QQMusicService {
       }
 
       console.log('QQ Music API Request:', `${method} ${url.toString()}`);
-      if (options.body) {
-        console.log('QQ Music API Request Body:', options.body);
-      }
 
       const response = await fetch(url.toString(), { ...options, signal: AbortSignal.timeout(15000) });
       
@@ -124,7 +130,6 @@ class QQMusicService {
       }
 
       const data = await response.json();
-      console.log('QQ Music API Response Data:', data);
       return data;
     } catch (error) {
       console.error('QQ Music API error:', error);
@@ -196,12 +201,17 @@ class QQMusicService {
     localStorage.removeItem('qqMusicUserId');
     localStorage.removeItem('qqMusicCookie');
     localStorage.removeItem('qqMusicNickname');
+    this.cache.clear();
+    window.dispatchEvent(new Event('qqmusic-auth-change'));
+    void fetch(`${this.baseUrl}/user/logout`, { method: 'POST', credentials: 'include' }).catch(() => {});
   }
   
   // 设置cookie
   setCookie(cookie: string): void {
     this.cookie = cookie;
     this.saveTokens();
+    this.cache.clear();
+    window.dispatchEvent(new Event('qqmusic-auth-change'));
   }
 
   // 获取当前用户信息
@@ -391,6 +401,7 @@ class QQMusicService {
   async getPlayableUrl(songmid: string): Promise<string> {
     const response = await this.getSongUrl(songmid);
     const data = response.data || response;
+    if (data.playUrl?.[songmid]?.isPreview) throw new Error('当前仅有试听片段，无法下载完整歌曲或导入实验室');
     const url = data.playUrl?.[songmid]?.url || data.url || data[0]?.url || (typeof data.playUrl === 'string' ? data.playUrl : '');
     if (!url) throw new Error('该歌曲暂无可用音源，可能需要会员或受版权限制');
     return url;

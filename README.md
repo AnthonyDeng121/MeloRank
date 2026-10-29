@@ -1,5 +1,24 @@
 # 项目简介
 
+## 多平台曲库与音频编辑（2026-10）
+
+- 顶部“我的音乐”支持连接 QQ 音乐、网易云音乐和 Spotify，展示本人创建的歌单、喜欢的歌曲、收藏专辑，并支持分页读取。Spotify 的“我的歌单”包括自己创建及关注的歌单。网易云和 Spotify 项目当前提供曲库展示与平台跳转，不将其音源伪装成 QQ 音乐播放。
+- QQ 音乐凭证通过 `X-QQ-Music-Cookie` 按请求传递，服务端使用 `AsyncLocalStorage` 隔离，不再回退到全局账号或向浏览器重新注入旧 Cookie。退出会清空本地状态、缓存并停止当前播放。
+- 完整音源不可用时尝试申请平台的 `RS02` 试听片段；仅在平台实际提供链接时试听，最长 30 秒。没有试听资源的歌曲会显示原因，试听资源不能作为完整歌曲下载或导入实验室。
+- 实验室倍速可在 0.25–2 之间按 0.01 步长拖动；每隔 0.25 的刻度可直接点击。裁剪弹窗支持细边界拖动、秒数微调、同步歌词、单句选择和 Shift 连续选句；本地音频可导入对应的 LRC。按句裁剪依据行级时间戳，精度取决于平台歌词，不等同于逐字或语音边界检测。
+
+### 本地启动和账号配置
+
+根目录执行 `npm install`，`backend` 和 `qq-music-api-main` 也分别安装依赖。三个服务分别运行根目录 `npm run dev`（5188）、`backend` 内 `npm run dev`（5000）、`qq-music-api-main` 内 `npm start`（3200）。网易云 API 库已集成到 5000 后端，无需启动第四个服务。
+
+按根目录 `.env.example` 配置服务地址。Spotify 需要自行创建开发者应用，并将 `http://127.0.0.1:5188/` 精确加入 Redirect URI 白名单；Client ID 可在“我的音乐 → Spotify”填写，或配置 `VITE_SPOTIFY_CLIENT_ID`。不需要 Client Secret。旧的 HTTP 局域网回调配置会被忽略，改用合规的 loopback 地址。开发模式白名单、账号条件及接口权限仍受 Spotify 限制。
+
+网易云和 Spotify 凭证只保存在当前浏览器会话的 sessionStorage 中；QQ 登录态由原有 localStorage 保存，退出时清除。不要将真实 Cookie、Token、`.env` 或本地登录态文件提交到仓库。
+
+### 回归验证
+
+`npm run typecheck`、`npm run build`，以及 `node scripts/check-auth-preview.cjs`、`node scripts/check-platform-library.cjs`、`node scripts/check-spotify-pkce.cjs`、`node scripts/check-lyrics.cjs`、`node scripts/check-audio-processing.cjs`。平台库和 OAuth 测试使用模拟响应；真实登录及私人曲库需通过实际账号授权后验证。
+
 MeloRank是一个有别于传统的音乐网站，既包含传统的音乐搜索、播放等功能，也包含评价歌曲、快速搜索并“制作导出用户自己的年度榜单”、“上传音频并实行变调变速的音频实验”等功能。
 
 - **登录**：用户通过“QQ”扫码登录（不是QQ音乐扫码登录），即可自动获取cookie并连接到用户QQ音乐曲库服务

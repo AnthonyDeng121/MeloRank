@@ -1,5 +1,4 @@
 const { getGtk, getGuid } = require('../../../util/loginUtils');
-const { refreshData } = require('../../../config/user-info');
 const qrNickname = require('../../../util/qrNickname');
 
 module.exports = async ({ method = 'get', params = {}, option = {} }) => {
@@ -86,7 +85,6 @@ module.exports = async ({ method = 'get', params = {}, option = {} }) => {
 
   
   setCookie(loginRes.headers.get('Set-Cookie').split(';, '));
-  const userInfo = refreshData(allCookie.join('; '));
   
   // 尝试从登录响应中提取用户昵称
   let nickname = qrNickname(data) || 'QQ音乐用户';
@@ -99,10 +97,6 @@ module.exports = async ({ method = 'get', params = {}, option = {} }) => {
   }
   
   // 更新全局用户信息，包含昵称
-  global.userInfo = { 
-    ...userInfo, 
-    nickname 
-  };
   
   return { 
     status: 200, 

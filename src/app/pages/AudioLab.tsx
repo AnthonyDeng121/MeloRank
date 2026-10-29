@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import '../../styles/AudioLab.css';
 import { qqMusicService } from '../services/qqMusicService';
 import { useMusic } from '../contexts/MusicContext';
+import { parseLrc, type LyricLine } from '../services/lyrics';
 
 export function AudioLab() {
   const { currentSong, setIsPlaying: setGlobalPlaying } = useMusic();
@@ -12,6 +13,17 @@ export function AudioLab() {
   const [busy, setBusy] = useState(false);
   const [sourceError, setSourceError] = useState('');
   const sourceRequest = useRef(0);
+  const [sourceSong, setSourceSong] = useState<{ songmid: string } | null>(null);
+  const [sourceLyrics, setSourceLyrics] = useState<LyricLine[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    setSourceLyrics([]);
+    if (sourceSong) qqMusicService.getLyric(sourceSong.songmid).then(result => {
+      const data = result.response || result.data?.response || result.data || {};
+      if (!cancelled) setSourceLyrics(parseLrc(data.lyric || ''));
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [sourceSong]);
   const searchSongs = async () => {
     if (!query.trim()) return;
     const id = ++sourceRequest.current;
@@ -38,6 +50,7 @@ export function AudioLab() {
       const file = new File([blob], `${song.songname}.mp3`, { type: blob.type || 'audio/mpeg' });
       setGlobalPlaying(false);
       setAudioFile(file); setAudioUrl(URL.createObjectURL(file));
+      setSourceSong(song);
       setIsPlaying(false); setCurrentTime(0);
       setPlaybackRate(1); setPitchShift(0);
     } catch (error) {
@@ -67,6 +80,7 @@ export function AudioLab() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith('audio/')) {
+      setSourceSong(null);
       setAudioFile(file);
       const url = URL.createObjectURL(file);
       setAudioUrl(url);
@@ -85,6 +99,7 @@ export function AudioLab() {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith('audio/')) {
+      setSourceSong(null);
       setAudioFile(file);
       const url = URL.createObjectURL(file);
       setAudioUrl(url);
@@ -269,7 +284,7 @@ export function AudioLab() {
         </div>
       </div>
 
-      {trimOpen && original && <AudioTrimDialog buffer={original} selection={trim} tempo={playbackRate} pitch={pitchShift} volume={volume} onClose={() => setTrimOpen(false)} onApply={range => { setTrim(range); setTrimOpen(false); }} />}
+      {trimOpen && original && <AudioTrimDialog buffer={original} selection={trim} tempo={playbackRate} pitch={pitchShift} volume={volume} lyrics={sourceLyrics} onClose={() => setTrimOpen(false)} onApply={range => { setTrim(range); setTrimOpen(false); }} />}
       {audioFile && (
         <>
           <div className="audio-player-section">
@@ -365,20 +380,17 @@ export function AudioLab() {
 
           <div className="controls-section">
             <div className="control-group">
+              <h3>音频片段</h3>
+              <p className="lab-selection-summary">{trim ? `${formatTime(trim[0])} — ${formatTime(trim[1])}` : '保留完整音频'}</p>
               <button className="lab-trim-open" onClick={() => { audioRef.current?.pause(); setTrimOpen(true); }} disabled={!original}>修剪音频</button>
             </div>
             <div className="control-group">
-              <h3>播放速度</h3>
-              <div className="control-row">
-                {[0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map((rate) => (
-                  <button
-                    key={rate}
-                    className={`speed-btn ${playbackRate === rate ? 'active' : ''}`}
-                    onClick={() => handlePlaybackRateChange(rate)}
-                  >
-                    {rate}x
-                  </button>
-                ))}
+              <div className="lab-control-heading"><h3>播放速度</h3><output>{playbackRate.toFixed(2).replace(/0$/, '')}×</output></div>
+              <div className="lab-speed-slider">
+                <input aria-label="播放倍速" type="range" min="0.25" max="2" step="0.01" value={playbackRate} onChange={e => handlePlaybackRateChange(Number(e.target.value))} />
+                <div className="lab-speed-marks">
+                  {[0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map(rate => <button key={rate} type="button" title={`设为 ${rate} 倍速`} aria-label={`设为 ${rate} 倍速`} aria-pressed={playbackRate === rate} style={{ left: `${(rate - 0.25) / 1.75 * 100}%` }} onClick={() => handlePlaybackRateChange(rate)}><i /><span>{rate}×</span></button>)}
+                </div>
               </div>
             </div>
 

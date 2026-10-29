@@ -8,15 +8,41 @@
 .trim-icon-button { display: grid; place-items: center; padding: 6px; border: 0; border-radius: 8px; background: transparent; color: #a5abbb; }
 .trim-timeline { height: 180px; position: relative; margin: 0 9px; background: #13161d; border-radius: 8px; cursor: crosshair; }
 .trim-timeline svg { width: 100%; height: 100%; display: block; }
-.trim-selected-region { position: absolute; top: 0; bottom: 0; background: #8798ff14; border-block: 2px solid #8d9cfa; pointer-events: none; }
-.trim-boundary { position: absolute; top: -4px; bottom: -4px; transform: translateX(-50%); width: 18px; padding: 0; background: #a4b0ff; border: 1px solid #bdc6ff; border-radius: 5px; display: grid; place-items: center; cursor: ew-resize !important; touch-action: none; z-index: 2; }
-.trim-boundary span { height: 25px; border-left: 2px solid #303858; border-right: 2px solid #303858; width: 6px; }
+.trim-selected-region { position: absolute; top: 0; bottom: 0; background: #8798ff10; border-block: 1px solid #8d9cfa; pointer-events: none; }
+.trim-boundary { position: absolute; top: -4px; bottom: -4px; transform: translateX(-50%); width: 20px; padding: 0; background: transparent; border: 0; border-radius: 5px; display: grid; place-items: center; cursor: ew-resize !important; touch-action: none; z-index: 2; }
+.trim-boundary::before { content: ''; position: absolute; top: 2px; bottom: 2px; width: 2px; background: #a4b0ff; border-radius: 1px; }
+.trim-boundary span { height: 24px; width: 5px; background: #bdc6ff; border-radius: 2px; z-index: 1; }
 .trim-playhead { position: absolute; top: 0; bottom: 0; width: 1px; background: white; pointer-events: none; }
 .trim-ruler { display: flex; justify-content: space-between; margin: 12px 9px 24px; font-size: 12px; color: #858da1; font-variant-numeric: tabular-nums; }
 .trim-selection-details { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 18px 20px; background: #23262f; border: 1px solid #30343f; border-radius: 12px; }
 .trim-selection-details div { display: flex; flex-direction: column; gap: 7px; }
 .trim-selection-details span { font-size: 12px; color: #959caf; }
 .trim-selection-details strong { font-size: 17px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.trim-selection-details label { font-size: 12px; color: #959caf; }
+.trim-selection-details input { width: 100%; min-width: 0; padding: 5px 7px; box-sizing: border-box; font: inherit; font-size: 16px; font-variant-numeric: tabular-nums; color: #eff0f6; background: #1a1e27; border: 1px solid #404658; border-radius: 6px; }
+.trim-current-lyric { min-height: 24px; margin: -8px 0 20px; color: #c6cffb; font-size: 15px; line-height: 1.6; text-align: center; }
+.trim-lyrics-section { margin-top: 24px; }
+.trim-lyrics-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.trim-lyrics-heading h3 { font-size: 15px; font-weight: 500; margin: 0; }
+.trim-load-lrc { position: relative; overflow: hidden; border: 1px solid #414857; border-radius: 7px; padding: 5px 10px; font-size: 12px; color: #c1c8e1; cursor: pointer; }
+.trim-load-lrc input { position: absolute; inset: 0; opacity: 0; width: 100%; cursor: pointer; }
+.trim-lyrics-section > p { font-size: 12px; line-height: 1.7; color: #929bac; margin: 10px 0; }
+.trim-lyric-list { max-height: 190px; overflow-y: auto; border: 1px solid #343a48; border-radius: 10px; margin-top: 12px; }
+.trim-lyric-list button { display: flex; gap: 14px; width: 100%; padding: 10px 14px; text-align: left; background: transparent; color: #b4bdd2; border: 0; border-bottom: 1px solid #2c313d; }
+.trim-lyric-list button time { color: #7f899f; font-variant-numeric: tabular-nums; font-size: 12px; flex-shrink: 0; }
+.trim-lyric-list button[aria-pressed="true"] { background: #7f91ee1c; color: #d4dcff; }
+.trim-lyric-list button.is-current { box-shadow: inset 2px 0 #9daeff; }
+.audio-trim-dialog, .trim-lyric-list { scrollbar-width: thin; scrollbar-color: #515b72 #1c1e24; }
+@media (max-height: 850px) {
+  .trim-dialog-body { padding: 20px 28px; }
+  .trim-dialog-body header { margin-bottom: 20px; }
+  .trim-timeline { height: 120px; }
+  .trim-ruler { margin: 10px 9px 18px; }
+  .trim-selection-details { padding: 12px 16px; }
+  .trim-lyrics-section { margin-top: 18px; }
+  .trim-lyric-list { max-height: 105px; }
+  .trim-dialog-body footer { margin-top: 20px; }
+}
 .trim-dialog-body footer, .trim-dialog-body footer > div { display: flex; align-items: center; gap: 12px; }
 .trim-dialog-body footer { justify-content: space-between; margin-top: 28px; }
 .trim-preview-button, .trim-secondary-button, .trim-primary-button { height: 40px; padding: 0 16px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }

@@ -11,19 +11,8 @@ const cors = require('./middlewares/koa-cors');
 const router = require('./routers/router');
 const cookie = require('./util/cookie');
 require('./util/colors');
-const userInfo = require('./config/user-info');
 const package = require('./package.json');
-global.userInfo = Object.assign({}, userInfo);
-
-console.log(chalk.green('\n🥳🎉 We had supported config the user cookies. \n'));
-
-if (!(global.userInfo.loginUin || global.userInfo.uin)) {
-  console.log(chalk.yellow(`😔 The configuration ${chalk.red('loginUin')} or your ${chalk.red('cookie')} in file ${chalk.green('config/user-info')} has not configured. \n`));
-}
-
-if (!global.userInfo.cookie) {
-  console.log(chalk.yellow(`😔 The configuration ${chalk.red('cookie')} in file ${chalk.green('config/user-info')} has not configured. \n`));
-}
+console.log('QQ Music API: request-scoped authentication enabled.');
 
 exec('npm info QQ-Music-API version', (err, stdout, stderr) => {
   if(!err){
@@ -54,7 +43,7 @@ app.use(cors({
   maxAge: 5,
   credentials: true,
   allowMethods: ['GET', 'POST', 'DELETE'],
-  allowHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  allowHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-QQ-Music-Cookie'],
 }));
 
 // x-response-time
