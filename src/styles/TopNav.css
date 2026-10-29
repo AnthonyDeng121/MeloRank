@@ -223,3 +223,10 @@
     font-size: 12px;
   }
 }
+.login-platforms { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+.login-platforms button, .login-modal .spotify-config button { padding: 12px 16px; font: inherit; font-size: 15px; border: 1px solid #3e424f; border-radius: 10px; background: #252830; color: #e8eaff; cursor: pointer; }
+.login-platforms button[aria-pressed="true"] { background: #667be5; border-color: #8998ff; color: white; }
+.login-modal { max-height: 90dvh; overflow-y: auto; }
+.login-modal .spotify-config { text-align: left; }
+.login-modal .spotify-config input { display: block; box-sizing: border-box; width: 100%; padding: 12px; margin: 12px 0; font: inherit; color: white; background: #24262d; border: 1px solid #4b5062; border-radius: 8px; }
+.login-modal .spotify-config code { overflow-wrap: anywhere; }

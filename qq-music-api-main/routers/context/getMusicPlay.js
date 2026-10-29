@@ -1,6 +1,20 @@
 const { UCommon } = require('../../module');
 const { _guid } = require('../../module/config');
 const get = require('lodash.get');
+const axios = require('axios');
+// A vkey response may issue a path for a nonexistent preview file.
+async function validPreview(domains, path) {
+	if (!domains.length) domains = ['https://isure.stream.qqmusic.qq.com/'];
+	for (const domain of domains.slice(0, 2)) {
+		try {
+			const url = `${domain}${path}`.replace(/^http:/, 'https:');
+			const response = await axios.get(url, { headers: { Range: 'bytes=0-255', Referer: 'https://y.qq.com/' }, responseType: 'arraybuffer', timeout: 3500, maxContentLength: 65536 });
+			const bytes = Buffer.from(response.data);
+			if (bytes.toString('ascii', 0, 3) === 'ID3' || bytes.toString('ascii', 4, 8) === 'ftyp' || bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0) return url;
+		} catch { /* Try another CDN supplied by the platform. */ }
+	}
+	return '';
+}
 const { resolveCookie, getUin } = require('../../util/requestAuth');
 
 // songmid=003rJSwm3TechU
@@ -88,6 +102,21 @@ module.exports = async (ctx, next) => {
 				const missing = get(response, 'req_0.data.midurlinfo', []).filter(item => !item.purl);
 				const previews = {};
 				if (missing.length && ctx.query.preview !== '0') {
+					for (const track of missing) {
+						try {
+							const detail = await UCommon({ ...props, params: { format: 'json', data: JSON.stringify({ songinfo: { module: 'music.pf_song_detail_svr', method: 'get_song_detail_yqq', param: { song_mid: track.songmid, song_type: 0 } } }) } });
+							const media = get(detail.data, 'songinfo.data.track_info.file.media_mid');
+							if (!media || !/^[a-zA-Z0-9]+$/.test(media)) continue;
+							for (const filename of [`RS02${media}.mp3`, `C400${media}.m4a`]) {
+								const query = { req_0: { module: 'music.vkey.GetVkey', method: 'UrlGetVkey', param: { filename: [filename], songmid: [track.songmid], songtype: [0], guid, uin, ctx: 0 } }, comm: data.comm };
+								const result = await UCommon({ ...props, params: { format: 'json', data: JSON.stringify(query) } });
+								const item = get(result.data, 'req_0.data.midurlinfo[0]');
+								if (!item?.purl || item.result) continue;
+								const url = await validPreview(get(result.data, 'req_0.data.sip', []), item.purl);
+								if (url) { previews[track.songmid] = { item, url }; break; }
+							}
+						} catch { /* Fall back to the older endpoint only when needed. */ }
+					}
 					const previewData = JSON.parse(JSON.stringify(data));
 					previewData.req_0.param.songmid = missing.map(item => item.songmid);
 					previewData.req_0.param.songtype = missing.map(() => 0);
@@ -95,7 +124,10 @@ module.exports = async (ctx, next) => {
 					try {
 						const result = await UCommon({ ...props, params: { format: 'json', data: JSON.stringify(previewData) } });
 						for (const item of get(result.data, 'req_0.data.midurlinfo', [])) {
-							if (item.purl) previews[item.songmid] = { item, domain: get(result.data, 'req_0.data.sip[0]') };
+							if (item.purl && !previews[item.songmid]) {
+								const url = await validPreview(get(result.data, 'req_0.data.sip', []), item.purl);
+								if (url) previews[item.songmid] = { item, url };
+							}
 						}
 					} catch { /* Preview is only available when issued by QQ Music. */ }
 				}
@@ -108,7 +140,7 @@ module.exports = async (ctx, next) => {
 					const preview = previews[item.songmid];
 					const hasUrl = !!item.purl || !!preview;
 					playUrl[item.songmid] = {
-						url: preview ? `${preview.domain}${preview.item.purl}` : hasUrl ? `${domain}${item.purl}` : '',
+						url: preview ? preview.url : hasUrl ? `${domain}${item.purl}`.replace(/^http:/, 'https:') : '',
 						isPreview: !!preview || /RS02/.test(item.purl || ''),
 						previewLimit: preview ? 30 : undefined,
 						result: item.result,

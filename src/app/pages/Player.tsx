@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { qqMusicService } from '../services/qqMusicService';
 import { useMusic } from '../contexts/MusicContext';
@@ -8,7 +9,7 @@ import { parseLrc, matchLyric } from '../services/lyrics';
 
 export function Player() {
   const [downloading, setDownloading] = useState(false);
-  const [downloadError, setDownloadError] = useState('');
+  const setDownloadError = (message: string) => { if (message) toast.error(message, { duration: 5000 }); };
   const [translation, setTranslation] = useState('');
   const [romanization, setRomanization] = useState('');
   const [showTranslation, setShowTranslation] = useState(() => localStorage.getItem('lyricsTranslation') === 'true');
@@ -33,11 +34,11 @@ export function Player() {
       document.body.appendChild(link); link.click(); link.remove();
       setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
     } catch (error) {
-      setDownloadError(error instanceof Error ? `${error.message}；音源需允许跨域下载` : '下载失败');
+      setDownloadError(error instanceof Error ? error.message : '下载失败');
     } finally { setDownloading(false); }
   };
   // 使用音乐播放上下文
-  const { currentSong, isPlaying, togglePlay, volume, setVolume, setLyrics, lyrics, currentTime, duration, seekTo, previousSong, nextSong, playMode, setPlayMode, playbackNotice } = useMusic();
+  const { currentSong, isPlaying, togglePlay, volume, setVolume, setLyrics, lyrics, currentTime, duration, seekTo, previousSong, nextSong, playMode, setPlayMode } = useMusic();
   
   // 使用榜单上下文
   const { rankingList, setRankingList, setRankingMode } = useRankingContext();
@@ -440,8 +441,8 @@ export function Player() {
                   {downloading ? '下载中…' : '下载'}
                 </button>
               </div>
-              {downloadError && <p role="alert">{downloadError}</p>}
-              {playbackNotice && <p className="playback-notice" role="status">{playbackNotice}</p>}
+
+
               
               <div className="progress-bar">
                   <div className="progress-slider">

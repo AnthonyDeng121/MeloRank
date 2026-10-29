@@ -38,6 +38,15 @@ function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicap
   }));
   router.post('/account', wrap(async (req, res) => res.json(await profile(auth(req)))));
   router.post('/logout', wrap(async (req, res) => { const cookie = auth(req); await call('logout', { cookie }); res.json({ success: true }); }));
+  router.post('/collection', wrap(async (req, res) => {
+    const cookie = auth(req); await profile(cookie);
+    const { id, kind } = req.body;
+    if (!/^\d{1,20}$/.test(String(id)) || !['playlists', 'albums'].includes(kind)) return res.status(400).json({ error: '无效的歌单或专辑标识' });
+    const offset = Math.max(0, Number(req.body.offset) || 0), limit = 30;
+    const data = await call(kind === 'albums' ? 'album' : 'playlist_track_all', { cookie, id, offset, limit });
+    const songs = kind === 'albums' ? (data.songs || []).slice(offset, offset + limit) : data.songs || [];
+    res.json({ items: songs.map(s => ({ id: String(s.id), title: s.name, subtitle: (s.ar || s.artists || []).map(a => a.name).join(' / '), externalUrl: `https://music.163.com/#/song?id=${s.id}` })), hasMore: songs.length === limit });
+  }));
   router.post('/library', wrap(async (req, res) => {
     const cookie = auth(req);
     const user = await profile(cookie);

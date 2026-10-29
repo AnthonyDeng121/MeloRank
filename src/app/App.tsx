@@ -1,3 +1,4 @@
+import { Toaster } from 'sonner';
 import React, { useState, useEffect } from 'react';
 import { TopNav } from './components/TopNav';
 import { MiniPlayer } from './components/MiniPlayer';
@@ -47,6 +48,7 @@ export default function App() {
       // 如果有QQ音乐cookie，设置默认的QQ音乐用户状态
       setQQMusicUser({ nickname: localStorage.getItem('qqMusicNickname') || 'QQ音乐用户' });
       qqMusicService.getUserInfo().then(result => {
+        if (localStorage.getItem('qqMusicCookie') !== qqMusicCookie) return;
         const nickname = (result.body || result).nickname;
         if (nickname && nickname !== 'QQ Music User') {
           localStorage.setItem('qqMusicNickname', nickname);
@@ -54,6 +56,12 @@ export default function App() {
         }
       }).catch(() => {});
     }
+  }, []);
+
+  useEffect(() => {
+    const changed = () => setQQMusicUser(qqMusicService.isLoggedIn() ? { nickname: localStorage.getItem('qqMusicNickname') || 'QQ音乐用户' } : null);
+    window.addEventListener('qqmusic-auth-change', changed);
+    return () => window.removeEventListener('qqmusic-auth-change', changed);
   }, []);
 
   // QQ音乐登录处理函数
@@ -103,7 +111,7 @@ export default function App() {
     <RankingProvider>
       <MusicProvider>
         <SearchProvider>
-          <div className="app">
+          <div className="app"><Toaster position="top-center" duration={5000} theme="dark" closeButton richColors />
           <TopNav 
             currentPage={currentPage} 
             onNavigate={navigate}

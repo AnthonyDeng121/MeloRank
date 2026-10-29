@@ -26,8 +26,8 @@ export function Home({ onNavigate, qqMusicUser, onQQMusicLogin }: HomeProps) {
             </>
           ) : (
             <>
-              <p>手机QQ扫码登录，畅享QQ音乐库</p>
-              <button className="card-button" onClick={onQQMusicLogin}>登录QQ音乐</button>
+              <p>连接 QQ音乐、网易云或 Spotify</p>
+              <button className="card-button" onClick={onQQMusicLogin}>登录</button>
             </>
           )}
         </div>

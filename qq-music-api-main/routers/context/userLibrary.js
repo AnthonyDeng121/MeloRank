@@ -17,6 +17,21 @@ module.exports = async ctx => {
   };
   const playlists = async () => (await request('/rsc/fcgi-bin/fcg_user_created_diss', { hostuin: uin, sin: 0, size: 1000, platform: 'yqq.json', needNewCode: 0 })).data?.disslist || [];
   try {
+    if (ctx.query.kind === 'collection') {
+      const id = String(ctx.query.id || '');
+      if (!/^[a-zA-Z0-9]{1,32}$/.test(id)) { ctx.status = 400; ctx.body = { error: '无效的歌单或专辑标识' }; return; }
+      let songs;
+      if (ctx.query.type === 'albums') {
+        const { UCommon } = require('../../module');
+        const result = await UCommon({ method: 'get', params: { format: 'json', data: JSON.stringify({ req: { module: 'music.musichallAlbum.AlbumSongList', method: 'GetAlbumSongList', param: { albumMid: id, albumID: 0, begin: offset, num: limit, order: 2 } } }) }, cookie, option: { headers: { Cookie: cookie } } });
+        if (result.data?.req?.code !== 0) throw new Error('专辑歌曲暂不可用');
+        songs = (result.data.req.data?.songList || []).map(s => s.songInfo || s);
+      } else {
+        const data = await request('/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg', { disstid: id, type: 1, json: 1, utf8: 1, new_format: 1 });
+        songs = (data.cdlist?.[0]?.songlist || []).slice(offset, offset + limit);
+      }
+      ctx.body = { items: songs.map(s => { const mid = s.mid || s.songmid; return { id: mid, title: s.title || s.songname, subtitle: (s.singer || []).map(a => a.name).join(' / '), externalUrl: `https://y.qq.com/n/ryqq/songDetail/${mid}`, qqSong: { songmid: mid, songname: s.title || s.songname, singer: s.singer || [], albummid: s.album?.mid || s.albummid || '', albumname: s.album?.name || s.albumname || '' } }; }), hasMore: songs.length === limit }; return;
+    }
     if (ctx.query.kind === 'playlists') {
       const list = await playlists();
       const owned = list.filter(p => Number(p.dirid) !== 201);

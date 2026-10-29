@@ -3,7 +3,7 @@ import '../../styles/YearlyRanking.css';
 const artistLinks = [
   ['一身五病', 'https://baike.baidu.com/item/Lady%20Gaga/6824820'],
   ['84路公交', 'https://baike.baidu.com/item/泰勒·斯威夫特/8472307?fromtitle=Taylor%20Swift&fromid=10164559'],
-  ['大树之母', 'https://baike.baidu.com/item/凯蒂·佩里/1239613?fromtitle=Katy%20Perry&fromid=4087745&fromModule=lemma_search-box'],
+  ['卢克杯子', 'https://baike.baidu.com/item/凯蒂·佩里/1239613?fromtitle=Katy%20Perry&fromid=4087745&fromModule=lemma_search-box'],
   ['流行猪尊', 'https://baike.baidu.com/item/阿黛尔·阿德金斯?fromtitle=Adele&fromid=1261146&fromModule=lemma_search-box'],
   ['包包多斯', 'https://baike.baidu.com/item/蕾哈娜/5226798?fromtitle=Rihanna&fromid=1701433&fromModule=lemma_search-box'],
 ];

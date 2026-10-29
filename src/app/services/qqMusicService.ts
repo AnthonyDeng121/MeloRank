@@ -148,12 +148,7 @@ class QQMusicService {
     // 根据qq-music-api仓库的实现，正确的端点是 /user/checkQQLoginQr
     const result = await this.request('/user/checkQQLoginQr', params, false, 'POST');
     
-    // 如果登录成功，保存cookie
-    if (result.isOk && result.cookie) {
-      this.cookie = result.cookie;
-      this.saveTokens();
-    }
-    
+    // The active login dialog commits credentials after checking cancellation.
     return result;
   }
 

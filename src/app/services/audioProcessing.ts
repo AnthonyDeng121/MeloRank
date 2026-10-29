@@ -10,7 +10,11 @@ export async function processPcm(
   if (first < 0 || count <= 0 || !Number.isFinite(count) || tempo <= 0) throw new Error('请选择有效的裁剪范围');
   if (tempo === 1 && semitones === 0) return channels.map(c => c.slice(first, first + count));
   const pipe = new SoundTouch();
-  pipe.stretch.setParameters(sampleRate, 0, 0, 8);
+  // Offline rendering favours accurate overlap matching over the coarse quick
+  // search. Shorter grains reduce repeated transients when pitching upward;
+  // a longer crossfade softens joins between grains.
+  pipe.stretch.setParameters(sampleRate, 60, 20, 16);
+  pipe.stretch.quickSeek = false;
   pipe.tempo = tempo;
   pipe.pitchSemitones = semitones;
   const filter = new SimpleFilter({

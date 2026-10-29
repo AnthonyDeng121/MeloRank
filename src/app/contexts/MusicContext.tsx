@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import React, { createContext, useState, useContext, ReactNode, useEffect, useRef } from 'react';
 import { qqMusicService } from '../services/qqMusicService';
 import { dataAPI } from '../services/apiService';
@@ -79,6 +80,20 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     return () => window.removeEventListener('qqmusic-auth-change', changed);
   }, []);
 
+  const playAudio = async () => {
+    const audio = audioRef.current, generation = playbackGeneration.current;
+    if (!audio?.src) return;
+    try {
+      await audio.play();
+      if (generation !== playbackGeneration.current) return;
+      if (previewLimit.current) toast.info('当前为平台试听片段，最长30秒', { id: 'preview', duration: 5000 });
+    } catch (error) {
+      if (generation !== playbackGeneration.current || (error as Error).name === 'AbortError') return;
+      setIsPlaying(false);
+      toast.error('音频无法播放，请重试或登录后重试', { id: 'play-error', duration: 5000 });
+    }
+  };
+
   // 使用useCallback包装nextSong和previousSong函数，确保它们总是使用最新的状态
   const nextSong = React.useCallback(() => {
     if (playQueue.length === 0) return;
@@ -92,7 +107,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
           audioRef.current.currentTime = 0;
           // 设置isPlaying为true，确保歌曲会继续播放
           setIsPlaying(true);
-          audioRef.current.play().catch(error => console.error('播放失败:', error));
+          void playAudio();
         }
         return;
       
@@ -140,7 +155,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
           audioRef.current.currentTime = 0;
           // 设置isPlaying为true，确保歌曲会继续播放
           setIsPlaying(true);
-          audioRef.current.play().catch(error => console.error('播放失败:', error));
+          void playAudio();
         }
         return;
       
@@ -255,7 +270,6 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
               if (songInfo) {
                 if (songInfo.isPreview) {
                   previewLimit.current = 30;
-                  setPlaybackNotice('当前为平台提供的试听片段，最长播放 30 秒');
                 }
                 if (songInfo.url) {
                   songUrl = songInfo.url;
@@ -293,21 +307,21 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
               // 设置isPlaying为true，确保歌曲会播放
               setIsPlaying(true);
               // 立即调用play方法，确保歌曲播放
-              audioRef.current.play().catch(error => console.error('播放失败:', error));
+              void playAudio();
             } else {
               console.error('未能获取到有效的歌曲播放URL');
               // 显示适当的错误提示
               if (errorMessage) {
-                alert('无法播放该歌曲: ' + errorMessage);
+                toast.error('无法播放该歌曲: ' + errorMessage);
               } else {
-                alert('无法播放该歌曲，可能是VIP专属或版权受限');
+                toast.error('无法播放该歌曲，可能是VIP专属或版权受限');
               }
           }
         } catch (error) {
           if (cancelled || generation !== playbackGeneration.current) return;
           console.error('播放歌曲失败:', error);
           // 显示更友好的错误提示
-          alert('播放失败，请检查网络连接或稍后重试');
+          toast.error('播放失败，请检查网络连接或稍后重试');
         }
       }
     };
@@ -364,7 +378,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
   useEffect(() => {
     if (audioRef.current) {
       if (isPlaying) {
-        audioRef.current.play().catch(error => console.error('播放失败:', error));
+        void playAudio();
       } else {
         audioRef.current.pause();
       }
@@ -377,7 +391,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
-        audioRef.current.play().catch(error => console.error('播放失败:', error));
+        void playAudio();
       }
     }
   };
