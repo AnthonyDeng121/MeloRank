@@ -5,6 +5,14 @@
   padding: 20px;
 }
 
+.audio-lab-page .lab-trim-open {
+  height: 42px; padding: 0 20px; border: 1px solid #444b62; border-radius: 10px;
+  background: #292d3b; color: #e3e7fc; font-family: inherit; font-size: 14px;
+  font-weight: 500; cursor: pointer; transition: background 0.15s;
+}
+.audio-lab-page .lab-trim-open:hover:not(:disabled) { background: #353c52; }
+.audio-lab-page .lab-trim-open:disabled { opacity: 0.45; cursor: default; }
+
 @keyframes fadeIn {
   from {
     opacity: 0;

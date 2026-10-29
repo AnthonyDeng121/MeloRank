@@ -3,8 +3,39 @@ import { qqMusicService } from '../services/qqMusicService';
 import { useMusic } from '../contexts/MusicContext';
 import { useRankingContext } from '../contexts/RankingContext';
 import '../../styles/Player.css';
+import { Repeat1, ListMusic, Shuffle } from 'lucide-react';
+import { parseLrc, matchLyric } from '../services/lyrics';
 
 export function Player() {
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState('');
+  const [translation, setTranslation] = useState('');
+  const [romanization, setRomanization] = useState('');
+  const [showTranslation, setShowTranslation] = useState(() => localStorage.getItem('lyricsTranslation') === 'true');
+  const [showRomanization, setShowRomanization] = useState(() => localStorage.getItem('lyricsRomanization') === 'true');
+  const translatedLines = useMemo(() => parseLrc(translation), [translation]);
+  const romanizedLines = useMemo(() => parseLrc(romanization), [romanization]);
+  const downloadSong = async () => {
+    if (!currentSong || downloading) return;
+    const song = currentSong;
+    setDownloading(true); setDownloadError('');
+    try {
+      const url = song.url || await qqMusicService.getPlayableUrl(song.songmid);
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('下载失败，请稍后重试');
+      const blob = await response.blob();
+      if (!blob.size || /text|json/.test(blob.type)) throw new Error('音源无效或暂无下载权限');
+      const ext = /\.(mp3|m4a|flac|ape|wav)(?:[?]|$)/i.exec(url)?.[1] || (blob.type.includes('mp4') ? 'm4a' : 'mp3');
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = `${song.songname} - ${song.singer.map(s => s.name).join(', ')}.${ext}`.replace(/[<>:"/\\|?*]/g, '_');
+      document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+    } catch (error) {
+      setDownloadError(error instanceof Error ? `${error.message}；音源需允许跨域下载` : '下载失败');
+    } finally { setDownloading(false); }
+  };
   // 使用音乐播放上下文
   const { currentSong, isPlaying, togglePlay, volume, setVolume, setLyrics, lyrics, currentTime, duration, seekTo, previousSong, nextSong, playMode, setPlayMode } = useMusic();
   
@@ -67,10 +98,16 @@ export function Player() {
   
   // 获取歌词
   useEffect(() => {
+    let cancelled = false;
+    setTranslation(''); setRomanization('');
     const fetchLyrics = async () => {
       if (currentSong) {
         try {
           const response = await qqMusicService.getLyric(currentSong.songmid);
+          if (cancelled) return;
+          const data = response?.response || response?.data?.response || response?.data || {};
+          setTranslation(typeof data.trans === 'string' ? data.trans : '');
+          setRomanization(typeof data.roma === 'string' ? data.roma : '');
           console.log('获取歌词响应:', response);
           // 适配后端 API 返回的歌词数据结构
           if (response?.response?.lyric) {
@@ -87,6 +124,7 @@ export function Player() {
     };
     
     fetchLyrics();
+    return () => { cancelled = true; };
   }, [currentSong, setLyrics]);
   
   // 格式化时间函数：将秒转换为分:秒格式
@@ -117,7 +155,7 @@ export function Player() {
         const text = line.replace(timeExp, '').trim();
         for (const match of matches) {
           const [, minutes, seconds, milliseconds = '00'] = match;
-          const time = parseInt(minutes) * 60 + parseInt(seconds) + parseInt(milliseconds) / 1000;
+          const time = parseInt(minutes) * 60 + parseInt(seconds) + Number(`0.${milliseconds}`);
           parsedLyrics.push({ time, text });
         }
       }
@@ -127,7 +165,7 @@ export function Player() {
   };
 
   // 解析后的歌词
-  const parsedLyrics = useMemo(() => parseLyrics(lyrics), [lyrics]);
+  const parsedLyrics = useMemo(() => parseLrc(lyrics), [lyrics]);
 
   // 当前歌词索引
   const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
@@ -143,7 +181,7 @@ export function Player() {
     const observer = new ResizeObserver(centerCurrent);
     observer.observe(viewport);
     return () => observer.disconnect();
-  }, [currentLyricIndex, parsedLyrics]);
+  }, [currentLyricIndex, parsedLyrics, showTranslation, showRomanization, translation, romanization]);
 
   // 根据当前播放时间更新歌词索引
   useEffect(() => {
@@ -392,13 +430,17 @@ export function Player() {
                 </div>
                 
                 <button 
-                  className="control-btn playmode-btn" 
+                  className="player-action-button"
                   onClick={togglePlayMode}
                   title={getPlayModeText()}
                 >
-                  {getPlayModeIcon()} {getPlayModeText()}
+                  {playMode === 'single' ? <Repeat1 size={16} /> : playMode === 'random' ? <Shuffle size={16} /> : <ListMusic size={16} />} {getPlayModeText()}
+                </button>
+                <button className="player-action-button" onClick={downloadSong} disabled={!currentSong || downloading} title="下载当前歌曲" aria-label="下载当前歌曲">
+                  {downloading ? '下载中…' : '下载'}
                 </button>
               </div>
+              {downloadError && <p role="alert">{downloadError}</p>}
               
               <div className="progress-bar">
                   <div className="progress-slider">
@@ -470,6 +512,11 @@ export function Player() {
                 </div>
               )}
             </div>
+            <div className="lyrics-display-options">
+              <button type="button" aria-pressed={showTranslation} onClick={() => { setShowTranslation(!showTranslation); localStorage.setItem('lyricsTranslation', String(!showTranslation)); }}>翻译</button>
+              <button type="button" aria-pressed={showRomanization} onClick={() => { setShowRomanization(!showRomanization); localStorage.setItem('lyricsRomanization', String(!showRomanization)); }}>音译 / 罗马音</button>
+              {(showTranslation && !translatedLines.some(line => line.text) || showRomanization && !romanizedLines.some(line => line.text)) && <span>该歌曲暂无{showTranslation && !translatedLines.some(line => line.text) ? '翻译' : ''}{showTranslation && !translatedLines.some(line => line.text) && showRomanization && !romanizedLines.some(line => line.text) ? '及' : ''}{showRomanization && !romanizedLines.some(line => line.text) ? '音译' : ''}</span>}
+            </div>
             <div className="lyrics-content" ref={lyricsViewport}>
               {parsedLyrics.length > 0 ? (
                 <div className="dynamic-lyrics">
@@ -481,7 +528,9 @@ export function Player() {
                         key={actualIndex} 
                         className={`lyric-line ${isCurrent ? 'current-lyric' : ''}`}
                       >
-                        {lyric.text}
+                        <span className="lyric-original">{lyric.text}</span>
+                        {showTranslation && matchLyric(translatedLines, lyric.time) && <span className="lyric-translation">{matchLyric(translatedLines, lyric.time)}</span>}
+                        {showRomanization && matchLyric(romanizedLines, lyric.time) && <span className="lyric-romanization">{matchLyric(romanizedLines, lyric.time)}</span>}
                       </p>
                     );
                   })}

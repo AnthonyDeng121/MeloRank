@@ -1,3 +1,5 @@
+import { AudioTrimDialog } from '../components/AudioTrimDialog';
+import { processPcm } from '../services/audioProcessing';
 import React, { useState, useRef, useEffect } from 'react';
 import '../../styles/AudioLab.css';
 import { qqMusicService } from '../services/qqMusicService';
@@ -36,7 +38,7 @@ export function AudioLab() {
       const file = new File([blob], `${song.songname}.mp3`, { type: blob.type || 'audio/mpeg' });
       setGlobalPlaying(false);
       setAudioFile(file); setAudioUrl(URL.createObjectURL(file));
-      setIsPlaying(false); setCurrentTime(0); setStartTime('0:00');
+      setIsPlaying(false); setCurrentTime(0);
       setPlaybackRate(1); setPitchShift(0);
     } catch (error) {
       setSourceError(`${error instanceof Error ? error.message : '导入失败'}。音源需允许跨域读取；也可上传本地音频。`);
@@ -45,14 +47,17 @@ export function AudioLab() {
   // 状态管理
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [audioUrl, setAudioUrl] = useState<string>('');
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [processing, setProcessing] = useState(false);
+  const [trimOpen, setTrimOpen] = useState(false);
+  const [trim, setTrim] = useState<[number, number] | null>(null);
+  const [original, setOriginal] = useState<AudioBuffer | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const [pitchShift, setPitchShift] = useState(0);
-  const [startTime, setStartTime] = useState('0:00');
-  const [endTime, setEndTime] = useState('0:00');
-  const [volume, setVolume] = useState(50); // 与部署版本一致的默认音量
+  const [volume, setVolume] = useState(20);
   
   // 引用
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -67,11 +72,7 @@ export function AudioLab() {
       setAudioUrl(url);
       
       // 创建音频元素获取时长
-      const audio = new Audio(url);
-      audio.onloadedmetadata = () => {
-        setDuration(audio.duration);
-        setEndTime(formatTime(audio.duration));
-      };
+
     }
   };
   
@@ -88,11 +89,7 @@ export function AudioLab() {
       const url = URL.createObjectURL(file);
       setAudioUrl(url);
       
-      const audio = new Audio(url);
-      audio.onloadedmetadata = () => {
-        setDuration(audio.duration);
-        setEndTime(formatTime(audio.duration));
-      };
+
     }
   };
   
@@ -129,33 +126,9 @@ export function AudioLab() {
   };
   
   // 处理音调变化
-  const handlePitchChange = (delta: number) => {
-    const newPitch = Math.max(-12, Math.min(12, pitchShift + delta));
-    setPitchShift(newPitch);
-    
-    // 调整playbackRate来改变音调，同时保持播放速度
-    if (audioRef.current) {
-      const pitchRatio = Math.pow(2, newPitch / 12);
-      // 计算最终的播放速率：播放速度 * 音调比率
-      const finalRate = playbackRate * pitchRatio;
-      audioRef.current.playbackRate = finalRate;
-    }
-  };
-  
-  // 处理播放速度变化
-  const handlePlaybackRateChange = (rate: number) => {
-    setPlaybackRate(rate);
-    
-    // 调整playbackRate来改变播放速度，同时保持音调
-    if (audioRef.current) {
-      const pitchRatio = Math.pow(2, pitchShift / 12);
-      // 计算最终的播放速率：播放速度 * 音调比率
-      const finalRate = rate * pitchRatio;
-      audioRef.current.playbackRate = finalRate;
-    }
-  };
-  
-  // 处理音量变化
+  const handlePitchChange = (delta: number) => setPitchShift(p => Math.max(-12, Math.min(12, p + delta)));
+  const handlePlaybackRateChange = (rate: number) => setPlaybackRate(rate);
+
   const handleVolumeChange = (newVolume: number) => {
     setVolume(newVolume);
     if (audioRef.current) {
@@ -164,83 +137,43 @@ export function AudioLab() {
   };
   
   // 应用音频修剪
-  const applyTrim = () => {
-    if (audioRef.current) {
-      const start = parseTime(startTime);
-      const end = parseTime(endTime);
-      
-      if (start < end && end <= duration) {
-        audioRef.current.currentTime = start;
-        
-        // 设置结束时间监听
-        const handleTimeUpdate = () => {
-          if (audioRef.current && audioRef.current.currentTime >= end) {
-            audioRef.current.pause();
-            audioRef.current.currentTime = start;
-            setIsPlaying(false);
-          }
-        };
-        
-        // 移除之前的监听器（如果有）
-        audioRef.current.removeEventListener('timeupdate', handleTimeUpdate);
-        // 添加新的监听器
-        audioRef.current.addEventListener('timeupdate', handleTimeUpdate);
-      }
-    }
-  };
-  
-  // 使用离线音频上下文处理并导出音频
-  const processAudioOffline = async (): Promise<Blob | null> => {
-    if (!audioFile) return null;
-    
-    try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const response = await fetch(audioUrl);
-      const arrayBuffer = await response.arrayBuffer();
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-      
-      // 计算修剪后的开始和结束时间
-      const startSeconds = parseTime(startTime);
-      const endSeconds = parseTime(endTime);
-      const trimDuration = endSeconds - startSeconds;
-      
-      // 创建离线音频上下文
-      const offlineContext = new (window.OfflineAudioContext || (window as any).webkitOfflineAudioContext)(
-        audioBuffer.numberOfChannels,
-        Math.ceil(trimDuration * audioContext.sampleRate),
-        audioContext.sampleRate
-      );
-      
-      // 创建源节点
-      const source = offlineContext.createBufferSource();
-      source.buffer = audioBuffer;
-      
-      // 应用速度和音调变化
-      const pitchRatio = Math.pow(2, pitchShift / 12);
-      source.playbackRate.value = playbackRate * pitchRatio;
-      
-      // 连接节点
-      source.connect(offlineContext.destination);
-      
-      // 开始播放（从修剪的开始时间）
-      source.start(0, startSeconds);
-      source.stop(trimDuration / (playbackRate * pitchRatio));
-      
-      // 渲染音频
-      const renderedBuffer = await offlineContext.startRendering();
-      
-      // 将AudioBuffer转换为Blob
-      const wavBlob = audioBufferToWav(renderedBuffer);
-      
-      audioContext.close();
-      return wavBlob;
-    } catch (error) {
-      console.error('处理音频失败:', error);
-      return null;
-    }
-  };
-  
-  // 将AudioBuffer转换为WAV格式的Blob
+  useEffect(() => {
+    let cancelled = false;
+    setOriginal(null); setTrim(null); setTrimOpen(false); setPlaybackRate(1); setPitchShift(0);
+    setPreviewUrl(''); setCurrentTime(0); setIsPlaying(false);
+    if (!audioFile) return;
+    const context = new AudioContext();
+    audioFile.arrayBuffer().then(data => context.decodeAudioData(data)).then(buffer => {
+      if (cancelled) return;
+      setOriginal(buffer);
+    }).catch(() => { if (!cancelled) setSourceError('无法解码此音频'); }).finally(() => context.close());
+    return () => { cancelled = true; };
+  }, [audioFile]);
+
+  useEffect(() => {
+    if (!original) return;
+    let cancelled = false;
+    let objectUrl = '';
+    setProcessing(true); setPreviewUrl(''); setSourceError('');
+    audioRef.current?.pause();
+    const timer = setTimeout(async () => {
+      try {
+        const channels = Array.from({ length: original.numberOfChannels }, (_, c) => original.getChannelData(c));
+        const pcm = await processPcm(channels, original.sampleRate, trim?.[0] ?? 0, trim?.[1] ?? original.duration, playbackRate, pitchShift, () => cancelled);
+        if (cancelled) return;
+        const buffer = new AudioBuffer({ numberOfChannels: pcm.length, length: pcm[0].length, sampleRate: original.sampleRate });
+        pcm.forEach((channel, c) => buffer.getChannelData(c).set(channel));
+        objectUrl = URL.createObjectURL(audioBufferToWav(buffer));
+        setPreviewUrl(objectUrl); setCurrentTime(0);
+      } catch (error) {
+        if (!cancelled) setSourceError(error instanceof Error ? error.message : '音频处理失败');
+      } finally { if (!cancelled) setProcessing(false); }
+    }, 180);
+    return () => { cancelled = true; clearTimeout(timer); if (objectUrl) URL.revokeObjectURL(objectUrl); };
+  }, [original, trim, playbackRate, pitchShift]);
+
+  useEffect(() => { if (audioRef.current) audioRef.current.volume = volume / 100; }, [volume, previewUrl]);
+
   const audioBufferToWav = (buffer: AudioBuffer): Blob => {
     const numOfChan = buffer.numberOfChannels;
     const length = buffer.length * numOfChan * 2 + 44;
@@ -293,19 +226,13 @@ export function AudioLab() {
   
   // 保存处理后的音频
   const saveAudio = async () => {
-    const processedBlob = await processAudioOffline();
-    if (processedBlob) {
-      const url = URL.createObjectURL(processedBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `processed_${audioFile?.name || 'audio'}.wav`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }
+    if (!previewUrl || processing) { setSourceError('请等待音频处理完成'); return; }
+    const link = document.createElement('a');
+    link.href = previewUrl;
+    link.download = `processed_${audioFile?.name.replace(/\.[^.]+$/, '') || 'audio'}.wav`;
+    document.body.appendChild(link); link.click(); link.remove();
   };
-  
+
   return (
     <div className="audio-lab-page">
       <h2>音频实验室</h2>
@@ -342,14 +269,16 @@ export function AudioLab() {
         </div>
       </div>
 
+      {trimOpen && original && <AudioTrimDialog buffer={original} selection={trim} tempo={playbackRate} pitch={pitchShift} volume={volume} onClose={() => setTrimOpen(false)} onApply={range => { setTrim(range); setTrimOpen(false); }} />}
       {audioFile && (
         <>
           <div className="audio-player-section">
             <h3>音频播放器</h3>
+            {processing && <p role="status">正在处理音频…</p>}
             <div className="audio-controls">
               <audio
                 ref={audioRef}
-                src={audioUrl}
+                src={previewUrl || undefined}
                 onTimeUpdate={(e) => {
                   console.log('Time update:', e.currentTarget.currentTime);
                   setCurrentTime(e.currentTarget.currentTime);
@@ -361,7 +290,7 @@ export function AudioLab() {
                 onLoadedMetadata={(e) => {
                   console.log('Loaded metadata:', e.currentTarget.duration);
                   setDuration(e.currentTarget.duration);
-                  setEndTime(formatTime(e.currentTarget.duration));
+
                 }}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
@@ -369,7 +298,7 @@ export function AudioLab() {
               {/* 音频进度条 */}
               <div className="player-progress-section">
                 <div className="player-controls">
-                  <button className="play-btn" onClick={togglePlay}>
+                  <button className="play-btn" onClick={togglePlay} disabled={processing || !previewUrl}>
                     {isPlaying ? '⏸️' : '▶️'}
                   </button>
                   <div className="time-display">
@@ -434,47 +363,10 @@ export function AudioLab() {
             </div>
           </div>
 
-          <div className="waveform-section">
-            <h3>音频波形</h3>
-            <div className="waveform-placeholder">
-              <div className="waveform-bars">
-                {Array.from({ length: 100 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="waveform-bar"
-                    style={{ height: `${Math.random() * 100}%` }}
-                  ></div>
-                ))}
-              </div>
-            </div>
-          </div>
-
           <div className="controls-section">
             <div className="control-group">
-              <h3>修剪音频</h3>
-              <div className="control-row">
-                <div className="control-item">
-                  <label>开始时间</label>
-                  <input 
-                    type="text" 
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    placeholder="0:00" 
-                  />
-                </div>
-                <div className="control-item">
-                  <label>结束时间</label>
-                  <input 
-                    type="text" 
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    placeholder={formatTime(duration)} 
-                  />
-                </div>
-                <button className="control-btn" onClick={applyTrim}>应用修剪</button>
-              </div>
+              <button className="lab-trim-open" onClick={() => { audioRef.current?.pause(); setTrimOpen(true); }} disabled={!original}>修剪音频</button>
             </div>
-
             <div className="control-group">
               <h3>播放速度</h3>
               <div className="control-row">
@@ -513,7 +405,7 @@ export function AudioLab() {
           </div>
 
           <div className="save-section">
-            <button className="save-project-btn" onClick={saveAudio}>保存音频</button>
+            <button className="save-project-btn" onClick={saveAudio} disabled={processing || !previewUrl}>保存音频</button>
           </div>
         </>
       )}

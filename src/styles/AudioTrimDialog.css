@@ -1,0 +1,27 @@
+.audio-trim-dialog { width: min(760px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); overflow: auto; padding: 0; margin: auto; border: 1px solid #353944; border-radius: 20px; color: #eff0f6; background: #1c1e24; box-shadow: 0 28px 100px #0008; }
+.audio-trim-dialog::backdrop { background: #090b12b8; backdrop-filter: blur(5px); }
+.trim-dialog-body { padding: 28px 32px; }
+.trim-dialog-body header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 32px; }
+.trim-dialog-body h2 { margin: 0 0 8px; font-size: 22px; font-weight: 600; }
+.trim-dialog-body header p { margin: 0; font-size: 14px; color: #9da4b5; }
+.trim-dialog-body button { font-family: inherit; font-size: 14px; line-height: 20px; font-weight: 500; cursor: pointer; }
+.trim-icon-button { display: grid; place-items: center; padding: 6px; border: 0; border-radius: 8px; background: transparent; color: #a5abbb; }
+.trim-timeline { height: 180px; position: relative; margin: 0 9px; background: #13161d; border-radius: 8px; cursor: crosshair; }
+.trim-timeline svg { width: 100%; height: 100%; display: block; }
+.trim-selected-region { position: absolute; top: 0; bottom: 0; background: #8798ff14; border-block: 2px solid #8d9cfa; pointer-events: none; }
+.trim-boundary { position: absolute; top: -4px; bottom: -4px; transform: translateX(-50%); width: 18px; padding: 0; background: #a4b0ff; border: 1px solid #bdc6ff; border-radius: 5px; display: grid; place-items: center; cursor: ew-resize !important; touch-action: none; z-index: 2; }
+.trim-boundary span { height: 25px; border-left: 2px solid #303858; border-right: 2px solid #303858; width: 6px; }
+.trim-playhead { position: absolute; top: 0; bottom: 0; width: 1px; background: white; pointer-events: none; }
+.trim-ruler { display: flex; justify-content: space-between; margin: 12px 9px 24px; font-size: 12px; color: #858da1; font-variant-numeric: tabular-nums; }
+.trim-selection-details { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 18px 20px; background: #23262f; border: 1px solid #30343f; border-radius: 12px; }
+.trim-selection-details div { display: flex; flex-direction: column; gap: 7px; }
+.trim-selection-details span { font-size: 12px; color: #959caf; }
+.trim-selection-details strong { font-size: 17px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.trim-dialog-body footer, .trim-dialog-body footer > div { display: flex; align-items: center; gap: 12px; }
+.trim-dialog-body footer { justify-content: space-between; margin-top: 28px; }
+.trim-preview-button, .trim-secondary-button, .trim-primary-button { height: 40px; padding: 0 16px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.trim-preview-button, .trim-secondary-button { border: 1px solid #3a3f4c; background: #282c35; color: #e2e5ef; }
+.trim-primary-button { border: 1px solid #8798ff; background: #8293ef; color: #10172e; }
+.trim-dialog-body button:hover { filter: brightness(1.15); }
+.trim-dialog-body button:focus-visible { outline: 2px solid #c0c9ff; outline-offset: 3px; }
+@media (max-width: 520px) { .trim-dialog-body { padding: 22px 20px; } .trim-timeline { height: 150px; } .trim-dialog-body footer { flex-wrap: wrap; } .trim-selection-details { padding: 14px 12px; } }
