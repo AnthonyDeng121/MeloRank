@@ -42,12 +42,15 @@ function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicap
     }
     const unikey = key.data?.unikey;
     if (!unikey) throw new Error('未获得网易云登录二维码');
-    const qr = await call('login_qr_create', { key: unikey, qrimg: true });
+    // Match the SDK's browser login example: web adds chainId to the QR URL.
+    // Omitting platform silently selects the SDK's PC QR flow.
+    const qr = await call('login_qr_create', { key: unikey, qrimg: true, platform: 'web', ua: 'pc' });
     res.json({ key: unikey, image: qr.data?.qrimg });
   }));
   router.post('/qr/check', wrap(async (req, res) => {
     if (!/^[\w-]{8,200}$/.test(req.body.key || '')) return res.status(400).json({ error: '二维码参数无效' });
-    const result = await call('login_qr_check', { key: req.body.key });
+    const result = await call('login_qr_check', { key: req.body.key, ua: 'pc' });
+    if (![800, 801, 802, 803].includes(result.code)) throw new Error('网易云登录状态异常，请稍后重新扫码');
     const cookie = result.cookie || '';
     res.json({ code: result.code, ...(result.code === 803 && cookie ? { cookie, profile: await profile(cookie) } : {}) });
   }));

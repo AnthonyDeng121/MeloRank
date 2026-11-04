@@ -38,6 +38,17 @@ const server = app.listen(0, '127.0.0.1', async () => {
     assert.equal(album.items[0].subtitle, 'Artist');
     const qr = await (await request('/qr', {})).json(); assert.equal(qr.key, 'fixture-qr-key');
     assert.equal(calls.find(call => call.name === 'login_qr_key').params.timeout, 7000);
+    const createParams = calls.find(call => call.name === 'login_qr_create').params;
+    assert.equal(createParams.platform, 'web');
+    assert.equal(createParams.ua, 'pc');
+    // Exercise the installed SDK too: a mocked image alone cannot catch QR URL regressions.
+    const createQr = require('../backend/node_modules/@neteasecloudmusicapienhanced/api/module/login_qr_create');
+    const actualQr = await createQr(createParams);
+    const qrUrl = new URL(actualQr.body.data.qrurl);
+    assert.equal(qrUrl.origin, 'https://music.163.com');
+    assert.equal(qrUrl.searchParams.get('codekey'), qr.key);
+    assert.match(qrUrl.searchParams.get('chainId'), /^v1_.+_web_login_\d+$/);
+    assert.match(actualQr.body.data.qrimg, /^data:image\/png;base64,/);
     const originalKey = api.login_qr_key;
     let attempts = 0;
     api.login_qr_key = async params => {
@@ -53,6 +64,9 @@ const server = app.listen(0, '127.0.0.1', async () => {
     api.login_qr_key = originalKey;
     assert.equal((await request('/qr/check', { key: 'bad' })).status, 400);
     const login = await (await request('/qr/check', { key: qr.key })).json(); assert.equal(login.code, 803); assert.equal(login.profile.userId, 7);
+    assert.equal(calls.find(call => call.name === 'login_qr_check').params.ua, 'pc');
+    api.login_qr_check = async () => ({ status: 200, body: {} });
+    assert.equal((await request('/qr/check', { key: qr.key })).status, 502);
     console.log('PASS library authentication, own playlist filtering, liked songs/albums and QR contracts');
   } catch (error) { console.error(error); process.exitCode = 1; } finally { server.close(); }
 });
