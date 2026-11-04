@@ -1,3 +1,5 @@
+import { normalizeNeteaseCookie } from './neteaseCookie';
+
 export type MusicProvider = 'qq' | 'netease' | 'spotify';
 export type LibraryKind = 'playlists' | 'liked' | 'albums';
 export interface LibraryItem { id: string; title: string; subtitle: string; image?: string; externalUrl: string; qqSong?: any }
@@ -6,16 +8,25 @@ export interface LibraryPage { items: LibraryItem[]; hasMore: boolean }
 const backend = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:5000';
 export const netease = {
   cookie: () => sessionStorage.getItem('neteaseCookie') || '',
-  async request(path: string, body: Record<string, unknown> = {}, signal?: AbortSignal) {
+  async request(path: string, body: Record<string, unknown> = {}, signal?: AbortSignal, cookieOverride?: string) {
     let response: Response;
-    try { response = await fetch(`${backend}/api/music/netease/${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Netease-Cookie': this.cookie() }, body: JSON.stringify(body), signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(25000)]) : AbortSignal.timeout(25000) });
+    try { response = await fetch(`${backend}/api/music/netease/${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Netease-Cookie': cookieOverride ?? this.cookie() }, body: JSON.stringify(body), signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(25000)]) : AbortSignal.timeout(25000) });
     } catch (error) {
       if ((error as Error).name === 'TimeoutError') throw new Error('网易云接口连接超时，请点击重试');
       throw error;
     }
     const data = await response.json();
-    if (!response.ok) { if (response.status === 401) sessionStorage.removeItem('neteaseCookie'); throw new Error(data.error || '网易云音乐请求失败'); }
+    if (!response.ok) { if (response.status === 401 && cookieOverride === undefined) sessionStorage.removeItem('neteaseCookie'); throw new Error(data.error || '网易云音乐请求失败'); }
     return data;
+  },
+  async connectCookie(raw: string, signal: AbortSignal) {
+    const cookie = normalizeNeteaseCookie(raw);
+    const profile = await this.request('account', {}, signal, cookie);
+    signal.throwIfAborted();
+    if (!profile.userId) throw new Error('未能验证网易云账号，请重新登录官网并复制凭证');
+    sessionStorage.setItem('neteaseCookie', cookie);
+    window.dispatchEvent(new Event('music-auth-change'));
+    return profile;
   },
   async logout() {
     const cookie = this.cookie();

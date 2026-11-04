@@ -230,3 +230,17 @@
 .login-modal .spotify-config { text-align: left; }
 .login-modal .spotify-config input { display: block; box-sizing: border-box; width: 100%; padding: 12px; margin: 12px 0; font: inherit; color: white; background: #24262d; border: 1px solid #4b5062; border-radius: 8px; }
 .login-modal .spotify-config code { overflow-wrap: anywhere; }
+
+.netease-login-methods { display:flex; flex-wrap:wrap; gap:10px; margin:0 0 20px; }
+.login-modal .netease-login-methods button, .netease-cookie-login button { border:1px solid #4b5062; border-radius:8px; padding:10px 14px; background:#252830; color:#e8eaff; font:inherit; cursor:pointer; }
+.login-modal .netease-login-methods button[aria-pressed="true"] { background:#667eea; border-color:#8492ff; color:white; }
+.netease-cookie-login { display:flex; flex-direction:column; gap:12px; text-align:left; min-width:0; }
+.netease-cookie-login a { color:#aebaff; text-decoration:underline; }
+.login-modal .netease-cookie-login p { margin:0; font-size:14px; line-height:1.65; text-align:left; }
+.netease-cookie-login details { color:#c8cbd5; font-size:14px; line-height:1.65; }
+.netease-cookie-login summary { cursor:pointer; }
+.netease-cookie-login ol { padding-left:22px; overflow-wrap:anywhere; }
+.netease-cookie-login input { box-sizing:border-box; width:100%; padding:12px; border:1px solid #555d73; border-radius:8px; color:white; background:#24262d; font:inherit; }
+.login-modal .netease-cookie-login .cookie-privacy { font-size:12px; color:#aaaeba; }
+.netease-cookie-login [role="alert"] { color:#ffaaa5; }
+.netease-cookie-login button:disabled { opacity:.5; cursor:default; }

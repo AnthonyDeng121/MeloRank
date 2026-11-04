@@ -12,6 +12,9 @@ const sandbox = { exports: {}, env: {}, sessionStorage, localStorage, URL, URLSe
   return { ok: true, status: 200, json: async () => ({ items: [{ track: { id: 'track', name: 'Track', artists: [{ name: 'Artist' }], album: { images: [{ url: 'https://example.com/image' }] }, external_urls: { spotify: 'https://open.spotify.com/track/track' } } }], next: null }) };
 } };
 const source = fs.readFileSync('src/app/services/musicPlatforms.ts', 'utf8').replaceAll('import.meta.env', 'env');
+const cookieModule = { exports: {} };
+vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/app/services/neteaseCookie.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, cookieModule);
+sandbox.require = name => { assert.equal(name, './neteaseCookie'); return cookieModule.exports; };
 vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText, sandbox);
 const { spotify } = sandbox.exports;
 (async () => {
