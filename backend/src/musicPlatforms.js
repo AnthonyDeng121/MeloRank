@@ -2,9 +2,12 @@ const express = require('express');
 
 function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicapienhanced/api')) {
   const router = express.Router();
+  // Load the SDK during server startup, before accepting requests. Its entry point
+  // synchronously loads all API modules; deferring this blocks the first QR request.
+  const api = getApi();
   const call = async (name, params) => {
     let response;
-    try { response = await getApi()[name]({ timeout: 10000, ...params, timestamp: Date.now() }); }
+    try { response = await api[name]({ timeout: 10000, ...params, timestamp: Date.now() }); }
     catch (error) {
       // The SDK rejects with { status, body }, rather than an Error instance.
       throw Object.assign(new Error(error.body?.msg || error.body?.message || error.message || '网易云接口暂不可用'), { status: 502 });
