@@ -67,6 +67,12 @@ const server = app.listen(0, '127.0.0.1', async () => {
     assert.equal(calls.find(call => call.name === 'login_qr_check').params.ua, 'pc');
     api.login_qr_check = async () => ({ status: 200, body: {} });
     assert.equal((await request('/qr/check', { key: qr.key })).status, 502);
+    api.login_cellphone = async () => ({ status: 400, body: { code: 8821, message: 'fixture security check' } });
+    const security = await request('/phone/login', { phone: '13800000000', captcha: '123456' });
+    assert.equal(security.status, 403);
+    assert.match((await security.json()).error, /官网.*安全验证/);
+    api.login_cellphone = async () => { throw { body: { code: 8821 } }; };
+    assert.equal((await request('/phone/login', { phone: '13800000000', captcha: '123456' })).status, 403);
     console.log('PASS library authentication, own playlist filtering, liked songs/albums and QR contracts');
   } catch (error) { console.error(error); process.exitCode = 1; } finally { server.close(); }
 });

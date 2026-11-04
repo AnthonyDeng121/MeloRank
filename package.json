@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
+    "dev:netease-go": "node scripts/start-netease-go.cjs",
     "build": "vite build",
     "dev": "vite --host --port 5188 --strictPort",
     "typecheck": "tsc --noEmit",

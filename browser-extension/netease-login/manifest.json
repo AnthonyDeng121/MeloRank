@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "MeloRank 网易云官网登录助手",
+  "version": "1.0.0",
+  "description": "在用户主动连接时读取网易云登录凭证，仅交给本机 5188 端口的 MeloRank 页面。",
+  "permissions": ["cookies"],
+  "host_permissions": ["https://music.163.com/*"],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [{
+    "matches": ["http://127.0.0.1/*", "http://localhost/*"],
+    "js": ["content.js"],
+    "run_at": "document_start"
+  }]
+}

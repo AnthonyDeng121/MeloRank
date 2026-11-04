@@ -9,10 +9,12 @@ function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicap
     let response;
     try { response = await api[name]({ timeout: 10000, ...params, timestamp: Date.now() }); }
     catch (error) {
+      if ([8821, 415, 405].includes(error.body?.code)) throw Object.assign(new Error('网易云要求在官网完成安全验证，请使用官网登录方式'), { status: 403 });
       // The SDK rejects with { status, body }, rather than an Error instance.
       throw Object.assign(new Error(error.body?.msg || error.body?.message || error.message || '网易云接口暂不可用'), { status: 502 });
     }
     const body = response.body || {};
+    if ([8821, 415, 405].includes(body.code)) throw Object.assign(new Error('网易云要求在官网完成安全验证，请使用官网登录方式'), { status: 403 });
     if ((response.status || 200) >= 400 || (body.code && ![200, 800, 801, 802, 803].includes(body.code))) throw Object.assign(new Error(body.msg || body.message || '网易云接口请求失败'), { status: body.code === 301 ? 401 : 502 });
     return body;
   };
@@ -31,6 +33,7 @@ function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicap
     if (!user?.userId) throw Object.assign(new Error('登录已失效'), { status: 401 });
     return user;
   };
+  router.use(require('./neteaseLogin').createNeteaseLoginRouter({ call, profile, wrap }));
   router.post('/qr', wrap(async (_, res) => {
     let key;
     // A stalled upstream request must not occupy the entire browser timeout.

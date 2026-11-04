@@ -3,6 +3,9 @@ qq-music-api-main/node_modules/
 qq-music-api/node_modules/
 backend/node_modules/
 dist/
+backend/netease-go/*.exe
+backend/netease-go/cookie.json
+backend/netease-go/.ncmctl/
 .env
 .env.*
 !.env.example
