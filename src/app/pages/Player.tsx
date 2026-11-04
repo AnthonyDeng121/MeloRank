@@ -9,7 +9,7 @@ import { parseLrc, matchLyric } from '../services/lyrics';
 
 export function Player() {
   const [downloading, setDownloading] = useState(false);
-  const setDownloadError = (message: string) => { if (message) toast.error(message, { duration: 5000 }); };
+  const setDownloadError = (message: string) => { if (message) toast.error(message, { duration: 3000 }); };
   const [translation, setTranslation] = useState('');
   const [romanization, setRomanization] = useState('');
   const [showTranslation, setShowTranslation] = useState(() => localStorage.getItem('lyricsTranslation') === 'true');

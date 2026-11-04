@@ -86,11 +86,11 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     try {
       await audio.play();
       if (generation !== playbackGeneration.current) return;
-      if (previewLimit.current) toast.info('当前为平台试听片段，最长30秒', { id: 'preview', duration: 5000 });
+      if (previewLimit.current) toast.info('当前为平台试听片段，最长30秒', { id: 'preview', duration: 3000 });
     } catch (error) {
       if (generation !== playbackGeneration.current || (error as Error).name === 'AbortError') return;
       setIsPlaying(false);
-      toast.error('音频无法播放，请重试或登录后重试', { id: 'play-error', duration: 5000 });
+      toast.error('音频无法播放，请重试或登录后重试', { id: 'play-error', duration: 3000 });
     }
   };
 

@@ -37,6 +37,20 @@ const server = app.listen(0, '127.0.0.1', async () => {
     const album = await (await request('/collection', { kind: 'albums', id: '4' })).json();
     assert.equal(album.items[0].subtitle, 'Artist');
     const qr = await (await request('/qr', {})).json(); assert.equal(qr.key, 'fixture-qr-key');
+    assert.equal(calls.find(call => call.name === 'login_qr_key').params.timeout, 7000);
+    const originalKey = api.login_qr_key;
+    let attempts = 0;
+    api.login_qr_key = async params => {
+      if (++attempts === 1) throw { status: 502, body: { msg: 'timeout of 7000ms exceeded' } };
+      return originalKey(params);
+    };
+    assert.equal((await request('/qr', {})).status, 200);
+    assert.equal(attempts, 2, 'Transient SDK failures should retry once');
+    api.login_qr_key = async () => { throw { status: 502, body: { msg: 'timeout of 7000ms exceeded' } }; };
+    const failedQr = await request('/qr', {});
+    assert.equal(failedQr.status, 502);
+    assert.match((await failedQr.json()).error, /超时/);
+    api.login_qr_key = originalKey;
     assert.equal((await request('/qr/check', { key: 'bad' })).status, 400);
     const login = await (await request('/qr/check', { key: qr.key })).json(); assert.equal(login.code, 803); assert.equal(login.profile.userId, 7);
     console.log('PASS library authentication, own playlist filtering, liked songs/albums and QR contracts');

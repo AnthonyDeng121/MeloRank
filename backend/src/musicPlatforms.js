@@ -3,14 +3,19 @@ const express = require('express');
 function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicapienhanced/api')) {
   const router = express.Router();
   const call = async (name, params) => {
-    const response = await getApi()[name]({ ...params, timestamp: Date.now() });
+    let response;
+    try { response = await getApi()[name]({ timeout: 10000, ...params, timestamp: Date.now() }); }
+    catch (error) {
+      // The SDK rejects with { status, body }, rather than an Error instance.
+      throw Object.assign(new Error(error.body?.msg || error.body?.message || error.message || '网易云接口暂不可用'), { status: 502 });
+    }
     const body = response.body || {};
     if ((response.status || 200) >= 400 || (body.code && ![200, 800, 801, 802, 803].includes(body.code))) throw Object.assign(new Error(body.msg || body.message || '网易云接口请求失败'), { status: body.code === 301 ? 401 : 502 });
     return body;
   };
   const wrap = handler => async (req, res) => {
     res.set('Cache-Control', 'no-store');
-    try { await handler(req, res); } catch (error) { res.status(error.status || 502).json({ error: error.status === 401 ? '登录已失效，请重新扫码' : error.message || '网易云接口暂不可用' }); }
+    try { await handler(req, res); } catch (error) { res.status(error.status || 502).json({ error: error.status === 401 ? '登录已失效，请重新扫码' : /timeout|timed out|ECONN|ENOTFOUND|EAI_AGAIN|socket/i.test(error.message) ? '网易云接口连接超时，请点击重试' : error.message || '网易云接口暂不可用' }); }
   };
   const auth = req => {
     const cookie = req.get('X-Netease-Cookie') || '';
@@ -24,7 +29,14 @@ function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicap
     return user;
   };
   router.post('/qr', wrap(async (_, res) => {
-    const key = await call('login_qr_key', {});
+    let key;
+    // A stalled upstream request must not occupy the entire browser timeout.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try { key = await call('login_qr_key', { timeout: 7000 }); break; }
+      catch (error) {
+        if (attempt === 1 || !/timeout|timed out|ECONN|ENOTFOUND|EAI_AGAIN|socket/i.test(error.message || error.code || '')) throw error;
+      }
+    }
     const unikey = key.data?.unikey;
     if (!unikey) throw new Error('未获得网易云登录二维码');
     const qr = await call('login_qr_create', { key: unikey, qrimg: true });

@@ -62,6 +62,10 @@ export function AudioLab() {
   const [audioUrl, setAudioUrl] = useState<string>('');
   const [previewUrl, setPreviewUrl] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [exportFormat, setExportFormat] = useState<'mp3' | 'wav'>('mp3');
+  const [exporting, setExporting] = useState(false);
+  const exportWorker = useRef<Worker | null>(null);
+  useEffect(() => () => exportWorker.current?.terminate(), []);
   const [trimOpen, setTrimOpen] = useState(false);
   const [trim, setTrim] = useState<[number, number] | null>(null);
   const [original, setOriginal] = useState<AudioBuffer | null>(null);
@@ -241,11 +245,38 @@ export function AudioLab() {
   
   // 保存处理后的音频
   const saveAudio = async () => {
+    if (exporting) return;
     if (!previewUrl || processing) { setSourceError('请等待音频处理完成'); return; }
-    const link = document.createElement('a');
-    link.href = previewUrl;
-    link.download = `processed_${audioFile?.name.replace(/\.[^.]+$/, '') || 'audio'}.wav`;
-    document.body.appendChild(link); link.click(); link.remove();
+    setExporting(true); setSourceError('');
+    let objectUrl = '';
+    try {
+      let blob = await (await fetch(previewUrl)).blob();
+      if (exportFormat === 'mp3') {
+        const context = new AudioContext();
+        let buffer: AudioBuffer;
+        try { buffer = await context.decodeAudioData(await blob.arrayBuffer()); }
+        finally { await context.close(); }
+        // MP3 supports mono/stereo. Resample and downmix multichannel sources consistently.
+        const renderer = new OfflineAudioContext(Math.min(2, buffer.numberOfChannels), Math.ceil(buffer.duration * 44100), 44100);
+        const source = renderer.createBufferSource(); source.buffer = buffer; source.connect(renderer.destination); source.start();
+        const rendered = await renderer.startRendering();
+        const channels = Array.from({ length: rendered.numberOfChannels }, (_, i) => rendered.getChannelData(i).slice());
+        blob = await new Promise<Blob>((resolve, reject) => {
+          const worker = new Worker(new URL('../services/mp3Encoder.worker.ts', import.meta.url), { type: 'module' });
+          exportWorker.current = worker;
+          const finish = () => { worker.terminate(); exportWorker.current = null; };
+          worker.onmessage = ({ data }) => { finish(); data.error ? reject(new Error(data.error)) : resolve(new Blob(data.chunks, { type: 'audio/mpeg' })); };
+          worker.onerror = () => { finish(); reject(new Error('MP3 编码失败，请重试或选择 WAV')); };
+          worker.postMessage({ channels, sampleRate: 44100 }, channels.map(channel => channel.buffer));
+        });
+      }
+      objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = `processed_${audioFile?.name.replace(/\.[^.]+$/, '') || 'audio'}.${exportFormat}`;
+      document.body.appendChild(link); link.click(); link.remove();
+    } catch (error) { setSourceError(error instanceof Error ? error.message : '导出失败，请重试'); }
+    finally { setExporting(false); if (objectUrl) setTimeout(() => URL.revokeObjectURL(objectUrl), 60000); }
   };
 
   return (
@@ -417,7 +448,13 @@ export function AudioLab() {
           </div>
 
           <div className="save-section">
-            <button className="save-project-btn" onClick={saveAudio} disabled={processing || !previewUrl}>保存音频</button>
+            <label className="export-format" htmlFor="audio-export-format">导出格式
+              <select id="audio-export-format" value={exportFormat} disabled={exporting} onChange={e => setExportFormat(e.target.value as 'mp3' | 'wav')}>
+                <option value="mp3">MP3（192 kbps，体积更小）</option>
+                <option value="wav">WAV（无压缩，体积较大）</option>
+              </select>
+            </label>
+            <button className="save-project-btn" onClick={saveAudio} disabled={exporting || processing || !previewUrl}>{exporting ? '正在导出…' : '保存音频'}</button>
           </div>
         </>
       )}

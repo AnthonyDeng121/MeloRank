@@ -111,7 +111,7 @@ export default function App() {
     <RankingProvider>
       <MusicProvider>
         <SearchProvider>
-          <div className="app"><Toaster position="top-center" duration={5000} theme="dark" closeButton richColors />
+          <div className="app"><Toaster position="top-center" duration={3000} theme="dark" closeButton richColors />
           <TopNav 
             currentPage={currentPage} 
             onNavigate={navigate}
