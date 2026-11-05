@@ -10,6 +10,7 @@ interface TopNavProps {
 }
 export function TopNav({ currentPage, onNavigate, onTogglePlayQueue }: TopNavProps) {
   const { accounts, activeProvider, selectProvider, refresh, disconnect } = usePlatformAccounts();
+  const [platformMenuOpen, setPlatformMenuOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [platform, setPlatform] = useState<MusicProvider>(activeProvider);
   const account = accounts[activeProvider];
@@ -25,13 +26,11 @@ export function TopNav({ currentPage, onNavigate, onTogglePlayQueue }: TopNavPro
       <div className="auth-buttons"><button className="nav-button playqueue-button" onClick={() => onTogglePlayQueue?.()}>📋 播放队列</button>
         <div className="platform-user-menu">
           {account.connected && <span className="platform-user-name" title={`${platformNames[activeProvider]} · ${account.nickname}`}>{account.nickname}</span>}
-          <label className="platform-switch">切换账号平台
-            <select aria-label="切换账号平台" value={activeProvider} onChange={event => selectProvider(event.target.value as MusicProvider)}>
-              {platformList.map(provider => <option key={provider} value={provider}>{platformNames[provider]}{accounts[provider].connected ? ' · 已登录' : ' · 未登录'}</option>)}
-            </select>
-          </label>
-          <button id="qq-music-login-btn" className="nav-button login-button" onClick={() => { setPlatform(activeProvider); setShowLoginModal(true); }}>登录</button>
-          {account.connected && <button className="nav-button logout-button small" onClick={() => void disconnect(activeProvider)}>退出</button>}
+          <div className="platform-picker" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setPlatformMenuOpen(false); }} onKeyDown={event => { if (event.key === 'Escape') setPlatformMenuOpen(false); }}>
+            <button className="platform-picker-trigger" aria-label="选择音乐平台" aria-expanded={platformMenuOpen} aria-controls="platform-options" onClick={() => setPlatformMenuOpen(value => !value)}>{platformNames[activeProvider]} <span aria-hidden="true">⌄</span></button>
+            {platformMenuOpen && <div id="platform-options" className="platform-options" role="group" aria-label="音乐平台">{platformList.map(provider => <button key={provider} aria-pressed={provider === activeProvider} onClick={() => { selectProvider(provider); setPlatformMenuOpen(false); }}><span>{platformNames[provider]}</span><span className={`account-badge ${accounts[provider].connected ? 'connected' : 'disconnected'}`}>{accounts[provider].connected ? '已登录' : '未登录'}</span></button>)}</div>}
+          </div>
+          <button id="qq-music-login-btn" className="nav-button login-button" onClick={() => { if (account.connected) void disconnect(activeProvider); else { setPlatform(activeProvider); setShowLoginModal(true); } }}>{account.connected ? '退出登录' : '点击登录'}</button>
         </div>
       </div>
     </div>
