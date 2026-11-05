@@ -1,3 +1,5 @@
+import { usePlatformAccounts } from '../contexts/PlatformAccountsContext';
+import { searchPlatform } from '../services/platformSongs';
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { qqMusicService } from "../services/qqMusicService";
 import "../../styles/YearlyRanking.css";
@@ -20,6 +22,7 @@ interface YearlyRankingProps {
 export function YearlyRanking({
   pageType = "yearly-ranking",
 }: YearlyRankingProps) {
+  const { activeProvider } = usePlatformAccounts();
   // 如果是艺人推荐页面，显示ArtistRecommendations组件
   if (pageType === "artist-recommendations") {
     return <ArtistRecommendations />;
@@ -684,7 +687,7 @@ export function YearlyRanking({
     setIsSearching(true);
     try {
       setSearchResults(
-        await qqMusicService.searchWithType(query, 50, "songs", 1)
+        await searchPlatform(activeProvider, query, 50, 1)
       );
     } catch (error) {
       console.error("搜索失败:", error);

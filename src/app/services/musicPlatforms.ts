@@ -1,9 +1,7 @@
-import { normalizeNeteaseCookie } from './neteaseCookie';
-
 export type MusicProvider = 'qq' | 'netease' | 'spotify';
 export type LibraryKind = 'playlists' | 'liked' | 'albums';
-export interface LibraryItem { id: string; title: string; subtitle: string; image?: string; externalUrl: string; qqSong?: any }
-export interface LibraryPage { items: LibraryItem[]; hasMore: boolean }
+export interface LibraryItem { id: string; title: string; subtitle: string; image?: string; externalUrl: string; qqSong?: any; neteaseTrack?: any; spotifyTrack?: any }
+export interface LibraryPage { items: LibraryItem[]; hasMore: boolean; nextOffset?: number }
 
 const backend = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:5000';
 export const netease = {
@@ -19,15 +17,6 @@ export const netease = {
     if (!response.ok) { if (response.status === 401 && cookieOverride === undefined) sessionStorage.removeItem('neteaseCookie'); throw new Error(data.error || '网易云音乐请求失败'); }
     return data;
   },
-  async connectCookie(raw: string, signal: AbortSignal) {
-    const cookie = normalizeNeteaseCookie(raw);
-    const profile = await this.request('account', {}, signal, cookie);
-    signal.throwIfAborted();
-    if (!profile.userId) throw new Error('未能验证网易云账号，请重新登录官网并复制凭证');
-    sessionStorage.setItem('neteaseCookie', cookie);
-    window.dispatchEvent(new Event('music-auth-change'));
-    return profile;
-  },
   async logout() {
     const cookie = this.cookie();
     sessionStorage.removeItem('neteaseCookie');
@@ -35,7 +24,7 @@ export const netease = {
   },
 };
 
-interface SpotifyTokens { access_token: string; refresh_token?: string; expiresAt: number }
+interface SpotifyTokens { access_token: string; refresh_token?: string; expiresAt: number; scope?: string }
 const tokenKey = 'melorankSpotifyTokens';
 const random = () => Array.from(crypto.getRandomValues(new Uint8Array(32)), byte => byte.toString(16).padStart(2, '0')).join('');
 const tokens = (): SpotifyTokens | null => { try { return JSON.parse(sessionStorage.getItem(tokenKey) || 'null'); } catch { return null; } };
@@ -46,6 +35,7 @@ let spotifyEpoch = 0;
 export const spotify = {
   clientId: () => localStorage.getItem('spotifyClientId') || import.meta.env.VITE_SPOTIFY_CLIENT_ID || '',
   connected: () => !!tokens()?.access_token,
+  playbackAuthorized: () => !!tokens()?.scope?.split(' ').includes('streaming'),
   redirectUri: () => {
     const configured = import.meta.env.VITE_SPOTIFY_REDIRECT_URI;
     if (configured) {
@@ -70,7 +60,7 @@ export const spotify = {
     sessionStorage.setItem('spotifyPkce', JSON.stringify({ verifier, state, clientId, redirectUri, createdAt: Date.now() }));
     const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
     const challenge = btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-    const params = new URLSearchParams({ client_id: clientId, response_type: 'code', redirect_uri: redirectUri, state, code_challenge_method: 'S256', code_challenge: challenge, scope: 'playlist-read-private user-library-read user-read-private' });
+    const params = new URLSearchParams({ client_id: clientId, response_type: 'code', redirect_uri: redirectUri, state, code_challenge_method: 'S256', code_challenge: challenge, scope: 'playlist-read-private user-library-read user-read-private streaming user-read-email user-modify-playback-state user-read-playback-state' });
     location.assign(`https://accounts.spotify.com/authorize?${params}`);
   },
   async finish(): Promise<boolean> {
@@ -126,8 +116,8 @@ export const spotify = {
     const data = await this.request(`${path}?limit=30&offset=${offset}`);
     return { items: (data.items || []).map((item: any) => {
       const value = kind === 'liked' ? item.track : kind === 'albums' ? item.album : item;
-      return value ? { id: value.id, title: value.name, subtitle: kind === 'playlists' ? value.owner?.display_name || 'Spotify 歌单' : (value.artists || []).map((a: any) => a.name).join(' / '), image: (value.images || value.album?.images)?.[0]?.url, externalUrl: value.external_urls?.spotify || '' } : null;
-    }).filter(Boolean), hasMore: !!data.next };
+      return value ? { id: value.id, title: value.name, subtitle: kind === 'playlists' ? value.owner?.display_name || 'Spotify 歌单' : (value.artists || []).map((a: any) => a.name).join(' / '), spotifyTrack: kind === 'liked' ? value : undefined, image: (value.images || value.album?.images)?.[0]?.url, externalUrl: value.external_urls?.spotify || '' } : null;
+    }).filter(Boolean), hasMore: !!data.next, nextOffset: offset + (data.items || []).length };
   },
   logout() { spotifyEpoch++; sessionStorage.removeItem(tokenKey); sessionStorage.removeItem('spotifyPkce'); },
 };

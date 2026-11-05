@@ -1,3 +1,4 @@
+import { songCover } from '../services/platformSongs';
 import React from 'react';
 import { useMusic } from '../contexts/MusicContext';
 import '../../styles/MiniPlayer.css';
@@ -55,7 +56,7 @@ export function MiniPlayer() {
     artists: currentSong.singer,
     album: {
       name: currentSong.albumname,
-      coverUrl: `https://y.qq.com/music/photo_new/T002R300x300M000${currentSong.albummid}.jpg`
+      coverUrl: songCover(currentSong)
     }
   } : mockTrack;
 

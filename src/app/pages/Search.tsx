@@ -1,3 +1,6 @@
+import { usePlatformAccounts, platformNames } from '../contexts/PlatformAccountsContext';
+import { toast } from 'sonner';
+import { searchPlatform, songCover } from '../services/platformSongs';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { qqMusicService } from '../services/qqMusicService';
 import { useMusic } from '../contexts/MusicContext';
@@ -6,6 +9,7 @@ import { useRankingContext } from '../contexts/RankingContext';
 import '../../styles/Search.css';
 
 export function Search() {
+  const { activeProvider } = usePlatformAccounts();
   const { setCurrentSong, addSongToQueue } = useMusic();
   const {
     searchQuery,
@@ -33,7 +37,7 @@ export function Search() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const requestId = useRef(0);
   useEffect(() => {
-    if (!showSuggestions || !searchQuery.trim()) { setSuggestions([]); return; }
+    if (activeProvider !== 'qq' || !showSuggestions || !searchQuery.trim()) { setSuggestions([]); return; }
     let active = true;
     const timer = setTimeout(() => {
       qqMusicService.getSuggestions(searchQuery.trim()).then(items => {
@@ -41,8 +45,8 @@ export function Search() {
       }).catch(() => { if (active) setSuggestions([]); });
     }, 300);
     return () => { active = false; clearTimeout(timer); };
-  }, [searchQuery, showSuggestions]);
-  useEffect(() => () => { requestId.current++; setLoading(false); }, []);
+  }, [searchQuery, showSuggestions, activeProvider]);
+  useEffect(() => () => { requestId.current++; setLoading(false); }, [activeProvider]);
 
   // 评论弹窗状态
   const [showCommentModal, setShowCommentModal] = useState(false);
@@ -74,7 +78,7 @@ export function Search() {
     try {
       console.log('开始搜索:', searchQuery, '页码:', page);
       // 只搜索歌曲类型
-      const searchResponse = await qqMusicService.searchWithType(query.trim(), pageSize, 'songs', page);
+      const searchResponse = await searchPlatform(activeProvider, query.trim(), pageSize, page);
       console.log('搜索响应:', searchResponse);
       
       // 处理API响应
@@ -98,13 +102,14 @@ export function Search() {
     } catch (error) {
       console.error('搜索失败:', error);
       if (id !== requestId.current) return;
+      toast.error(error instanceof Error ? error.message : '搜索失败，请稍后重试');
       // 搜索失败时清空结果
       setSearchResults(null);
       setTotalResults(0);
     } finally {
       if (id === requestId.current) setLoading(false);
     }
-  }, [searchQuery, pageSize]);
+  }, [searchQuery, pageSize, activeProvider]);
 
   const debouncedSearch = (page = 1) => handleSearch(page, page === 1 ? searchQuery : submittedQuery);
 
@@ -202,7 +207,7 @@ export function Search() {
       rank: 1,
       title: selectedSong.songname,
       artist: selectedSong.singer.map((s: any) => s.name).join(', '),
-      coverUrl: `https://y.qq.com/music/photo_new/T002R300x300M000${selectedSong.albummid}.jpg`,
+      coverUrl: songCover(selectedSong),
       review: comment || '没有评价的义务！',
       originalScore: totalScore,
       integrity: 0,
@@ -259,7 +264,7 @@ export function Search() {
       songName: selectedSong.songname,
       artist: selectedSong.singer.map((s: any) => s.name).join(', '),
       album: selectedSong.albumname,
-      coverUrl: `https://y.qq.com/music/photo_new/T002R300x300M000${selectedSong.albummid}.jpg`,
+      coverUrl: songCover(selectedSong),
       ratings,
       totalScore,
       comment,
@@ -342,7 +347,7 @@ export function Search() {
             <div className="result-cover">
               {song.albummid && (
                 <img 
-                  src={`https://y.qq.com/music/photo_new/T002R300x300M000${song.albummid}.jpg`} 
+                  src={songCover(song)}
                   alt={song.songname || '歌曲封面'} 
                   className="result-image" 
                 />
@@ -396,7 +401,7 @@ export function Search() {
     <div className="search-page">
       <div className="search-header">
         <div className="header-top">
-          <h2>搜索音乐</h2>
+          <h2>搜索音乐 <small className="search-platform-name">{platformNames[activeProvider]}</small></h2>
         </div>
         <div className="search-input-container" onBlur={event => {
           if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setShowSuggestions(false);
@@ -548,7 +553,7 @@ export function Search() {
             <div className="modal-content">
               <div className="song-info">
                 <img 
-                  src={`https://y.qq.com/music/photo_new/T002R300x300M000${selectedSong.albummid}.jpg`} 
+                  src={songCover(selectedSong)}
                   alt={selectedSong.songname} 
                   className="modal-song-image" 
                 />

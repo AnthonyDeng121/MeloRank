@@ -11,10 +11,10 @@ function visit(node) {
 }
 visit(source); assert.ok(clear && effect);
 let resolveRequest, plays = 0, pauses = 0, loads = 0;
-const model = { console, alert() { throw new Error('Unexpected playback error'); },
+const model = { console, AbortController, previewLimit: { current: null }, setPlaybackNotice() {}, spotifyPlayback: { disconnect() {} }, toast: { error() {} }, alert() { throw new Error('Unexpected playback error'); },
   playbackGeneration: { current: 0 }, currentSong: { songmid: 'pending' },
   audioRef: { current: { src: '', pause() { pauses++; }, load() { loads++; }, removeAttribute() { this.src = ''; }, play() { plays++; return Promise.resolve(); } } },
-  qqMusicService: { getSongUrl: () => new Promise(resolve => { resolveRequest = resolve; }) },
+  platformSongUrl: () => new Promise(resolve => { resolveRequest = resolve; }),
 };
 for (const key of ['IsPlaying', 'CurrentTime', 'Duration', 'Lyrics', 'PlayQueue', 'CurrentIndex', 'CurrentSong']) model['set' + key] = value => { model[key] = value; };
 vm.createContext(model);

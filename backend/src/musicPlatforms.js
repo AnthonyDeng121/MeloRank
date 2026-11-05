@@ -1,6 +1,6 @@
 const express = require('express');
 
-function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicapienhanced/api')) {
+function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicapienhanced/api'), goFetch = fetch) {
   const router = express.Router();
   // Load the SDK during server startup, before accepting requests. Its entry point
   // synchronously loads all API modules; deferring this blocks the first QR request.
@@ -9,6 +9,7 @@ function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicap
     let response;
     try { response = await api[name]({ timeout: 10000, ...params, timestamp: Date.now() }); }
     catch (error) {
+      if ([301, 401].includes(error.body?.code)) throw Object.assign(new Error('网易云登录已失效，请重新登录'), { status: 401 });
       if ([8821, 415, 405].includes(error.body?.code)) throw Object.assign(new Error('网易云要求在官网完成安全验证，请使用官网登录方式'), { status: 403 });
       // The SDK rejects with { status, body }, rather than an Error instance.
       throw Object.assign(new Error(error.body?.msg || error.body?.message || error.message || '网易云接口暂不可用'), { status: 502 });
@@ -33,29 +34,37 @@ function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicap
     if (!user?.userId) throw Object.assign(new Error('登录已失效'), { status: 401 });
     return user;
   };
-  router.use(require('./neteaseLogin').createNeteaseLoginRouter({ call, profile, wrap }));
-  router.post('/qr', wrap(async (_, res) => {
-    let key;
-    // A stalled upstream request must not occupy the entire browser timeout.
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try { key = await call('login_qr_key', { timeout: 7000 }); break; }
-      catch (error) {
-        if (attempt === 1 || !/timeout|timed out|ECONN|ENOTFOUND|EAI_AGAIN|socket/i.test(error.message || error.code || '')) throw error;
-      }
-    }
-    const unikey = key.data?.unikey;
-    if (!unikey) throw new Error('未获得网易云登录二维码');
-    // Match the SDK's browser login example: web adds chainId to the QR URL.
-    // Omitting platform silently selects the SDK's PC QR flow.
-    const qr = await call('login_qr_create', { key: unikey, qrimg: true, platform: 'web', ua: 'pc' });
-    res.json({ key: unikey, image: qr.data?.qrimg });
+  router.use(require('./neteaseLogin').createNeteaseLoginRouter({ profile, wrap, goFetch }));
+  const songId = req => {
+    const id = String(req.body.id || '');
+    if (!/^\d{1,20}$/.test(id)) throw Object.assign(new Error('歌曲标识无效'), { status: 400 });
+    return id;
+  };
+  router.post('/search', wrap(async (req, res) => {
+    const cookie = auth(req), keywords = String(req.body.query || '').trim().slice(0, 200);
+    if (!keywords) return res.status(400).json({ error: '请输入搜索关键词' });
+    const limit = Math.min(50, Math.max(1, Number(req.body.limit) || 10)), offset = Math.max(0, Number(req.body.offset) || 0);
+    const data = await call('cloudsearch', { cookie, keywords, type: 1, limit, offset });
+    res.json({ songs: data.result?.songs || [], total: data.result?.songCount || 0 });
   }));
-  router.post('/qr/check', wrap(async (req, res) => {
-    if (!/^[\w-]{8,200}$/.test(req.body.key || '')) return res.status(400).json({ error: '二维码参数无效' });
-    const result = await call('login_qr_check', { key: req.body.key, ua: 'pc' });
-    if (![800, 801, 802, 803].includes(result.code)) throw new Error('网易云登录状态异常，请稍后重新扫码');
-    const cookie = result.cookie || '';
-    res.json({ code: result.code, ...(result.code === 803 && cookie ? { cookie, profile: await profile(cookie) } : {}) });
+  router.post('/album-search', wrap(async (req, res) => {
+    const cookie = auth(req), keywords = String(req.body.query || '').trim().slice(0, 200);
+    if (!keywords) return res.status(400).json({ error: '请输入专辑名称' });
+    const data = await call('cloudsearch', { cookie, keywords, type: 10, limit: 20 });
+    res.json({ albums: data.result?.albums || [] });
+  }));
+  router.post('/playback', wrap(async (req, res) => {
+    const cookie = auth(req), id = songId(req);
+    const data = await call('song_url', { cookie, id, br: 320000 });
+    const track = data.data?.find(item => String(item.id) === id);
+    if (!track?.url) throw new Error('该歌曲暂无播放权限，可能受会员或版权限制');
+    const url = new URL(track.url);
+    if (!['https:', 'http:'].includes(url.protocol)) throw new Error('平台返回了无效音源');
+    res.json({ url: url.href.replace(/^http:/, 'https:'), isPreview: !!track.freeTrialInfo });
+  }));
+  router.post('/lyric', wrap(async (req, res) => {
+    const data = await call('lyric', { cookie: auth(req), id: songId(req) });
+    res.json({ lyric: data.lrc?.lyric || '', translation: data.tlyric?.lyric || '', romanization: data.romalrc?.lyric || '' });
   }));
   router.post('/account', wrap(async (req, res) => res.json(await profile(auth(req)))));
   router.post('/logout', wrap(async (req, res) => { const cookie = auth(req); await call('logout', { cookie }); res.json({ success: true }); }));
@@ -66,7 +75,7 @@ function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicap
     const offset = Math.max(0, Number(req.body.offset) || 0), limit = 30;
     const data = await call(kind === 'albums' ? 'album' : 'playlist_track_all', { cookie, id, offset, limit });
     const songs = kind === 'albums' ? (data.songs || []).slice(offset, offset + limit) : data.songs || [];
-    res.json({ items: songs.map(s => ({ id: String(s.id), title: s.name, subtitle: (s.ar || s.artists || []).map(a => a.name).join(' / '), externalUrl: `https://music.163.com/#/song?id=${s.id}` })), hasMore: songs.length === limit });
+    res.json({ items: songs.map(s => ({ neteaseTrack: s, id: String(s.id), title: s.name, subtitle: (s.ar || s.artists || []).map(a => a.name).join(' / '), externalUrl: `https://music.163.com/#/song?id=${s.id}` })), hasMore: songs.length === limit });
   }));
   router.post('/library', wrap(async (req, res) => {
     const cookie = auth(req);
@@ -90,7 +99,7 @@ function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicap
     if (!liked) return res.json({ items: [], hasMore: false });
     data = await call('playlist_track_all', { cookie, id: liked.id, limit, offset });
     list = data.songs || [];
-    res.json({ items: list.map(s => ({ id: String(s.id), title: s.name, subtitle: (s.ar || []).map(a => a.name).join(' / '), image: s.al?.picUrl, externalUrl: `https://music.163.com/#/song?id=${s.id}` })), hasMore: offset + list.length < liked.trackCount });
+    res.json({ items: list.map(s => ({ neteaseTrack: s, id: String(s.id), title: s.name, subtitle: (s.ar || []).map(a => a.name).join(' / '), image: s.al?.picUrl, externalUrl: `https://music.163.com/#/song?id=${s.id}` })), hasMore: offset + list.length < liked.trackCount });
   }));
   return router;
 }

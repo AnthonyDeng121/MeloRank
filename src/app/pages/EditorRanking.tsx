@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { usePlatformAccounts } from '../contexts/PlatformAccountsContext';
+import { searchPlatform, platformAlbumTracks } from '../services/platformSongs';
+import { useEffect, useRef, useState } from 'react';
 import { useMusic } from '../contexts/MusicContext';
-import { qqMusicService } from '../services/qqMusicService';
 import '../../styles/YearlyRanking.css';
 
 interface EditorItem {
@@ -14,6 +15,9 @@ interface EditorItem {
 }
 
 export function EditorRanking({ kind }: { kind: 'songs' | 'albums' }) {
+  const { activeProvider } = usePlatformAccounts();
+  const playbackRequest = useRef(0);
+  useEffect(() => { playbackRequest.current++; setPlayingId(null); return () => { playbackRequest.current++; }; }, [activeProvider]);
   const [items, setItems] = useState<EditorItem[]>([]);
   const [albumType, setAlbumType] = useState<'album' | 'ep'>('album');
   const [loading, setLoading] = useState(true);
@@ -50,14 +54,17 @@ export function EditorRanking({ kind }: { kind: 'songs' | 'albums' }) {
       return;
     }
     try {
+      const ticket = ++playbackRequest.current;
       setPlayingId(item.id);
       if (kind === 'albums') {
-        const tracks = await qqMusicService.getAlbumTracks(item.title, item.artist, item.coverUrl);
+        const tracks = await platformAlbumTracks(activeProvider, item.title, item.artist, item.coverUrl);
+        if (ticket !== playbackRequest.current) return;
         setPlayMode('sequence');
         setCurrentSong(tracks[0], tracks);
         return;
       }
-      const result = await qqMusicService.search(`${item.title} ${item.artist}`, 1, 1);
+      const result = await searchPlatform(activeProvider, `${item.title} ${item.artist}`, 1, 1);
+      if (ticket !== playbackRequest.current) return;
       const response = result.response || result;
       const data = response.data || response;
       const song = data.song?.list?.[0];

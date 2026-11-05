@@ -1,24 +1,27 @@
+import { usePlatformAccounts } from '../contexts/PlatformAccountsContext';
+import { searchPlatform, platformLyric, platformPlayableUrl, type PlatformSong } from '../services/platformSongs';
 import { AudioTrimDialog } from '../components/AudioTrimDialog';
 import { processPcm } from '../services/audioProcessing';
 import React, { useState, useRef, useEffect } from 'react';
 import '../../styles/AudioLab.css';
-import { qqMusicService } from '../services/qqMusicService';
 import { useMusic } from '../contexts/MusicContext';
 import { parseLrc, type LyricLine } from '../services/lyrics';
 
 export function AudioLab() {
+  const { activeProvider } = usePlatformAccounts();
   const { currentSong, setIsPlaying: setGlobalPlaying } = useMusic();
   const [query, setQuery] = useState('');
   const [songs, setSongs] = useState<any[]>([]);
   const [busy, setBusy] = useState(false);
   const [sourceError, setSourceError] = useState('');
   const sourceRequest = useRef(0);
-  const [sourceSong, setSourceSong] = useState<{ songmid: string } | null>(null);
+  useEffect(() => { sourceRequest.current++; setSongs([]); setBusy(false); }, [activeProvider]);
+  const [sourceSong, setSourceSong] = useState<PlatformSong | null>(null);
   const [sourceLyrics, setSourceLyrics] = useState<LyricLine[]>([]);
   useEffect(() => {
     let cancelled = false;
     setSourceLyrics([]);
-    if (sourceSong) qqMusicService.getLyric(sourceSong.songmid).then(result => {
+    if (sourceSong) platformLyric(sourceSong).then(result => {
       const data = result.response || result.data?.response || result.data || {};
       if (!cancelled) setSourceLyrics(parseLrc(data.lyric || ''));
     }).catch(() => {});
@@ -29,7 +32,7 @@ export function AudioLab() {
     const id = ++sourceRequest.current;
     setBusy(true); setSourceError('');
     try {
-      const result = await qqMusicService.search(query.trim(), 10);
+      const result = await searchPlatform(activeProvider, query.trim(), 10, 1);
       const response = result.response || result;
       const data = response.data || response;
       if (id === sourceRequest.current) {
@@ -42,7 +45,7 @@ export function AudioLab() {
   const importSong = async (song: any) => {
     setBusy(true); setSourceError('');
     try {
-      const url = await qqMusicService.getPlayableUrl(song.songmid);
+      const url = await platformPlayableUrl(song);
       const response = await fetch(url);
       if (!response.ok) throw new Error('音源下载失败');
       const blob = await response.blob();

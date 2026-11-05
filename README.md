@@ -2,14 +2,14 @@
 
 ## 多平台曲库与音频编辑（2026-10）
 
-- 顶部“我的音乐”支持连接 QQ 音乐、网易云音乐和 Spotify，展示本人创建的歌单、喜欢的歌曲、收藏专辑，并支持分页读取。Spotify 的“我的歌单”包括自己创建及关注的歌单。网易云和 Spotify 项目当前提供曲库展示与平台跳转，不将其音源伪装成 QQ 音乐播放。
+- 支持同时连接 QQ 音乐、网易云音乐和 Spotify，顶部“切换账号平台”同步用户名、曲库与搜索来源。三平台歌曲按自身平台解析和播放；网易云使用账号权限允许的音源，Spotify 使用官方 Web Playback SDK（需要 Premium 和播放授权）。歌单详情使用站内播放，不再提供平台外链。
 - QQ 音乐凭证通过 `X-QQ-Music-Cookie` 按请求传递，服务端使用 `AsyncLocalStorage` 隔离，不再回退到全局账号或向浏览器重新注入旧 Cookie。退出会清空本地状态、缓存并停止当前播放。
 - 完整音源不可用时尝试申请平台的 `RS02` 试听片段；仅在平台实际提供链接时试听，最长 30 秒。没有试听资源的歌曲会显示原因，试听资源不能作为完整歌曲下载或导入实验室。
 - 实验室倍速可在 0.25–2 之间按 0.01 步长拖动；每隔 0.25 的刻度可直接点击。裁剪弹窗支持细边界拖动、秒数微调、同步歌词、单句选择和 Shift 连续选句；本地音频可导入对应的 LRC。按句裁剪依据行级时间戳，精度取决于平台歌词，不等同于逐字或语音边界检测。
 
 ### 本地启动和账号配置
 
-根目录执行 `npm install`，`backend` 和 `qq-music-api-main` 也分别安装依赖。三个服务分别运行根目录 `npm run dev`（5188）、`backend` 内 `npm run dev`（5000）、`qq-music-api-main` 内 `npm start`（3200）。网易云 API 库已集成到 5000 后端，无需启动第四个服务。
+根目录执行 `npm install`，`backend` 和 `qq-music-api-main` 也分别安装依赖。服务分别运行根目录 `npm run dev`（5188）、`backend` 内 `npm run dev`（5000）、`qq-music-api-main` 内 `npm start`（3200）。网易云仅保留 Go 扫码登录，另在根目录运行 `npm run dev:netease-go`（5001，需要 Go 1.26+）。详见 [多平台登录与播放说明](docs/netease-login.md)。
 
 按根目录 `.env.example` 配置服务地址。Spotify 需要自行创建开发者应用，并将 `http://127.0.0.1:5188/` 精确加入 Redirect URI 白名单；Client ID 可在“我的音乐 → Spotify”填写，或配置 `VITE_SPOTIFY_CLIENT_ID`。不需要 Client Secret。旧的 HTTP 局域网回调配置会被忽略，改用合规的 loopback 地址。开发模式白名单、账号条件及接口权限仍受 Spotify 限制。
 

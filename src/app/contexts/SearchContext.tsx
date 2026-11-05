@@ -1,4 +1,5 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import { usePlatformAccounts } from './PlatformAccountsContext';
+import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 
 // 搜索上下文类型定义
 interface SearchContextType {
@@ -29,6 +30,7 @@ interface SearchProviderProps {
 }
 
 export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
+  const { activeProvider } = usePlatformAccounts();
   const [searchQuery, setSearchQuery] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any>(null);
@@ -37,6 +39,8 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
   const [pageSize, setPageSize] = useState(10);
   const [totalResults, setTotalResults] = useState(0);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => { setSearchResults(null); setTotalResults(0); setCurrentPage(1); setLoading(false); }, [activeProvider]);
 
   const value: SearchContextType = {
     searchQuery,

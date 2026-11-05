@@ -1,13 +1,13 @@
 import React from 'react';
+import { usePlatformAccounts } from '../contexts/PlatformAccountsContext';
 import '../../styles/Home.css';
 
 interface HomeProps {
   onNavigate: (page: string) => void;
-  qqMusicUser: { nickname: string } | null;
-  onQQMusicLogin: () => void;
 }
 
-export function Home({ onNavigate, qqMusicUser, onQQMusicLogin }: HomeProps) {
+export function Home({ onNavigate }: HomeProps) {
+  const { accounts, activeProvider } = usePlatformAccounts();
   return (
     <div className="home-page">
       <section className="hero-section">
@@ -19,7 +19,7 @@ export function Home({ onNavigate, qqMusicUser, onQQMusicLogin }: HomeProps) {
         <div className="entry-card">
           <div className="card-icon">🔍</div>
           <h3>搜索音乐</h3>
-          {qqMusicUser ? (
+          {accounts[activeProvider].connected ? (
             <>
               <p>已登录，点击立即搜索好歌</p>
               <button className="card-button" onClick={() => onNavigate('search')}>前往搜索</button>
@@ -27,7 +27,7 @@ export function Home({ onNavigate, qqMusicUser, onQQMusicLogin }: HomeProps) {
           ) : (
             <>
               <p>连接 QQ音乐、网易云或 Spotify</p>
-              <button className="card-button" onClick={onQQMusicLogin}>登录</button>
+              <button className="card-button" onClick={() => window.dispatchEvent(new CustomEvent('music-login', { detail: activeProvider }))}>登录</button>
             </>
           )}
         </div>

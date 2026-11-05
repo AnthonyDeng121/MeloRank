@@ -12,9 +12,6 @@ const sandbox = { exports: {}, env: {}, sessionStorage, localStorage, URL, URLSe
   return { ok: true, status: 200, json: async () => ({ items: [{ track: { id: 'track', name: 'Track', artists: [{ name: 'Artist' }], album: { images: [{ url: 'https://example.com/image' }] }, external_urls: { spotify: 'https://open.spotify.com/track/track' } } }], next: null }) };
 } };
 const source = fs.readFileSync('src/app/services/musicPlatforms.ts', 'utf8').replaceAll('import.meta.env', 'env');
-const cookieModule = { exports: {} };
-vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/app/services/neteaseCookie.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, cookieModule);
-sandbox.require = name => { assert.equal(name, './neteaseCookie'); return cookieModule.exports; };
 vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText, sandbox);
 const { spotify } = sandbox.exports;
 (async () => {
@@ -22,6 +19,8 @@ const { spotify } = sandbox.exports;
   const url = new URL(assigned), pending = JSON.parse(sessionStorage.getItem('spotifyPkce'));
   assert.equal(url.origin, 'https://accounts.spotify.com');
   assert.equal(url.searchParams.get('code_challenge_method'), 'S256');
+  assert.ok(url.searchParams.get('scope').split(' ').includes('streaming'));
+  assert.ok(url.searchParams.get('scope').split(' ').includes('user-modify-playback-state'));
   assert.equal(url.searchParams.get('code_challenge'), createHash('sha256').update(pending.verifier).digest('base64url'));
   assert.equal(url.searchParams.get('redirect_uri'), 'http://127.0.0.1:5188/');
   sandbox.location.search = '?code=fixture&state=wrong';

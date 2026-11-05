@@ -35,10 +35,25 @@
 .library-empty { text-align: center; padding: 50px 20px; color: #8e98ae; }
 .library-load-more { margin-top: 24px; }
 @media(max-width: 600px) { .music-library-page > header { align-items: flex-start; flex-direction: column; } .library-providers { flex-wrap: wrap; } .library-connect { padding: 22px; } }
-.library-collection { margin: 24px 0; padding: 24px; border: 1px solid #3b4050; border-radius: 16px; background: #1c1e25; }
-.library-collection header, .library-collection li { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.library-collection ol { padding: 0; list-style: none; }
-.library-collection li { padding: 14px 0; border-bottom: 1px solid #333743; }
-.library-collection small { display: block; margin-top: 6px; color: #a1a8ba; }
-.library-collection button { padding: 8px 18px; font: inherit; color: #e8eaff; background: #303648; border: 1px solid #586384; border-radius: 8px; cursor: pointer; }
-.library-grid[hidden] { display: none; }
+.library-detail { padding:8px 0 0; }
+.library-detail-toolbar { display:flex; align-items:center; gap:12px; margin-bottom:26px; }
+.music-library-page .library-icon-button { width:42px; height:42px; padding:0; display:inline-grid; place-items:center; border-radius:50%; flex-shrink:0; }
+.music-library-page .library-icon-button.primary { background:#697de6; border-color:#697de6; color:#fff; width:46px; height:46px; }
+.library-detail-header { display:flex; align-items:center; gap:26px; margin-bottom:32px; }
+.library-detail-cover { width:148px; height:148px; flex-shrink:0; border-radius:14px; overflow:hidden; background:linear-gradient(140deg,#333c65,#232634); display:grid; place-items:center; color:#a4b5ff; box-shadow:0 10px 28px #0004; }
+.library-detail-cover img { width:100%; height:100%; object-fit:cover; }
+.library-detail-header h3 { font-size:clamp(23px,3vw,34px); line-height:1.3; margin:9px 0 14px; overflow-wrap:anywhere; }
+.library-detail-eyebrow { color:#a5b1d4; font-size:12px; }
+.library-track-list { list-style:none; padding:0; margin:0; border-top:1px solid #303542; }
+.library-track-list li { display:flex; align-items:center; gap:16px; min-height:74px; padding:10px 16px; border-bottom:1px solid #252b37; border-radius:8px; }
+.library-track-list li:hover { background:#ffffff06; }
+.library-track-list li.current { background:#768bfa12; }
+.library-track-list .library-track-play { display:grid; place-items:center; padding:0; width:34px; height:34px; border-radius:50%; border:0; background:transparent; color:#c1caff; flex-shrink:0; }
+.library-track-number { color:#69748b; font-size:12px; width:24px; font-variant-numeric:tabular-nums; }
+.library-track-info { flex:1; min-width:0; }
+.library-track-info > span { display:block; font-size:15px; color:#e4e8f7; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.library-track-info small { display:block; margin-top:6px; color:#929eb6; font-size:12px; }
+.library-track-list .current .library-track-info > span { color:#b3c0ff; }
+.library-track-album { width:24%; color:#8f9ab2; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.library-track-duration { color:#8a95ad; font-size:12px; width:42px; text-align:right; font-variant-numeric:tabular-nums; }
+@media(max-width:600px) { .library-detail-cover { width:96px; height:96px; } .library-detail-header { gap:16px; } .library-track-album { display:none; } .library-track-list li { gap:8px; padding:9px 4px; } .library-track-number { display:none; } }

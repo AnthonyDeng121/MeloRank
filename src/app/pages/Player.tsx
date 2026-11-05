@@ -1,6 +1,6 @@
+import { songCover, platformLyric, platformPlayableUrl } from '../services/platformSongs';
 import { toast } from 'sonner';
 import React, { useEffect, useState, useMemo, useRef } from 'react';
-import { qqMusicService } from '../services/qqMusicService';
 import { useMusic } from '../contexts/MusicContext';
 import { useRankingContext } from '../contexts/RankingContext';
 import '../../styles/Player.css';
@@ -21,7 +21,7 @@ export function Player() {
     const song = currentSong;
     setDownloading(true); setDownloadError('');
     try {
-      const url = song.url || await qqMusicService.getPlayableUrl(song.songmid);
+      const url = song.url || await platformPlayableUrl(song);
       const response = await fetch(url);
       if (!response.ok) throw new Error('下载失败，请稍后重试');
       const blob = await response.blob();
@@ -104,7 +104,7 @@ export function Player() {
     const fetchLyrics = async () => {
       if (currentSong) {
         try {
-          const response = await qqMusicService.getLyric(currentSong.songmid);
+          const response = await platformLyric(currentSong);
           if (cancelled) return;
           const data = response?.response || response?.data?.response || response?.data || {};
           setTranslation(typeof data.trans === 'string' ? data.trans : '');
@@ -226,7 +226,7 @@ export function Player() {
     artists: currentSong.singer,
     album: {
       name: currentSong.albumname,
-      coverUrl: `https://y.qq.com/music/photo_new/T002R300x300M000${currentSong.albummid}.jpg`
+      coverUrl: songCover(currentSong)
     }
   } : mockTrack;
   
@@ -303,7 +303,7 @@ export function Player() {
       rank: 1,
       title: currentSong.songname,
       artist: currentSong.singer.map((s: any) => s.name).join(', '),
-      coverUrl: `https://y.qq.com/music/photo_new/T002R300x300M000${currentSong.albummid}.jpg`,
+      coverUrl: songCover(currentSong),
       review: comment || '没有评价的义务！',
       originalScore: totalScore,
       integrity: 0,
@@ -360,7 +360,7 @@ export function Player() {
       songName: currentSong.songname,
       artist: currentSong.singer.map((s: any) => s.name).join(', '),
       album: currentSong.albumname,
-      coverUrl: `https://y.qq.com/music/photo_new/T002R300x300M000${currentSong.albummid}.jpg`,
+      coverUrl: songCover(currentSong),
       ratings,
       totalScore,
       comment,

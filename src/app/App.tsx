@@ -1,5 +1,6 @@
+import { PlatformAccountsProvider } from './contexts/PlatformAccountsContext';
 import { Toaster } from 'sonner';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { TopNav } from './components/TopNav';
 import { MiniPlayer } from './components/MiniPlayer';
 import { PlayQueue } from './components/PlayQueue';
@@ -15,13 +16,7 @@ import { MusicLibrary } from './pages/MusicLibrary';
 import { RankingProvider } from './contexts/RankingContext';
 import { MusicProvider } from './contexts/MusicContext';
 import { SearchProvider } from './contexts/SearchContext';
-import { qqMusicService } from './services/qqMusicService';
 import '../styles/App.css';
-
-// QQ音乐用户类型定义
-interface QQMusicUser {
-  nickname: string;
-}
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState(() => /[?&](code|connectSpotify|error)=/.test(location.search) ? 'music-library' : 'home');
@@ -35,55 +30,13 @@ export default function App() {
     setCurrentPage(pageHistory[pageHistory.length - 1] || 'home');
     setPageHistory(history => history.slice(0, -1));
   };
-  // QQ音乐用户状态管理
-  const [qqMusicUser, setQQMusicUser] = useState<QQMusicUser | null>(null);
-  // 播放队列可见性状态
+  // 播放队列面板状态
   const [isPlayQueueVisible, setIsPlayQueueVisible] = useState(false);
-
-  // 从localStorage恢复登录状态
-  useEffect(() => {
-    // 检查QQ音乐用户状态
-    const qqMusicCookie = localStorage.getItem('qqMusicCookie');
-    if (qqMusicCookie) {
-      // 如果有QQ音乐cookie，设置默认的QQ音乐用户状态
-      setQQMusicUser({ nickname: localStorage.getItem('qqMusicNickname') || 'QQ音乐用户' });
-      qqMusicService.getUserInfo().then(result => {
-        if (localStorage.getItem('qqMusicCookie') !== qqMusicCookie) return;
-        const nickname = (result.body || result).nickname;
-        if (nickname && nickname !== 'QQ Music User') {
-          localStorage.setItem('qqMusicNickname', nickname);
-          setQQMusicUser({ nickname });
-        }
-      }).catch(() => {});
-    }
-  }, []);
-
-  useEffect(() => {
-    const changed = () => setQQMusicUser(qqMusicService.isLoggedIn() ? { nickname: localStorage.getItem('qqMusicNickname') || 'QQ音乐用户' } : null);
-    window.addEventListener('qqmusic-auth-change', changed);
-    return () => window.removeEventListener('qqmusic-auth-change', changed);
-  }, []);
-
-  // QQ音乐登录处理函数
-  const handleQQMusicLogin = (loggedInQQUser: QQMusicUser) => {
-    setQQMusicUser(loggedInQQUser);
-    localStorage.setItem('qqMusicNickname', loggedInQQUser.nickname);
-    console.log('QQ音乐用户已登录:', loggedInQQUser);
-  };
-
-  // 退出登录处理函数
-  const handleLogout = () => {
-    // 退出QQ音乐用户
-    qqMusicService.logout();
-    setQQMusicUser(null);
-    console.log('QQ音乐用户已退出登录');
-    setCurrentPage('home');
-  };
 
   const renderPage = () => {
     switch (currentPage) {
       case 'home':
-        return <Home onNavigate={navigate} qqMusicUser={qqMusicUser} onQQMusicLogin={() => document.getElementById('qq-music-login-btn')?.click()} />;
+        return <Home onNavigate={navigate} />;
       case 'search':
         return <Search />;
       case 'player':
@@ -103,21 +56,18 @@ export default function App() {
       case 'music-library':
         return <MusicLibrary />;
       default:
-        return <Home onNavigate={navigate} qqMusicUser={qqMusicUser} onQQMusicLogin={() => document.getElementById('qq-music-login-btn')?.click()} />;
+        return <Home onNavigate={navigate} />;
     }
   };
 
   return (
-    <RankingProvider>
+    <PlatformAccountsProvider><RankingProvider>
       <MusicProvider>
         <SearchProvider>
           <div className="app"><Toaster position="top-center" duration={3000} theme="dark" closeButton richColors />
           <TopNav 
             currentPage={currentPage} 
             onNavigate={navigate}
-            qqMusicUser={qqMusicUser} 
-            onLogout={handleLogout} 
-            onQQMusicLogin={handleQQMusicLogin}
             onTogglePlayQueue={() => setIsPlayQueueVisible(!isPlayQueueVisible)}
           />
           <main className="main-content">
@@ -134,6 +84,6 @@ export default function App() {
         </div>
         </SearchProvider>
       </MusicProvider>
-    </RankingProvider>
+    </RankingProvider></PlatformAccountsProvider>
   );
 }

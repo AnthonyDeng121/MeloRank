@@ -230,17 +230,14 @@
 .login-modal .spotify-config { text-align: left; }
 .login-modal .spotify-config input { display: block; box-sizing: border-box; width: 100%; padding: 12px; margin: 12px 0; font: inherit; color: white; background: #24262d; border: 1px solid #4b5062; border-radius: 8px; }
 .login-modal .spotify-config code { overflow-wrap: anywhere; }
-
-.netease-login-methods { display:flex; flex-wrap:wrap; gap:10px; margin:0 0 20px; }
-.login-modal .netease-login-methods button, .netease-cookie-login button { border:1px solid #4b5062; border-radius:8px; padding:10px 14px; background:#252830; color:#e8eaff; font:inherit; cursor:pointer; }
-.login-modal .netease-login-methods button[aria-pressed="true"] { background:#667eea; border-color:#8492ff; color:white; }
-.netease-cookie-login { display:flex; flex-direction:column; gap:12px; text-align:left; min-width:0; }
-.netease-cookie-login a { color:#aebaff; text-decoration:underline; }
-.login-modal .netease-cookie-login p { margin:0; font-size:14px; line-height:1.65; text-align:left; }
-.netease-cookie-login details { color:#c8cbd5; font-size:14px; line-height:1.65; }
-.netease-cookie-login summary { cursor:pointer; }
-.netease-cookie-login ol { padding-left:22px; overflow-wrap:anywhere; }
-.netease-cookie-login input { box-sizing:border-box; width:100%; padding:12px; border:1px solid #555d73; border-radius:8px; color:white; background:#24262d; font:inherit; }
-.login-modal .netease-cookie-login .cookie-privacy { font-size:12px; color:#aaaeba; }
-.netease-cookie-login [role="alert"] { color:#ffaaa5; }
-.netease-cookie-login button:disabled { opacity:.5; cursor:default; }
+.platform-user-menu { display:flex; align-items:center; justify-content:flex-end; gap:12px; flex-wrap:wrap; }
+.platform-user-name { max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#e9ecff; font-size:14px; }
+.platform-switch { display:flex; flex-direction:column; gap:4px; color:#a6aec1; font-size:11px; }
+.platform-switch select { max-width:175px; padding:7px 9px; background:#252830; border:1px solid #404656; color:#e8eaff; border-radius:8px; font:inherit; font-size:13px; }
+.login-platforms small { display:block; margin-top:5px; font-size:11px; color:#b9f5ce; }
+.platform-connected { text-align:center; padding:12px 0 6px; }
+.platform-connected h4 { margin:12px 0 8px; font-size:17px; }
+.platform-connected p { color:#b1bad3; }
+.platform-connected button { padding:10px 18px; color:white; background:#667eea; border:0; border-radius:9px; cursor:pointer; }
+.connected-check { display:grid; place-items:center; width:44px; height:44px; margin:auto; color:#a9efc4; background:#31594355; border-radius:50%; font-size:26px; }
+@media (max-width:1400px) { .top-nav-container { gap:16px; } .nav-content { gap:14px; } .nav-link { padding:9px 12px; } .platform-user-menu { gap:8px; } .platform-user-name { max-width:100px; } .platform-switch select { max-width:145px; } }

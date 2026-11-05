@@ -1,3 +1,4 @@
+import { songCover } from '../services/platformSongs';
 import React, { useEffect } from 'react';
 import { Play, Pause, X, Repeat1, ListMusic, Shuffle } from 'lucide-react';
 import { useMusic } from '../contexts/MusicContext';
@@ -118,7 +119,7 @@ export const PlayQueue: React.FC<PlayQueueProps> = ({ isVisible, onClose }) => {
                     <div className="queue-item-cover">
                       {song.albummid && (
                         <img 
-                          src={`https://y.qq.com/music/photo_new/T002R300x300M000${song.albummid}.jpg`} 
+                          src={songCover(song)}
                           alt={song.songname} 
                           className="album-image" 
                         />
