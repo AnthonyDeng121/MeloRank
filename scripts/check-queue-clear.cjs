@@ -12,7 +12,7 @@ function visit(node) {
 visit(source); assert.ok(clear && effect);
 let resolveRequest, plays = 0, pauses = 0, loads = 0;
 const model = { console, AbortController, previewLimit: { current: null }, setPlaybackNotice() {}, spotifyPlayback: { disconnect() {} }, toast: { error() {} }, alert() { throw new Error('Unexpected playback error'); },
-  playbackGeneration: { current: 0 }, currentSong: { songmid: 'pending' },
+  playbackGeneration: { current: 0 }, currentSong: { songmid: 'pending' }, playbackSong: { songmid: 'pending' },
   audioRef: { current: { src: '', pause() { pauses++; }, load() { loads++; }, removeAttribute() { this.src = ''; }, play() { plays++; return Promise.resolve(); } } },
   platformSongUrl: () => new Promise(resolve => { resolveRequest = resolve; }),
 };

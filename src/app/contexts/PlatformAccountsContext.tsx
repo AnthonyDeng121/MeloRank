@@ -51,7 +51,7 @@ export function PlatformAccountsProvider({ children }: { children: React.ReactNo
   }, []);
   useEffect(() => {
     void (async () => {
-      try { if (await spotify.finish()) selectProvider('spotify'); } catch (error) { toast.error(error instanceof Error ? error.message : 'Spotify 授权失败'); }
+      try { await spotify.finish(); } catch (error) { toast.error(error instanceof Error ? error.message : 'Spotify 授权失败'); }
       await refresh();
     })();
     const changed = () => void refresh();

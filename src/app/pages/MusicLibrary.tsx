@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Play, Pause, Music2, RefreshCw } from 'lucide-react';
 import { QQ_MUSIC_CONFIG } from '../services/qqMusicConfig';
-import { netease, spotify, type LibraryKind, type LibraryItem } from '../services/musicPlatforms';
+import { netease, spotify, type MusicProvider, type LibraryKind, type LibraryItem } from '../services/musicPlatforms';
 import { neteaseSong, spotifySong, songCover, type PlatformSong } from '../services/platformSongs';
 import { platformList, platformNames, usePlatformAccounts } from '../contexts/PlatformAccountsContext';
 import { useMusic } from '../contexts/MusicContext';
 import '../../styles/MusicLibrary.css';
 
 export function MusicLibrary() {
-  const { accounts, activeProvider: provider, selectProvider, disconnect } = usePlatformAccounts();
+  const { accounts, activeProvider, disconnect } = usePlatformAccounts();
+  const [provider, setProvider] = useState<MusicProvider>(activeProvider);
   const account = accounts[provider], connected = account.connected;
   const { currentSong, isPlaying, setCurrentSong, togglePlay } = useMusic();
   const [kind, setKind] = useState<LibraryKind>('playlists');
@@ -92,7 +93,7 @@ export function MusicLibrary() {
   const playing = (item: LibraryItem) => { const song = asSong(item); return song && song.songmid === currentSong?.songmid && isPlaying; };
   return <div className="music-library-page">
     <header><div><h2>我的音乐</h2><p>连接音乐账号，查看你的歌单、喜欢的歌曲和收藏专辑</p></div>{connected && <div className="library-account"><span>{account.nickname}</span><button onClick={() => void disconnect(provider)}>断开连接</button></div>}</header>
-    <div className="library-providers" role="tablist" aria-label="音乐平台">{platformList.map(value => <button key={value} role="tab" aria-selected={provider === value} onClick={() => selectProvider(value)}>{platformNames[value]}</button>)}</div>
+    <div className="library-providers" role="tablist" aria-label="音乐平台">{platformList.map(value => <button key={value} role="tab" aria-selected={provider === value} onClick={() => setProvider(value)}>{platformNames[value]}</button>)}</div>
     {!connected && <section className="library-connect"><h3>连接{platformNames[provider]}</h3><button className="library-connect-button" onClick={() => window.dispatchEvent(new CustomEvent('music-login', { detail: provider }))}>登录</button></section>}
     {connected && !collection && <>
       <div className="library-kinds" role="tablist" aria-label="曲库分类">{([['playlists', provider === 'spotify' ? '我的歌单' : '我创建的歌单'], ['liked', '喜欢的歌曲'], ['albums', '收藏专辑']] as [LibraryKind, string][]).map(([value, label]) => <button key={value} role="tab" aria-selected={kind === value} onClick={() => setKind(value)}>{label}</button>)}<input className="library-search" type="search" aria-label="搜索曲库" placeholder="搜索歌手 / 歌单 / 专辑 / 歌曲" value={query} onChange={event => { setQuery(event.target.value); setPage(1); setTrackPage(1); }} /><button className="library-refresh" title="刷新曲库" aria-label="刷新曲库" disabled={busy} onClick={() => void load()}><RefreshCw size={17} /></button></div>

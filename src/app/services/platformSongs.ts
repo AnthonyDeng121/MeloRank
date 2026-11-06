@@ -73,3 +73,34 @@ export async function platformAlbumTracks(provider: MusicProvider, title: string
   if (!songs.length) throw new Error('当前专辑没有可播放的歌曲');
   return songs;
 }
+
+// Only reuse catalog matches, never playback URLs or account credentials.
+const playbackMatches = new Map<string, Promise<PlatformSong>>();
+export function resolvePlaybackSong(song: PlatformSong, target: MusicProvider): Promise<PlatformSong> {
+  if ((song.provider || 'qq') === target) return Promise.resolve(song);
+  const key = JSON.stringify([target, song.provider || 'qq', song.songmid, song.songname, song.singer, song.albumname]);
+  const cached = playbackMatches.get(key);
+  if (cached) return cached;
+  const match = (async () => {
+    const normalize = (value: string) => value.normalize('NFKC').toLocaleLowerCase().replace(/[\s\p{P}\p{S}]/gu, '');
+    const artists = song.singer.map(artist => normalize(artist.name)).filter(Boolean);
+    if (!normalize(song.songname) || !artists.length) throw new Error('歌曲名称或歌手信息不足，无法匹配播放来源');
+    const result = await searchPlatform(target, `${song.songname} ${song.singer.map(artist => artist.name).join(' ')}`, 10, 1);
+    const candidates: PlatformSong[] = (result.response?.data?.song?.list || []).map((value: any) => target === 'qq' ? {
+      ...value, provider: 'qq', songmid: value.songmid || value.mid, songname: value.songname || value.name,
+      albumname: value.albumname || value.album?.name || '', albummid: value.albummid || value.album?.mid || '',
+      duration: value.duration || value.interval,
+    } : value);
+    const exact = candidates.filter(candidate => candidate.songmid && normalize(candidate.songname) === normalize(song.songname)
+      && candidate.singer?.some(artist => artists.includes(normalize(artist.name)))
+      && (!song.duration || !candidate.duration || Math.abs(song.duration - candidate.duration) <= 5));
+    const albumMatches = exact.filter(candidate => song.albumname && normalize(candidate.albumname) === normalize(song.albumname));
+    const matches = albumMatches.length ? albumMatches : exact;
+    if (matches.length !== 1) throw new Error(matches.length ? '当前播放来源存在多个版本，无法确定匹配歌曲，请手动搜索选择' : '当前播放来源未找到同名歌手的对应歌曲，请切换播放来源或手动搜索');
+    return matches[0];
+  })();
+  if (playbackMatches.size >= 200) playbackMatches.delete(playbackMatches.keys().next().value!);
+  playbackMatches.set(key, match);
+  void match.catch(() => { if (playbackMatches.get(key) === match) playbackMatches.delete(key); });
+  return match;
+}

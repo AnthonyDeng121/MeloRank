@@ -252,7 +252,7 @@
 .playqueue-button { background:#252934; color:#dce2fa; }
 .platform-user-name { max-width:90px; }
 .platform-picker { position:relative; }
-.platform-picker-trigger { display:flex; align-items:center; justify-content:space-between; gap:12px; min-width:130px; padding:9px 12px; border:1px solid #41485b; border-radius:9px; background:#252934; color:#e8ecfb; font:inherit; font-size:13px; cursor:pointer; }
+.platform-picker-trigger { display:flex; align-items:center; justify-content:center; gap:8px; min-width:0; padding:9px 12px; border:1px solid #41485b; border-radius:9px; background:#252934; color:#e8ecfb; font:inherit; font-size:13px; cursor:pointer; }
 .platform-options { position:absolute; top:calc(100% + 8px); right:0; width:245px; padding:6px; border:1px solid #424a60; border-radius:12px; background:#20242e; box-shadow:0 12px 32px #0007; z-index:110; }
 .platform-options button { display:flex; align-items:center; justify-content:space-between; width:100%; padding:12px 10px; border:0; border-radius:7px; background:transparent; color:#e6eafa; font:inherit; font-size:14px; cursor:pointer; }
 .platform-options button:hover,.platform-options button[aria-pressed="true"] { background:#343c57; }
@@ -261,5 +261,7 @@
 .account-badge.disconnected { color:#f2a1a8; border-color:#9b5059; background:#722d3833; }
 .top-nav button:focus-visible { outline:2px solid #9baaff; outline-offset:3px; }
 @media(max-width:1250px) { .top-nav-container { flex-wrap:wrap; gap:10px; } .nav-content { display:contents; } .auth-buttons { margin-left:auto; } .nav-links { order:3; width:100%; overflow-x:auto; padding-bottom:2px; } .main-content { margin-top:116px; } }
-@media(max-width:600px) { .top-nav-container { padding:10px 12px; gap:10px; } .site-title { font-size:21px; } .auth-buttons { gap:6px; } .platform-user-name { display:none; } .playqueue-button { font-size:0; width:34px; padding:8px 0; } .playqueue-button::after { content:'\2630'; font-size:16px; } .platform-picker-trigger { min-width:110px; padding:8px; font-size:12px; } .nav-button { padding:8px; font-size:12px; } .nav-link { font-size:13px; padding:8px 12px; } .main-content { margin-top:110px; padding:20px 12px 120px; } }
+@media(max-width:600px) { .top-nav-container { padding:10px 12px; gap:10px; } .site-title { font-size:21px; } .auth-buttons { gap:6px; } .platform-user-name { display:none; } .playqueue-button { font-size:0; width:34px; padding:8px 0; } .playqueue-button::after { content:'\2630'; font-size:16px; } .platform-picker-trigger { min-width:0; padding:8px; font-size:12px; } .nav-button { padding:8px; font-size:12px; } .nav-link { font-size:13px; padding:8px 12px; } .main-content { margin-top:110px; padding:20px 12px 120px; } }
 @media(max-width:360px) { .site-title { width:100%; } .auth-buttons { width:100%; justify-content:space-between; } .main-content { margin-top:146px; } }
+
+.platform-picker-chevron { width:1em; height:1em; flex-shrink:0; stroke-width:2; }

@@ -1,3 +1,4 @@
+import { ChevronDown } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import '../../styles/TopNav.css';
 import { PlatformLogin } from './PlatformLogin';
@@ -27,7 +28,7 @@ export function TopNav({ currentPage, onNavigate, onTogglePlayQueue }: TopNavPro
         <div className="platform-user-menu">
           {account.connected && <span className="platform-user-name" title={`${platformNames[activeProvider]} · ${account.nickname}`}>{account.nickname}</span>}
           <div className="platform-picker" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setPlatformMenuOpen(false); }} onKeyDown={event => { if (event.key === 'Escape') setPlatformMenuOpen(false); }}>
-            <button className="platform-picker-trigger" aria-label="选择音乐平台" aria-expanded={platformMenuOpen} aria-controls="platform-options" onClick={() => setPlatformMenuOpen(value => !value)}>{platformNames[activeProvider]} <span aria-hidden="true">⌄</span></button>
+            <button className="platform-picker-trigger" aria-label="选择播放来源" aria-expanded={platformMenuOpen} aria-controls="platform-options" onClick={() => setPlatformMenuOpen(value => !value)}>{platformNames[activeProvider]} <ChevronDown className="platform-picker-chevron" aria-hidden="true" /></button>
             {platformMenuOpen && <div id="platform-options" className="platform-options" role="group" aria-label="音乐平台">{platformList.map(provider => <button key={provider} aria-pressed={provider === activeProvider} onClick={() => { selectProvider(provider); setPlatformMenuOpen(false); }}><span>{platformNames[provider]}</span><span className={`account-badge ${accounts[provider].connected ? 'connected' : 'disconnected'}`}>{accounts[provider].connected ? '已登录' : '未登录'}</span></button>)}</div>}
           </div>
           <button id="qq-music-login-btn" className="nav-button login-button" onClick={() => { if (account.connected) void disconnect(activeProvider); else { setPlatform(activeProvider); setShowLoginModal(true); } }}>{account.connected ? '退出登录' : '点击登录'}</button>
@@ -38,7 +39,7 @@ export function TopNav({ currentPage, onNavigate, onTogglePlayQueue }: TopNavPro
   {showLoginModal && <div className="login-modal-overlay" onClick={() => setShowLoginModal(false)}><div className="login-modal" role="dialog" aria-modal="true" aria-label="登录" onClick={event => event.stopPropagation()}>
     <div className="modal-header"><h3>登录</h3><button className="close-btn" aria-label="关闭登录" onClick={() => setShowLoginModal(false)}>×</button></div>
     <div className="login-platforms">{platformList.map(provider => <button key={provider} aria-pressed={provider === platform} onClick={() => setPlatform(provider)}>{platformNames[provider]}{accounts[provider].connected && <small>已登录</small>}</button>)}</div>
-    <PlatformLogin key={platform} provider={platform} onDone={() => { selectProvider(platform); void refresh(platform); setShowLoginModal(false); }} />
+    <PlatformLogin key={platform} provider={platform} onDone={() => { void refresh(platform); setShowLoginModal(false); }} />
   </div></div>}
   </nav>;
 }

@@ -1,6 +1,7 @@
+import { usePlatformAccounts } from './PlatformAccountsContext';
 import { toast } from 'sonner';
 import React, { createContext, useState, useContext, ReactNode, useEffect, useRef } from 'react';
-import { platformSongUrl, platformLyric, type PlatformSong } from '../services/platformSongs';
+import { platformSongUrl, platformLyric, resolvePlaybackSong, type PlatformSong } from '../services/platformSongs';
 import { spotifyPlayback } from '../services/spotifyPlayback';
 import { dataAPI } from '../services/apiService';
 
@@ -45,6 +46,8 @@ interface MusicProviderProps {
 }
 
 export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
+  const { activeProvider } = usePlatformAccounts();
+  const [playbackSong, setPlaybackSong] = useState<Song | null>(null);
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(20);
@@ -55,8 +58,8 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
   const [playQueue, setPlayQueue] = useState<Song[]>([]); // 播放队列
   const [currentIndex, setCurrentIndex] = useState(-1); // 当前歌曲在队列中的索引
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const currentProviderRef = useRef(currentSong?.provider || 'qq');
-  currentProviderRef.current = currentSong?.provider || 'qq';
+  const currentProviderRef = useRef(activeProvider);
+  currentProviderRef.current = activeProvider;
   const playbackGeneration = useRef(0);
   const [playbackNotice, setPlaybackNotice] = useState('');
   const previewLimit = useRef<number | null>(null);
@@ -79,9 +82,28 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     return () => { window.removeEventListener('qqmusic-auth-change', changed); window.removeEventListener('music-platform-change', changed); spotifyPlayback.disconnect(); };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    playbackGeneration.current++;
+    setPlaybackSong(null);
+    setLyrics(''); setCurrentTime(0); setDuration(0); setIsPlaying(false);
+    audioRef.current?.pause();
+    spotifyPlayback.disconnect();
+    if (currentSong) {
+      setPlaybackNotice('正在匹配播放来源…');
+      void resolvePlaybackSong(currentSong, activeProvider).then(song => {
+        if (!cancelled) { setPlaybackNotice(''); setPlaybackSong(song); }
+      }).catch(error => {
+        if (!cancelled) { const message = error instanceof Error ? error.message : '播放来源匹配失败'; setPlaybackNotice(message); toast.error(message); }
+      });
+    }
+    return () => { cancelled = true; };
+  }, [currentSong, activeProvider, authVersion]);
+
   const playAudio = async () => {
+    if (!playbackSong) return;
     const audio = audioRef.current, generation = playbackGeneration.current;
-    if (currentSong?.provider === 'spotify') { try { await spotifyPlayback.resume(); setIsPlaying(true); } catch { setIsPlaying(false); } return; }
+    if (playbackSong?.provider === 'spotify') { try { await spotifyPlayback.resume(); setIsPlaying(true); } catch { setIsPlaying(false); } return; }
     if (!audio?.src) return;
     try {
       await audio.play();
@@ -103,7 +125,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     switch (playMode) {
       case 'single':
         // 单曲循环，重新播放当前歌曲
-        if (playQueue[currentIndex]?.provider === 'spotify') { void spotifyPlayback.seek(0).then(() => spotifyPlayback.resume()); return; }
+        if (playbackSong?.provider === 'spotify') { void spotifyPlayback.seek(0).then(() => spotifyPlayback.resume()); return; }
         if (audioRef.current) {
           audioRef.current.currentTime = 0;
           // 设置isPlaying为true，确保歌曲会继续播放
@@ -142,7 +164,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     
     setCurrentIndex(nextIndex);
     setCurrentSong(playQueue[nextIndex]);
-  }, [playQueue, playMode, currentIndex, setIsPlaying, setCurrentIndex, setCurrentSong]);
+  }, [playQueue, playMode, currentIndex, playbackSong, setIsPlaying, setCurrentIndex, setCurrentSong]);
 
   const previousSong = React.useCallback(() => {
     if (playQueue.length === 0) return;
@@ -151,7 +173,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     
     switch (playMode) {
       case 'single':
-        if (playQueue[currentIndex]?.provider === 'spotify') { void spotifyPlayback.seek(0).then(() => spotifyPlayback.resume()); return; }
+        if (playbackSong?.provider === 'spotify') { void spotifyPlayback.seek(0).then(() => spotifyPlayback.resume()); return; }
         // 单曲循环，重新播放当前歌曲
         if (audioRef.current) {
           audioRef.current.currentTime = 0;
@@ -183,14 +205,14 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     
     setCurrentIndex(prevIndex);
     setCurrentSong(playQueue[prevIndex]);
-  }, [playQueue, playMode, currentIndex, setIsPlaying, setCurrentIndex, setCurrentSong]);
+  }, [playQueue, playMode, currentIndex, playbackSong, setIsPlaying, setCurrentIndex, setCurrentSong]);
 
   useEffect(() => {
-    if (currentSong?.provider !== 'spotify') return;
+    if (playbackSong?.provider !== 'spotify') return;
     let active = true;
     let lastPosition = 0;
     const update = (state: import('../services/spotifyPlayback').SpotifyState | null) => {
-      if (!active || !state || state.track_window.current_track.uri !== currentSong.uri) return;
+      if (!active || !state || state.track_window.current_track.uri !== playbackSong.uri) return;
       setIsPlaying(!state.paused); setCurrentTime(state.position / 1000); setDuration(state.duration / 1000);
       if (state.paused && state.position === 0 && lastPosition > 0 && state.duration - lastPosition < 2000) { lastPosition = 0; nextSong(); return; }
       lastPosition = state.position;
@@ -198,7 +220,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     const unsubscribe = spotifyPlayback.subscribe(update);
     const timer = setInterval(() => { void spotifyPlayback.state().then(update).catch(() => {}); }, 1000);
     return () => { active = false; unsubscribe(); clearInterval(timer); };
-  }, [currentSong, nextSong]);
+  }, [playbackSong, nextSong]);
 
   // 初始化audio元素
   useEffect(() => {
@@ -250,36 +272,36 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
 
   // 当音量变化时，更新音频元素的音量
   useEffect(() => {
-    if (currentSong?.provider === 'spotify') void spotifyPlayback.volume(volume);
+    if (playbackSong?.provider === 'spotify') void spotifyPlayback.volume(volume);
     if (audioRef.current) {
       audioRef.current.volume = volume / 100;
     }
-  }, [volume, currentSong?.provider]);
+  }, [volume, playbackSong?.provider]);
 
 
 
-  // 当currentSong变化时，获取播放URL并播放
+  // 当playbackSong变化时，获取播放URL并播放
   useEffect(() => {
     let cancelled = false;
     const controller = new AbortController();
     const generation = ++playbackGeneration.current;
-    if (currentSong?.provider !== 'spotify') spotifyPlayback.disconnect();
+    if (playbackSong?.provider !== 'spotify') spotifyPlayback.disconnect();
     if (audioRef.current) { audioRef.current.pause(); audioRef.current.removeAttribute('src'); audioRef.current.load(); }
     setCurrentTime(0);
     setDuration(0);
     setPlaybackNotice(''); previewLimit.current = null;
     setIsPlaying(false);
     const playSong = async () => {
-      if (currentSong && audioRef.current) {
+      if (playbackSong && audioRef.current) {
         try {
-          if (currentSong.provider === 'spotify') {
-            await spotifyPlayback.play(currentSong.uri || `spotify:track:${currentSong.providerId}`, controller.signal);
-            if (!cancelled && generation === playbackGeneration.current) { setIsPlaying(true); setDuration(currentSong.duration || 0); }
+          if (playbackSong.provider === 'spotify') {
+            await spotifyPlayback.play(playbackSong.uri || `spotify:track:${playbackSong.providerId}`, controller.signal);
+            if (!cancelled && generation === playbackGeneration.current) { setIsPlaying(true); setDuration(playbackSong.duration || 0); }
             return;
           }
           // 获取歌曲播放URL
-          console.log('获取歌曲播放URL，songmid:', currentSong.songmid);
-          const response = await platformSongUrl(currentSong);
+          console.log('获取歌曲播放URL，songmid:', playbackSong.songmid);
+          const response = await platformSongUrl(playbackSong);
           if (cancelled || generation !== playbackGeneration.current) return;
           console.log('获取歌曲播放URL响应:', response);
           
@@ -290,8 +312,8 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
           // 适配不同的API返回格式
           if (response.data) {
             // 情况1: { data: { playUrl: { songmid: { url: string } } } } 格式
-            if (response.data.playUrl && response.data.playUrl[currentSong.songmid]) {
-              const songInfo = response.data.playUrl[currentSong.songmid];
+            if (response.data.playUrl && response.data.playUrl[playbackSong.songmid]) {
+              const songInfo = response.data.playUrl[playbackSong.songmid];
               if (songInfo) {
                 if (songInfo.isPreview) {
                   previewLimit.current = 30;
@@ -353,17 +375,17 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     
     playSong();
     return () => { cancelled = true; controller.abort(); };
-  }, [currentSong, authVersion]);
+  }, [playbackSong, authVersion]);
 
-  // 当currentSong变化时，获取歌词
+  // 当playbackSong变化时，获取歌词
   useEffect(() => {
     let cancelled = false;
     setLyrics('');
     const fetchLyrics = async () => {
-      if (currentSong) {
+      if (playbackSong) {
         try {
-          console.log('获取歌词，songmid:', currentSong.songmid);
-          const response = await platformLyric(currentSong);
+          console.log('获取歌词，songmid:', playbackSong.songmid);
+          const response = await platformLyric(playbackSong);
           if (cancelled) return;
           console.log('获取歌词响应:', response);
           
@@ -397,11 +419,11 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     
     fetchLyrics();
     return () => { cancelled = true; };
-  }, [currentSong]);
+  }, [playbackSong]);
 
   // 当isPlaying变化时，控制播放或暂停
   useEffect(() => {
-    if (currentSong?.provider === 'spotify') { if (!isPlaying) void spotifyPlayback.pause(); return; }
+    if (playbackSong?.provider === 'spotify') { if (!isPlaying) void spotifyPlayback.pause(); return; }
     if (audioRef.current) {
       if (isPlaying) {
         void playAudio();
@@ -413,7 +435,8 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
 
   // 播放/暂停切换
   const togglePlay = () => {
-    if (currentSong?.provider === 'spotify') { void (isPlaying ? spotifyPlayback.pause() : spotifyPlayback.resume()).then(() => setIsPlaying(!isPlaying)).catch(() => toast.error('Spotify 播放失败，请重新授权')); return; }
+    if (!playbackSong) return;
+    if (playbackSong?.provider === 'spotify') { void (isPlaying ? spotifyPlayback.pause() : spotifyPlayback.resume()).then(() => setIsPlaying(!isPlaying)).catch(() => toast.error('Spotify 播放失败，请重新授权')); return; }
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
@@ -425,7 +448,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
 
   // 手动设置当前播放时间
   const handleSetCurrentTime = (time: number) => {
-    if (currentSong?.provider === 'spotify') { void spotifyPlayback.seek(time); setCurrentTime(time); return; }
+    if (playbackSong?.provider === 'spotify') { void spotifyPlayback.seek(time); setCurrentTime(time); return; }
     if (audioRef.current) {
       audioRef.current.currentTime = time;
       setCurrentTime(time);
@@ -434,7 +457,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
 
   // 更新 setCurrentSong 方法，支持传入播放队列
   const updateCurrentSong = (song: Song, queue?: Song[]) => {
-    if (currentSong?.provider === 'spotify' && song.provider !== 'spotify') spotifyPlayback.disconnect();
+    if (playbackSong?.provider === 'spotify' && song.provider !== 'spotify') spotifyPlayback.disconnect();
     setCurrentSong(song);
     
     if (queue) {

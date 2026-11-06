@@ -4,7 +4,7 @@ import { qqMusicService } from '../services/qqMusicService';
 import { usePlatformAccounts } from '../contexts/PlatformAccountsContext';
 
 export function PlatformLogin({ provider, onQQ, onDone }: { provider: MusicProvider; onQQ?: (user: { nickname: string }) => void; onDone: () => void }) {
-  const { accounts, selectProvider } = usePlatformAccounts();
+  const { accounts } = usePlatformAccounts();
   const connected = accounts[provider].connected;
   const [image, setImage] = useState(''), [message, setMessage] = useState('');
   const [retry, setRetry] = useState(0), [failed, setFailed] = useState(false);
@@ -31,7 +31,7 @@ export function PlatformLogin({ provider, onQQ, onDone }: { provider: MusicProvi
                 sessionStorage.setItem('neteaseCookie', status.cookie);
                 sessionStorage.setItem('melorankAccount:netease', status.profile?.nickname || '网易云音乐用户');
               } else { qqMusicService.setCookie(status.cookie); const nickname = status.nickname || 'QQ 音乐用户'; localStorage.setItem('qqMusicNickname', nickname); onQQ?.({ nickname }); }
-              selectProvider(provider); window.dispatchEvent(new Event('music-auth-change')); onDone(); return;
+              window.dispatchEvent(new Event('music-auth-change')); onDone(); return;
             }
             if (status.code === 802) setMessage('已扫码，请在手机上确认');
             timer = setTimeout(poll, 2500);
@@ -42,6 +42,6 @@ export function PlatformLogin({ provider, onQQ, onDone }: { provider: MusicProvi
     })();
     return () => { cancelled = true; controller.abort(); clearTimeout(timer); };
   }, [provider, retry, connected]);
-  if (connected) return <div className="platform-connected"><span className="connected-check">✓</span><h4>已登录该平台账号</h4><p>{accounts[provider].nickname}</p><button onClick={() => { selectProvider(provider); onDone(); }}>使用此平台账号</button>{provider === 'spotify' && !spotify.playbackAuthorized() && <><p>当前授权未包含站内播放权限。</p><button onClick={() => void spotify.begin(spotify.clientId()).catch(error => setMessage(error.message))}>更新播放授权</button>{message && <p role="alert">{message}</p>}</>}</div>;
+  if (connected) return <div className="platform-connected"><span className="connected-check">✓</span><h4>已登录该平台账号</h4><p>{accounts[provider].nickname}</p><button onClick={() => { onDone(); }}>完成</button>{provider === 'spotify' && !spotify.playbackAuthorized() && <><p>当前授权未包含站内播放权限。</p><button onClick={() => void spotify.begin(spotify.clientId()).catch(error => setMessage(error.message))}>更新播放授权</button>{message && <p role="alert">{message}</p>}</>}</div>;
   return <div className="modal-content">{provider === 'spotify' ? <div className="spotify-config"><label htmlFor="login-client-id">Spotify Client ID</label><input id="login-client-id" value={clientId} onChange={event => setClientId(event.target.value)} placeholder="开发者应用的 Client ID" /><p>回调地址：<code>{spotify.redirectUri()}</code></p><p>站内播放需要 Spotify Premium 和播放授权。</p><button onClick={() => spotify.begin(clientId.trim()).catch(error => setMessage(error.message))}>前往 Spotify 授权</button>{message && <p role="alert">{message}</p>}</div> : <><p role={failed ? 'alert' : 'status'}>{message}</p>{image && <div className="qr-code-container"><img className="qr-code" src={image} alt="登录二维码" /></div>}{failed && <button onClick={() => setRetry(value => value + 1)}>重新获取二维码</button>}</>}</div>;
 }
