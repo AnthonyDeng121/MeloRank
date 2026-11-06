@@ -118,18 +118,21 @@ module.exports = async (ctx, next) => {
 						} catch { /* Fall back to the older endpoint only when needed. */ }
 					}
 					const previewData = JSON.parse(JSON.stringify(data));
-					previewData.req_0.param.songmid = missing.map(item => item.songmid);
-					previewData.req_0.param.songtype = missing.map(() => 0);
-					previewData.req_0.param.filename = missing.map(item => `RS02${item.songmid}${item.songmid}.mp3`);
-					try {
-						const result = await UCommon({ ...props, params: { format: 'json', data: JSON.stringify(previewData) } });
-						for (const item of get(result.data, 'req_0.data.midurlinfo', [])) {
-							if (item.purl && !previews[item.songmid]) {
-								const url = await validPreview(get(result.data, 'req_0.data.sip', []), item.purl);
-								if (url) previews[item.songmid] = { item, url };
+					const unresolved = missing.filter(item => !previews[item.songmid]);
+					previewData.req_0.param.songmid = unresolved.map(item => item.songmid);
+					previewData.req_0.param.songtype = unresolved.map(() => 0);
+					previewData.req_0.param.filename = unresolved.map(item => `RS02${item.songmid}${item.songmid}.mp3`);
+					if (unresolved.length) {
+						try {
+							const result = await UCommon({ ...props, params: { format: 'json', data: JSON.stringify(previewData) } });
+							for (const item of get(result.data, 'req_0.data.midurlinfo', [])) {
+								if (item.purl && !previews[item.songmid]) {
+									const url = await validPreview(get(result.data, 'req_0.data.sip', []), item.purl);
+									if (url) previews[item.songmid] = { item, url };
+								}
 							}
-						}
-					} catch { /* Preview is only available when issued by QQ Music. */ }
+						} catch { /* Preview is only available when issued by QQ Music. */ }
+					}
 				}
 				const domain = get(response, 'req_0.data.sip', [])
 					.find(i => !i.startsWith('http://ws'))

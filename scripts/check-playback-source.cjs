@@ -3,8 +3,9 @@ const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const ts = require('typescript');
 
-let candidates = [], requests = 0, fail = false;
-const search = async () => {
+let candidates = [], requests = 0, fail = false, lastQuery = '';
+const search = async query => {
+  lastQuery = query;
   requests++;
   if (fail) throw new Error('network');
   return { response: { data: { song: { list: candidates } } } };
@@ -20,7 +21,7 @@ vm.createContext(sandbox);
 vm.runInContext(ts.transpileModule(fs.readFileSync('src/app/services/platformSongs.ts', 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText, sandbox);
-const { resolvePlaybackSong } = sandbox.exports;
+const { resolvePlaybackSong, playbackTitle } = sandbox.exports;
 const source = { provider: 'netease', songmid: 'netease:1', songname: 'Song', singer: [{ name: 'Artist', mid: '' }], albumname: 'Album', albummid: '', duration: 200 };
 const candidate = { songmid: 'qq-id', songname: 'Song', singer: [{ name: 'Artist', mid: '' }], albumname: 'Album', duration: 200 };
 
@@ -34,7 +35,18 @@ const candidate = { songmid: 'qq-id', songname: 'Song', singer: [{ name: 'Artist
   candidates = [{ ...candidate, duration: 230 }];
   await assert.rejects(resolvePlaybackSong({ ...source, songmid: 'duration' }, 'qq'), /未找到/);
   candidates = [candidate, { ...candidate, songmid: 'duplicate' }];
-  await assert.rejects(resolvePlaybackSong({ ...source, songmid: 'ambiguous' }, 'qq'), /多个版本/);
+  assert.equal((await resolvePlaybackSong({ ...source, songmid: 'ambiguous' }, 'qq')).songmid, 'qq-id');
+  candidates = [{ ...candidate, songname: 'Anaconda (Explicit)', singer: [{ name: 'Nicki Minaj' }] }];
+  const anaconda = { ...source, songmid: 'anaconda', songname: 'Anaconda', singer: [{ name: 'Nicki Minaj', mid: '' }] };
+  assert.equal((await resolvePlaybackSong(anaconda, 'qq')).songname, 'Anaconda (Explicit)');
+  candidates = [{ ...candidate, songname: 'Anaconda', singer: [{ name: 'Nicki Minaj' }] }];
+  assert.equal((await resolvePlaybackSong({ ...anaconda, songmid: 'clean', songname: 'Anaconda (Clean Edit)' }, 'qq')).songname, 'Anaconda');
+  assert.equal(lastQuery, 'Anaconda Nicki Minaj');
+  assert.equal(playbackTitle('Anaconda （EXPLICIT）'), 'Anaconda');
+  assert.equal(playbackTitle('Song [Clean Version]'), 'Song');
+  assert.equal(playbackTitle('Song (Live)'), 'Song (Live)');
+  candidates = [{ ...candidate, songname: 'Song (Remix)' }];
+  await assert.rejects(resolvePlaybackSong({ ...source, songmid: 'remix' }, 'qq'), /未找到/);
   fail = true;
   const retry = { ...source, songmid: 'retry' };
   await assert.rejects(resolvePlaybackSong(retry, 'qq'), /network/);
@@ -70,5 +82,9 @@ const candidate = { songmid: 'qq-id', songname: 'Song', singer: [{ name: 'Artist
   pending[0](candidate);
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(model.resolved.songmid, 'new-match');
+  model.currentSong = candidate;
+  model.effect();
+  assert.strictEqual(model.resolved, candidate);
+  assert.equal(pending.length, 2);
   console.log('PASS late catalog matches cannot replace the newly selected track');
 })().catch(error => { console.error(error); process.exitCode = 1; });

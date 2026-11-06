@@ -85,11 +85,12 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
   useEffect(() => {
     let cancelled = false;
     playbackGeneration.current++;
-    setPlaybackSong(null);
+    const samePlatform = !!currentSong && (currentSong.provider || 'qq') === activeProvider;
+    setPlaybackSong(samePlatform ? currentSong : null);
     setLyrics(''); setCurrentTime(0); setDuration(0); setIsPlaying(false);
     audioRef.current?.pause();
     spotifyPlayback.disconnect();
-    if (currentSong) {
+    if (currentSong && !samePlatform) {
       setPlaybackNotice('正在匹配播放来源…');
       void resolvePlaybackSong(currentSong, activeProvider).then(song => {
         if (!cancelled) { setPlaybackNotice(''); setPlaybackSong(song); }
