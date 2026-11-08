@@ -47,6 +47,7 @@
     }
   },
   "dependencies": {
+    "@jixun/qmweb-sign": "2.0.3",
     "axios": "^0.21.1",
     "koa": "^2.7.0",
     "koa-bodyparser": "^4.2.1",

@@ -67,4 +67,26 @@
 .library-detail-header > .primary { margin-left:auto; }
 .library-pagination { display:flex; align-items:center; justify-content:center; gap:16px; margin:28px 0 8px; color:#a8b2cb; font-size:13px; }
 .library-detail-search { display:flex; justify-content:flex-end; gap:8px; margin-bottom:18px; }
+.playlist-editor { margin: 0 0 24px; padding: 20px; border: 1px solid #3a4051; border-radius: 14px; background: #1c202b; }
+.playlist-editor-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.playlist-editor h4 { margin: 0 0 8px; font-size: 16px; font-weight: 600; }
+.playlist-editor p { margin: 8px 0; color: #a8b2cb; font-size: 13px; line-height: 1.8; }
+.playlist-editor button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; }
+.playlist-editor button:focus-visible { outline: 2px solid #96a6ff; outline-offset: 3px; }
+.playlist-add-search { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 22px 0 12px; }
+.playlist-add-search label { font-size: 14px; color: #d7def4; }
+.playlist-add-search .library-search { margin-left: 0; flex: 1; width: auto; }
+.playlist-add-results, .playlist-edit-tracks { padding: 0; margin: 12px 0; list-style: none; }
+.playlist-add-results { padding: 0 12px; background: #151924; border-radius: 10px; }
+.playlist-add-results li, .playlist-edit-tracks li { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #303542; }
+.playlist-add-results li:last-child, .playlist-edit-tracks li:last-child { border-bottom: 0; }
+.playlist-add-results li > div:first-child, .playlist-edit-tracks li > div:first-child { min-width: 0; flex: 1; }
+.playlist-editor li span { display: block; font-size: 14px; overflow-wrap: anywhere; }
+.playlist-editor li small { display: block; color: #929eb6; font-size: 12px; margin-top: 5px; }
+.playlist-edit-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.playlist-edit-actions button { width: 34px; height: 34px; padding: 0; }
+.playlist-remove-confirm { padding: 14px; margin-top: 16px; border: 1px solid #925a68; border-radius: 10px; background: #37232b; }
+.playlist-remove-confirm p { color: #f4c8cf; }
+.playlist-remove-confirm button { margin: 8px 8px 0 0; }
+@media(max-width:600px) { .playlist-editor { padding: 14px; } .playlist-editor-heading { align-items: flex-start; } .playlist-add-search label { width: 100%; } .playlist-add-search .library-search { min-width: 120px; } .playlist-edit-actions { gap: 4px; } }
 @media(max-width:600px) { .music-library-page { padding:18px 0 80px; } .library-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; } .library-grid article { padding:12px; } .library-kinds .library-search { order:4; flex:1; width:calc(100% - 50px); } .library-kinds .library-refresh { order:5; } .library-pagination { gap:8px; } .library-pagination button { padding:8px; } .library-detail-header { gap:12px; } .library-detail-header h3 { font-size:22px; } }

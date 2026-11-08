@@ -35,6 +35,7 @@ function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicap
     return user;
   };
   router.use(require('./neteaseLogin').createNeteaseLoginRouter({ profile, wrap, goFetch }));
+  router.use(require('./playlistWrite').createPlaylistWriteRouter({ call, auth, profile, wrap }));
   const songId = req => {
     const id = String(req.body.id || '');
     if (!/^\d{1,20}$/.test(id)) throw Object.assign(new Error('歌曲标识无效'), { status: 400 });

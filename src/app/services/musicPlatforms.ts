@@ -8,7 +8,8 @@ export const netease = {
   cookie: () => sessionStorage.getItem('neteaseCookie') || '',
   async request(path: string, body: Record<string, unknown> = {}, signal?: AbortSignal, cookieOverride?: string) {
     let response: Response;
-    try { response = await fetch(`${backend}/api/music/netease/${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Netease-Cookie': cookieOverride ?? this.cookie() }, body: JSON.stringify(body), signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(25000)]) : AbortSignal.timeout(25000) });
+    const timeout = AbortSignal.timeout(path === 'playlist/edit' ? 60000 : 25000);
+    try { response = await fetch(`${backend}/api/music/netease/${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Netease-Cookie': cookieOverride ?? this.cookie() }, body: JSON.stringify(body), signal: signal ? AbortSignal.any([signal, timeout]) : timeout });
     } catch (error) {
       if ((error as Error).name === 'TimeoutError') throw new Error('网易云接口连接超时，请点击重试');
       throw error;

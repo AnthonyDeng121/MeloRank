@@ -9,6 +9,7 @@
     "dev": "vite --host --port 5188 --strictPort",
     "typecheck": "tsc --noEmit",
     "check:music": "node scripts/check-music-behavior.cjs",
+    "check:playlist": "node scripts/check-playlist-write.cjs",
     "check:ranking": "node scripts/check-ranking-behavior.cjs",
     "check:import": "node scripts/check-ranking-import.cjs",
     "check:queue": "node scripts/check-queue-clear.cjs",
