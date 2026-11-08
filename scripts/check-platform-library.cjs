@@ -2,9 +2,10 @@ const assert = require('node:assert/strict');
 const express = require('../backend/node_modules/express');
 const { createMusicPlatformsRouter } = require('../backend/src/musicPlatforms');
 const calls = [];
-const api = Object.fromEntries(['login_status','user_playlist','album_sublist','album','playlist_track_all','cloudsearch','song_url','lyric','logout'].map(name => [name, async params => {
+const api = Object.fromEntries(['search_suggest','login_status','user_playlist','album_sublist','album','playlist_track_all','cloudsearch','song_url','lyric','logout'].map(name => [name, async params => {
   calls.push({ name, params });
   const results = {
+    search_suggest: { result: { allMatch: [{ keyword: '晴天' }, { keyword: '晴天' }, { keyword: '晴天 周杰伦' }, {}, { keyword: ' ' }] } },
     login_status: { data: { profile: { userId: 7, nickname: 'fixture' } } },
     user_playlist: { playlist: [{ id: 1, name: '我喜欢的音乐', specialType: 5, creator: { userId: 7 }, trackCount: 1 }, { id: 2, name: 'Mine', creator: { userId: 7 } }, { id: 3, name: 'Other', creator: { userId: 8 } }], more: false },
     album_sublist: { data: [{ id: 4, name: 'Album', artists: [{ name: 'Artist' }] }], count: 1 },
@@ -21,6 +22,15 @@ const server = app.listen(0, '127.0.0.1', async () => {
     const request = (path, body, cookie = 'MUSIC_U=fixture') => fetch(base + path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Netease-Cookie': cookie }, body: JSON.stringify(body) });
     assert.equal((await request('/library', { kind: 'liked' }, '')).status, 401);
     assert.equal(calls.length, 0);
+    assert.equal((await request('/suggestions', { query: '晴' }, '')).status, 401);
+    assert.deepEqual((await (await request('/suggestions', { query: '  晴  ' })).json()).suggestions, ['晴天', '晴天 周杰伦']);
+    assert.equal(calls.at(-1).name, 'search_suggest');
+    assert.equal(calls.at(-1).params.keywords, '晴');
+    assert.equal(calls.at(-1).params.type, 'mobile');
+    assert.equal(calls.at(-1).params.cookie, 'MUSIC_U=fixture');
+    const suggestionCalls = calls.length;
+    assert.deepEqual((await (await request('/suggestions', { query: ' ' })).json()).suggestions, []);
+    assert.equal(calls.length, suggestionCalls);
     const list = await (await request('/library', { kind: 'playlists' })).json();
     assert.deepEqual(list.items.map(i => i.title), ['Mine']);
     const songs = await (await request('/library', { kind: 'liked' })).json();

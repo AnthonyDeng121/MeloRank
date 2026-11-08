@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { searchPlatform, songCover } from '../services/platformSongs';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { qqMusicService } from '../services/qqMusicService';
+import { netease } from '../services/musicPlatforms';
 import { useMusic } from '../contexts/MusicContext';
 import { useSearch } from '../contexts/SearchContext';
 import { useRankingContext } from '../contexts/RankingContext';
@@ -37,10 +38,14 @@ export function Search() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const requestId = useRef(0);
   useEffect(() => {
-    if (activeProvider !== 'qq' || !showSuggestions || !searchQuery.trim()) { setSuggestions([]); return; }
+    setSuggestions([]);
+    if (activeProvider === 'spotify' || !showSuggestions || !searchQuery.trim()) return;
     let active = true;
     const timer = setTimeout(() => {
-      qqMusicService.getSuggestions(searchQuery.trim()).then(items => {
+      const suggestionsRequest = activeProvider === 'netease'
+        ? netease.request('suggestions', { query: searchQuery.trim() }).then(data => data.suggestions as string[])
+        : qqMusicService.getSuggestions(searchQuery.trim());
+      suggestionsRequest.then(items => {
         if (active) setSuggestions(items);
       }).catch(() => { if (active) setSuggestions([]); });
     }, 300);

@@ -40,6 +40,15 @@ function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicap
     if (!/^\d{1,20}$/.test(id)) throw Object.assign(new Error('歌曲标识无效'), { status: 400 });
     return id;
   };
+  router.post('/suggestions', wrap(async (req, res) => {
+    const cookie = auth(req), keywords = String(req.body.query || '').trim().slice(0, 200);
+    if (!keywords) return res.json({ suggestions: [] });
+    const data = await call('search_suggest', { cookie, keywords, type: 'mobile' });
+    const suggestions = [...new Set((data.result?.allMatch || [])
+      .map(item => item.keyword)
+      .filter(value => typeof value === 'string' && value.trim()))].slice(0, 10);
+    res.json({ suggestions });
+  }));
   router.post('/search', wrap(async (req, res) => {
     const cookie = auth(req), keywords = String(req.body.query || '').trim().slice(0, 200);
     if (!keywords) return res.status(400).json({ error: '请输入搜索关键词' });
