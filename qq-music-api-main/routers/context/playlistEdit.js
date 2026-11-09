@@ -12,10 +12,11 @@ function createPlaylistEdit({ rpc = playlistRpc, get = axios.get } = {}) {
     try {
       const cookie = resolveCookie(), uin = getUin(cookie);
       if (!cookie || uin === '0') throw fail('请先登录 QQ 音乐', 401);
-      const { id, action, trackId, baseIds } = ctx.request.body || {};
+      const { id, action, trackId, baseIds, ids } = ctx.request.body || {};
       const validMid = value => typeof value === 'string' && /^[a-zA-Z0-9]{1,32}$/.test(value);
-      if (typeof id !== 'string' || !/^[1-9]\d{0,19}$/.test(id) || !Number.isSafeInteger(Number(id)) || !['add', 'remove'].includes(action) || !validMid(trackId)
-        || !Array.isArray(baseIds) || baseIds.length > 10000 || !baseIds.every(validMid) || new Set(baseIds).size !== baseIds.length) throw fail('无效的歌单编辑参数，QQ 暂不支持顺序回写');
+      const validList = value => Array.isArray(value) && value.length <= 10000 && value.every(validMid) && new Set(value).size === value.length;
+      if (typeof id !== 'string' || !/^[1-9]\d{0,19}$/.test(id) || !Number.isSafeInteger(Number(id)) || !['add', 'remove', 'reorder'].includes(action)
+        || !validList(baseIds) || (action === 'reorder' ? !validList(ids) : !validMid(trackId))) throw fail('无效的歌单编辑参数');
       const lock = `${uin}:${id}`;
       if (locks.has(lock)) throw fail('歌单正在保存，请稍后刷新重试', 409);
       locks.add(lock);
@@ -42,19 +43,31 @@ function createPlaylistEdit({ rpc = playlistRpc, get = axios.get } = {}) {
           return songs;
         };
         const current = await read(), currentIds = current.map(song => song.mid);
-        // Add/remove never writes order. Legacy and modern readers can expose
-        // different orders; compare membership, then let QQ retain its order.
-        if (!same([...currentIds].sort(), [...baseIds].sort())) throw fail('歌单已在其他位置更新，请刷新歌单后重新编辑', 409);
+        // Sorting must compare the ordered snapshot; add/remove only compare
+        // membership because those operations never write song order.
+        if (!(action === 'reorder' ? same(currentIds, baseIds) : same([...currentIds].sort(), [...baseIds].sort()))) throw fail('歌单已在其他位置更新，请刷新歌单后重新编辑', 409);
+        if (action === 'reorder' && (ids.length !== currentIds.length || !ids.every(mid => currentIds.includes(mid)))) throw fail('排序必须保留歌单内的全部歌曲');
+        if (action === 'reorder' && !same(currentIds, ids)) {
+          const byMid = new Map(current.map(song => [song.mid, song]));
+          const v_songPair = ids.map(mid => {
+            const song = byMid.get(mid);
+            if (!Number.isSafeInteger(song.id) || song.id <= 0 || !Number.isSafeInteger(song.type)) throw fail('未能核实歌曲标识与类型', 502);
+            return { songId: song.id, songType: song.type };
+          });
+          // Official QQMusic 21.81 protocol serializer, VA 0x100ee0bf:
+          // SeqSonglist { dirId, tid, v_songPair: [{ songType, songId }] }.
+          await rpc(cookie, 'music.musicasset.PlaylistDetailWrite', 'SeqSonglist', { dirId, tid: Number(id), v_songPair });
+        }
         const exists = currentIds.includes(trackId);
-        if (action === 'add' ? !exists : exists) {
+        if (action !== 'reorder' && (action === 'add' ? !exists : exists)) {
           const song = action === 'remove' ? current.find(value => value.mid === trackId)
             : (await rpc(cookie, 'music.pf_song_detail_svr', 'get_song_detail_yqq', { song_mid: trackId, song_type: 0, song_id: 0 }))?.track_info;
           if (song?.mid !== trackId || !Number.isSafeInteger(song.id) || song.id <= 0 || !Number.isSafeInteger(song.type)) throw fail('未能核实歌曲标识与类型', 502);
           await rpc(cookie, 'music.musicasset.PlaylistDetailWrite', action === 'add' ? 'AddSonglist' : 'DelSonglist', { dirId, v_songInfo: [{ songId: song.id, songType: song.type }] });
         }
-        const expected = action === 'add' ? [...new Set([...currentIds, trackId])] : currentIds.filter(value => value !== trackId);
+        const expected = action === 'reorder' ? ids : action === 'add' ? [...new Set([...currentIds, trackId])] : currentIds.filter(value => value !== trackId);
         const actual = (await read()).map(song => song.mid);
-        if (!same([...actual].sort(), [...expected].sort())) throw fail('已提交修改，但平台读回结果不一致，请刷新检查后再操作', 409);
+        if (!(action === 'reorder' ? same(actual, expected) : same([...actual].sort(), [...expected].sort()))) throw fail('已提交修改，但平台读回结果不一致，请刷新检查后再操作', 409);
         ctx.body = { success: true, ids: actual };
       } finally { locks.delete(lock); }
     } catch (error) {

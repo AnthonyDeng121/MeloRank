@@ -13,6 +13,9 @@ async function playlistRpc(cookie, module, method, param) {
     headers: { Cookie: cookie, Referer: 'https://y.qq.com/', 'Content-Type': 'text/plain' }, responseType: 'arraybuffer',
   });
   const result = JSON.parse(decodeAG1Response(new Uint8Array(response.data)));
+  if ([301, 1000].includes(result.code) || [301, 1000].includes(result.req?.code)) {
+    throw Object.assign(new Error('QQ 音乐登录已失效，请重新扫码登录'), { status: 401 });
+  }
   if (result.code !== 0 || result.req?.code !== 0
     || (result.req.data?.code !== undefined && result.req.data.code !== 0)
     || (result.req.data?.retCode !== undefined && result.req.data.retCode !== 0)) {

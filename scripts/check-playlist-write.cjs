@@ -44,15 +44,21 @@ async function checkNetease() {
 }
 
 async function checkQQ() {
-  let ids = ['m1', 'm2'], writes = 0, owner = true, accepted = true, mutate = true;
+  let ids = ['m1', 'm2'], writes = 0, owner = true, accepted = true, mutate = true, pause;
   const calls = [];
   const rpc = async (cookie, module, method, params) => {
     calls.push({ cookie, module, method, params });
     if (method === 'CgiGetDiss') return { dirinfo: { id: 9, dirid: 1, owndir: owner ? 1 : 0 }, songlist: ids.map(mid => ({ mid, id: Number(mid.slice(1)), type: 0 })), total_song_num: ids.length };
     if (method === 'get_song_detail_yqq') return { track_info: { mid: params.song_mid, id: Number(params.song_mid.slice(1)), type: 0 } };
-    writes++;
+    writes++; if (pause) await pause;
     if (!accepted) throw Object.assign(new Error('平台拒绝'), { status: 502 });
     assert.equal(params.dirId, 1);
+    if (method === 'SeqSonglist') {
+      assert.equal(params.tid, 9);
+      assert.deepEqual(params.v_songPair.map(song => song.songType), ids.map(() => 0));
+      if (mutate) ids = params.v_songPair.map(song => `m${song.songId}`);
+      return { retCode: 0 };
+    }
     const mid = `m${params.v_songInfo[0].songId}`;
     if (mutate) ids = method === 'AddSonglist' ? [...ids, mid] : ids.filter(id => id !== mid);
     return { retCode: 0 };
@@ -74,7 +80,64 @@ async function checkQQ() {
   accepted = false; assert.equal((await request({ trackId: 'm4' })).status, 502); accepted = true;
   mutate = false; assert.equal((await request({ trackId: 'm4' })).status, 409); mutate = true;
   assert.equal((await request({ trackId: 'm4' })).status, 200);
-  console.log('PASS QQ：账号隔离、归属、快照冲突、歌曲类型核实、增删、幂等和读回校验');
+  const beforeSort = writes;
+  assert.equal((await request({ action: 'reorder', ids: ['m4', 'm1'] })).status, 400);
+  assert.equal((await request({ action: 'reorder', ids: ['m4', 'm1', 'm1'] })).status, 400);
+  assert.equal((await request({ action: 'reorder', ids: ['m4', 'm1', 'm8'] })).status, 400);
+  assert.equal((await request({ action: 'reorder', ids: ['m4', 'm1', 'm3'], baseIds: ['m4', 'm1', 'm3'] })).status, 409);
+  assert.equal(writes, beforeSort, 'invalid or stale ordering never writes');
+  assert.equal((await request({ action: 'reorder', ids: ['m4', 'm1', 'm3'] })).status, 200);
+  assert.deepEqual(ids, ['m4', 'm1', 'm3']);
+  const sort = calls.find(call => call.method === 'SeqSonglist');
+  assert.deepEqual(sort.params, { dirId: 1, tid: 9, v_songPair: [{ songId: 4, songType: 0 }, { songId: 1, songType: 0 }, { songId: 3, songType: 0 }] });
+  assert.equal((await request({ action: 'reorder', ids: [...ids] })).status, 200);
+  assert.equal(writes, beforeSort + 1, 'unchanged order is idempotent');
+  mutate = false;
+  assert.equal((await request({ action: 'reorder', ids: [...ids].reverse() })).status, 409, 'same members in wrong order must fail verification');
+  mutate = true;
+  let release; pause = new Promise(resolve => { release = resolve; });
+  const previous = writes, first = request({ action: 'reorder', ids: [...ids].reverse() });
+  while (writes === previous) await new Promise(resolve => setTimeout(resolve, 5));
+  assert.equal((await request({ action: 'reorder', ids: [...ids].reverse() })).status, 409);
+  release(); assert.equal((await first).status, 200); pause = undefined;
+  console.log('PASS QQ：归属、增删、SeqSonglist 精确参数、完整排序、旧顺序冲突、幂等、并发锁及顺序读回校验');
 }
 
-(async () => { await checkNetease(); await checkQQ(); })().catch(error => { console.error(error); process.exitCode = 1; });
+async function checkQQOrderedRead() {
+  const rpcModule = require('../qq-music-api-main/util/playlistRpc');
+  const original = rpcModule.playlistRpc;
+  const handler = require('../qq-music-api-main/routers/context/userLibrary');
+  const seen = [];
+  rpcModule.playlistRpc = async (cookie, module, method, params) => {
+    seen.push(params);
+    assert.equal(cookie, 'uin=7; qm_keyst=fixture');
+    assert.equal(method, 'CgiGetDiss');
+    return { songlist: [{ mid: 'm3', title: 'Third' }, { mid: 'm1', title: 'First' }], total_song_num: 32 };
+  };
+  try {
+    const ctx = { query: { kind: 'collection', type: 'playlists', id: '9', offset: '30' }, set() {} };
+    await requestAuth.run({ cookie: 'uin=7; qm_keyst=fixture' }, () => handler(ctx));
+    assert.deepEqual(ctx.body.items.map(item => item.id), ['m3', 'm1']);
+    assert.equal(ctx.body.hasMore, false);
+    assert.deepEqual(seen[0], { disstid: 9, dirid: 0, tag: true, userinfo: true, orderlist: true, song_begin: 30, song_num: 30 });
+    console.log('PASS QQ：详情分页使用相同有序读取协议，保留平台返回顺序');
+  } finally { rpcModule.playlistRpc = original; }
+}
+
+async function checkQQLoginError() {
+  const axios = require('../qq-music-api-main/node_modules/axios');
+  const original = axios.post;
+  const key = [122, 63, 140, 29, 94, 155, 47, 10, 108, 77, 126, 139, 31, 58, 92, 157, 14, 43, 111, 74, 129];
+  const encode = object => Buffer.from(JSON.stringify(object)).map((value, index) => value ^ key[index % key.length]);
+  let code = 1000;
+  axios.post = async () => ({ data: encode({ code: 0, req: { code, data: { retCode: 0 } } }) });
+  try {
+    const { playlistRpc } = require('../qq-music-api-main/util/playlistRpc');
+    await assert.rejects(() => playlistRpc('fixture', 'fixture', 'fixture', {}), error => error.status === 401);
+    code = 2000;
+    await assert.rejects(() => playlistRpc('fixture', 'fixture', 'fixture', {}), error => error.status === 502);
+    console.log('PASS QQ：登录失效返回 401，签名错误不误判为登录失效');
+  } finally { axios.post = original; }
+}
+
+(async () => { await checkNetease(); await checkQQ(); await checkQQOrderedRead(); await checkQQLoginError(); })().catch(error => { console.error(error); process.exitCode = 1; });

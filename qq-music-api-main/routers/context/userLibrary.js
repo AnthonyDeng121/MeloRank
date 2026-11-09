@@ -27,8 +27,13 @@ module.exports = async ctx => {
         if (result.data?.req?.code !== 0) throw new Error('专辑歌曲暂不可用');
         songs = (result.data.req.data?.songList || []).map(s => s.songInfo || s);
       } else {
-        const data = await request('/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg', { disstid: id, type: 1, json: 1, utf8: 1, new_format: 1 });
-        songs = (data.cdlist?.[0]?.songlist || []).slice(offset, offset + limit);
+        if (!/^[1-9]\d*$/.test(id) || !Number.isSafeInteger(Number(id))) { ctx.status = 400; ctx.body = { error: '无效的歌单标识' }; return; }
+        // Use the same ordered reader as the write path, so a saved manual
+        // sequence is also the sequence displayed after refresh.
+        const { playlistRpc } = require('../../util/playlistRpc');
+        const data = await playlistRpc(cookie, 'music.srfDissInfo.DissInfo', 'CgiGetDiss', { disstid: Number(id), dirid: 0, tag: true, userinfo: true, orderlist: true, song_begin: offset, song_num: limit });
+        if (!Array.isArray(data.songlist) || !Number.isSafeInteger(data.total_song_num)) throw new Error('歌单歌曲读取失败');
+        songs = data.songlist;
       }
       ctx.body = { items: songs.map(s => { const mid = s.mid || s.songmid; return { id: mid, title: s.title || s.songname, subtitle: (s.singer || []).map(a => a.name).join(' / '), externalUrl: `https://y.qq.com/n/ryqq/songDetail/${mid}`, qqSong: { songmid: mid, songname: s.title || s.songname, singer: s.singer || [], albummid: s.album?.mid || s.albummid || '', albumname: s.album?.name || s.albumname || '' } }; }), hasMore: songs.length === limit }; return;
     }

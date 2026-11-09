@@ -64,7 +64,7 @@ export function PlaylistEditor({ provider, playlist, tracks, ready, saving, setS
     void mutate('reorder', undefined, ids);
   };
   return <section className="playlist-editor" aria-label="编辑平台歌单">
-    <div className="playlist-editor-heading"><div><h4>管理歌单</h4><p>添加、移除会直接同步到{provider === 'qq' ? ' QQ 音乐' : '网易云音乐'}。{provider === 'qq' ? 'QQ 暂不支持顺序回写，歌曲顺序以平台为准。' : '上移、下移会直接保存歌曲顺序。'}</p></div><button disabled={disabled} aria-expanded={editing} onClick={() => { setEditing(!editing); setRemove(null); }}>{editing ? '收起编辑' : '编辑歌单'}</button></div>
+    <div className="playlist-editor-heading"><div><h4>管理歌单</h4><p>添加、移除会直接同步到{provider === 'qq' ? ' QQ 音乐' : '网易云音乐'}。上移、下移会直接保存歌曲顺序。</p></div><button disabled={disabled} aria-expanded={editing} onClick={() => { setEditing(!editing); setRemove(null); }}>{editing ? '收起编辑' : '编辑歌单'}</button></div>
     {saving && <p role="status">正在保存并核对平台数据，请稍候…</p>}
     {message && <p role="status">{message}</p>}{error && <p className="library-error" role="alert">{error}</p>}
     {editing && <>
@@ -77,7 +77,7 @@ export function PlaylistEditor({ provider, playlist, tracks, ready, saving, setS
       <p className="playlist-edit-caption">共 {tracks.length} 首 · 每次修改自动保存</p>
       <ol className="playlist-edit-tracks" start={(editPage - 1) * 12 + 1}>{tracks.slice((editPage - 1) * 12, editPage * 12).map((track, row) => {
         const index = (editPage - 1) * 12 + row;
-        return <li key={track.id}><div><span>{track.title}</span><small>{track.subtitle}</small></div><div className="playlist-edit-actions">{provider === 'netease' && <><button disabled={disabled || index === 0} aria-label={`上移 ${track.title}`} title="上移" onClick={() => move(index, -1)}><ArrowUp size={16} /></button><button disabled={disabled || index === tracks.length - 1} aria-label={`下移 ${track.title}`} title="下移" onClick={() => move(index, 1)}><ArrowDown size={16} /></button></>}<button disabled={disabled} aria-label={`移除 ${track.title}`} title="从歌单移除" onClick={() => setRemove(track)}><Trash2 size={16} /></button></div></li>;
+        return <li key={track.id}><div><span>{track.title}</span><small>{track.subtitle}</small></div><div className="playlist-edit-actions"><button disabled={disabled || index === 0} aria-label={`上移 ${track.title}`} title="上移" onClick={() => move(index, -1)}><ArrowUp size={16} /></button><button disabled={disabled || index === tracks.length - 1} aria-label={`下移 ${track.title}`} title="下移" onClick={() => move(index, 1)}><ArrowDown size={16} /></button><button disabled={disabled} aria-label={`移除 ${track.title}`} title="从歌单移除" onClick={() => setRemove(track)}><Trash2 size={16} /></button></div></li>;
       })}</ol>
       {tracks.length > 12 && <nav className="library-pagination" aria-label="编辑歌曲分页"><button disabled={disabled || editPage === 1} onClick={() => setEditPage(editPage - 1)}>上一页</button><span>{editPage} / {Math.ceil(tracks.length / 12)}</span><button disabled={disabled || editPage * 12 >= tracks.length} onClick={() => setEditPage(editPage + 1)}>下一页</button></nav>}
       {remove && <div className="playlist-remove-confirm" role="alertdialog" aria-label="确认移除歌曲"><p>从平台歌单移除《{remove.title}》？</p><button disabled={disabled} onClick={() => setRemove(null)}>取消</button><button disabled={disabled} onClick={() => void mutate('remove', remove.id)}>确认移除</button></div>}
