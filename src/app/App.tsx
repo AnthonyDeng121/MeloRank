@@ -54,7 +54,7 @@ export default function App() {
       case 'audio-lab':
         return <AudioLab />;
       case 'music-library':
-        return <MusicLibrary />;
+        return <MusicLibrary onNavigate={navigate} />;
       default:
         return <Home onNavigate={navigate} />;
     }

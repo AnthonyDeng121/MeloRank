@@ -6,12 +6,14 @@
 | --- | --- | --- |
 | 搜索并添加歌曲 | 支持 | 支持 |
 | 从歌单移除歌曲 | 支持，需在页内确认 | 支持，需在页内确认 |
-| 歌曲上移、下移 | 已接入，实号待验收 | 支持 |
+| 歌曲拖拽排序 | 已接入，实号待验收 | 已接入，实号待验收 |
 | 自动刷新歌曲列表和数量 | 支持 | 支持 |
+| 歌单名称／专辑封面选择 | 已接入，实号待验收 | 已接入，实号待验收 |
+| 歌单另存年度单曲／专辑榜 | 支持 | 支持 |
 
 仅允许编辑本人创建的普通歌单，喜欢的歌曲、收藏专辑、他人的歌单不开放编辑。Spotify 保持读取功能。
 
-QQ 排序已按官方 Windows 客户端的 `SeqSonglist` 序列化参数接入，参数依据和实号验收限制见 [QQ 排序协议核对](qq-playlist-order.md)。歌单改名、封面和描述编辑不属于本次范围。
+QQ 排序已按官方 Windows 客户端的 `SeqSonglist` 序列化参数接入，参数依据和实号验收限制见 [QQ 排序协议核对](qq-playlist-order.md)。最新的拖拽交互、歌单资料编辑和转榜单流程见 [两端歌单编辑与年度榜单](playlist-workflow.md)。本次不编辑歌单描述，也不上传任意本地图片。
 
 ## 保存过程
 
@@ -30,7 +32,7 @@ QQ 排序已按官方 Windows 客户端的 `SeqSonglist` 序列化参数接入�
 - QQ：`POST /user/playlist/edit`，通过本人自建歌单清单和详情的 `owndir`、公开 ID、目录 ID 共同核实归属。歌曲 MID 在后端解析为数字 ID 和类型；调用 `music.musicasset.PlaylistDetailWrite` 的 `AddSonglist` / `DelSonglist` / `SeqSonglist`。详情刷新与排序校验统一使用 `CgiGetDiss` 有序分页读取。
 - QQ 写请求采用签名加密 Web 通道，固定 HTTPS 网关、禁用重定向，检查外层、业务块和内部业务码。协议依赖固定版本的 [@jixun/qmweb-sign](https://github.com/jixunmoe/qmweb-sign)（MIT）；增删参数对照 [QQ 官网公开脚本](https://y.qq.com/ryqq/js/common.chunk.e536f9d2621979d755f5.js?max_age=2592000)。
 
-请求体：`{ id, action, baseIds, trackId?, ids? }`。`action` 为 `add` / `remove` / `reorder`；`baseIds` 是页面加载到的完整歌曲标识，`ids` 是排序后的完整标识数组。
+请求体：`{ id, action, baseIds, trackId?, ids?, name?, baseName?, coverTrackId? }`。`action` 为 `add` / `remove` / `reorder` / `metadata`；`baseIds` 是页面加载到的完整歌曲标识，`ids` 是排序后的完整标识数组。资料编辑携带旧名称快照，封面歌曲须来自当前歌单。
 
 ## 验证
 

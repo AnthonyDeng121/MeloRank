@@ -2,9 +2,10 @@ const assert = require('node:assert/strict');
 const express = require('../backend/node_modules/express');
 const { createMusicPlatformsRouter } = require('../backend/src/musicPlatforms');
 const calls = [];
-const api = Object.fromEntries(['search_suggest','login_status','user_playlist','album_sublist','album','playlist_track_all','cloudsearch','song_url','lyric','logout'].map(name => [name, async params => {
+const api = Object.fromEntries(['playlist_detail','search_suggest','login_status','user_playlist','album_sublist','album','playlist_track_all','cloudsearch','song_url','lyric','logout'].map(name => [name, async params => {
   calls.push({ name, params });
   const results = {
+    playlist_detail: { playlist: { name: 'Mine', coverImgUrl: 'https://p1.music.126.net/fixture.jpg' } },
     search_suggest: { result: { allMatch: [{ keyword: '晴天' }, { keyword: '晴天' }, { keyword: '晴天 周杰伦' }, {}, { keyword: ' ' }] } },
     login_status: { data: { profile: { userId: 7, nickname: 'fixture' } } },
     user_playlist: { playlist: [{ id: 1, name: '我喜欢的音乐', specialType: 5, creator: { userId: 7 }, trackCount: 1 }, { id: 2, name: 'Mine', creator: { userId: 7 } }, { id: 3, name: 'Other', creator: { userId: 8 } }], more: false },
@@ -43,6 +44,9 @@ const server = app.listen(0, '127.0.0.1', async () => {
     const collection = await (await request('/collection', { kind: 'playlists', id: '2', offset: 30 })).json();
     assert.equal(collection.items[0].title, 'Song');
     assert.equal(calls.at(-1).params.offset, 30);
+    const refreshed = await (await request('/collection', { kind: 'playlists', id: '2', offset: 0 })).json();
+    assert.equal(refreshed.metadata.title, 'Mine');
+    assert.equal(refreshed.metadata.image, 'https://p1.music.126.net/fixture.jpg');
     const album = await (await request('/collection', { kind: 'albums', id: '4' })).json();
     assert.equal(album.items[0].subtitle, 'Artist');
     assert.equal(collection.items[0].neteaseTrack.id, 5);

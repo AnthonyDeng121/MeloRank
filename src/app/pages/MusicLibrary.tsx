@@ -8,7 +8,7 @@ import { useMusic } from '../contexts/MusicContext';
 import '../../styles/MusicLibrary.css';
 import { PlaylistEditor } from '../components/PlaylistEditor';
 
-export function MusicLibrary() {
+export function MusicLibrary({ onNavigate }: { onNavigate?: (page: string) => void }) {
   const { accounts, activeProvider, disconnect } = usePlatformAccounts();
   const [provider, setProvider] = useState<MusicProvider>(activeProvider);
   const account = accounts[provider], connected = account.connected;
@@ -28,7 +28,7 @@ export function MusicLibrary() {
     const response = await fetch(`${QQ_MUSIC_CONFIG.baseUrl}/user/library?${query}`, { headers: { 'X-QQ-Music-Cookie': localStorage.getItem('qqMusicCookie') || '' }, credentials: 'omit', signal: AbortSignal.timeout(25000) });
     const data = await response.json(); if (!response.ok) throw new Error(data.error || '曲库读取失败'); return data;
   };
-  const asSong = (item: LibraryItem): PlatformSong | null => item.qqSong ? { ...item.qqSong, provider: 'qq' } : item.neteaseTrack ? neteaseSong(item.neteaseTrack) : item.spotifyTrack ? spotifySong(item.spotifyTrack) : null;
+  const asSong = (item: LibraryItem): PlatformSong | null => item.qqSong ? { ...item.qqSong, albumId: item.qqSong.albumid || item.qqSong.albummid, provider: 'qq' } : item.neteaseTrack ? neteaseSong(item.neteaseTrack) : item.spotifyTrack ? spotifySong(item.spotifyTrack) : null;
   const matches = (item: LibraryItem) => [item.title, item.subtitle, asSong(item)?.albumname].filter(Boolean).join(' ').toLocaleLowerCase().includes(query.trim().toLocaleLowerCase());
   const filteredItems = items.filter(matches), filteredTracks = tracks.filter(matches);
   const visibleItems = filteredItems.slice((page - 1) * pageSize, page * pageSize);
@@ -74,10 +74,11 @@ export function MusicLibrary() {
     const ticket = ++collectionGeneration.current; setCollection(item); setCollectionError(''); setCollectionBusy(true);
     if (!offset) { setTracks([]); }
     try {
-      const all: LibraryItem[] = []; let cursor = offset;
+      const all: LibraryItem[] = []; let cursor = offset, updated = item;
       while (true) {
         const result = await readCollection(item, cursor);
         if (ticket !== collectionGeneration.current) return;
+        if (result.metadata?.title) updated = { ...updated, title: result.metadata.title, image: result.metadata.image || updated.image };
         all.push(...result.items);
         const next = result.nextOffset ?? cursor + result.items.length;
         if (!result.hasMore || !result.items.length || next <= cursor) break;
@@ -85,7 +86,7 @@ export function MusicLibrary() {
       }
       setTracks(all); setTrackPage(1); setQuery('');
       if (kind === 'playlists' && provider !== 'spotify') {
-        const updated = { ...item, subtitle: `${all.length} 首` };
+        updated = { ...updated, subtitle: `${all.length} 首` };
         setCollection(updated); setItems(previous => previous.map(value => value.id === item.id ? updated : value));
       }
     } catch (reason) { if (ticket === collectionGeneration.current) setCollectionError((reason as Error).message); }
@@ -96,7 +97,7 @@ export function MusicLibrary() {
     const queue = tracks.map(asSong).filter((song): song is PlatformSong => !!song);
     if (queue[0]) setCurrentSong(queue[0], queue);
   };
-  const playing = (item: LibraryItem) => { const song = asSong(item); return song && song.songmid === currentSong?.songmid && isPlaying; };
+  const playing = (item: LibraryItem) => { const song = asSong(item); return !!song && song.songmid === currentSong?.songmid && isPlaying; };
   return <div className="music-library-page">
     <header><div><h2>我的音乐</h2><p>连接音乐账号，查看你的歌单、喜欢的歌曲和收藏专辑</p></div>{connected && <div className="library-account"><span>{account.nickname}</span><button disabled={saving} onClick={() => void disconnect(provider)}>断开连接</button></div>}</header>
     <div className="library-providers" role="tablist" aria-label="音乐平台">{platformList.map(value => <button key={value} role="tab" disabled={saving} aria-selected={provider === value} onClick={() => setProvider(value)}>{platformNames[value]}</button>)}</div>
@@ -113,12 +114,14 @@ export function MusicLibrary() {
       <div className="library-detail-toolbar"><button disabled={saving} className="library-icon-button" title="返回曲库" aria-label="返回曲库" onClick={() => { collectionGeneration.current++; setCollection(null); setQuery(''); setPage(1); setCollectionBusy(false); }}><ArrowLeft size={23} /></button></div>
       <header className="library-detail-header"><div className="library-detail-cover">{collection.image ? <img src={collection.image.replace(/^http:/, 'https:')} alt="" /> : <Music2 size={40} />}</div><div><span className="library-detail-eyebrow">{platformNames[provider]} · {kind === 'albums' ? '专辑' : '歌单'}</span><h3>{collection.title}</h3><p>{collection.subtitle}</p></div><button className="library-icon-button primary" title="播放歌单" aria-label="播放歌单" disabled={collectionBusy || !tracks.length} onClick={() => void playAll()}><Play size={22} fill="currentColor" /></button></header>
       {collectionBusy && <p role="status">正在读取歌曲…</p>}{collectionError && <p className="library-error" role="alert">{collectionError}</p>}
-      {kind === 'playlists' && provider !== 'spotify' && <PlaylistEditor key={`${provider}:${collection.id}`} provider={provider} playlist={collection} tracks={tracks} ready={!collectionBusy && !collectionError} saving={saving} setSaving={setSaving} reload={() => openCollection(collection)} />}
+      {kind === 'playlists' && provider !== 'spotify' && <PlaylistEditor key={`${provider}:${collection.id}`} provider={provider} playlist={collection} tracks={tracks} ready={!collectionBusy && !collectionError} saving={saving} setSaving={setSaving} reload={metadata => openCollection({ ...collection, ...metadata })} asSong={asSong} currentSongId={currentSong?.songmid} playing={playing} play={track => playItem(track, tracks)} onNavigate={onNavigate} />}
+      {(kind !== 'playlists' || provider === 'spotify') && <>
       <div className="library-detail-search"><input className="library-search" type="search" aria-label="搜索曲库" placeholder="搜索歌手 / 歌单 / 专辑 / 歌曲" value={query} onChange={event => { setQuery(event.target.value); setPage(1); setTrackPage(1); }} /><button aria-label="刷新歌单" disabled={collectionBusy || saving} onClick={() => void openCollection(collection)}><RefreshCw size={17} /></button></div><ol className="library-track-list">{visibleTracks.map((track, index) => { const song = asSong(track); return <li key={`${track.id}-${index}`} className={song?.songmid === currentSong?.songmid ? 'current' : ''}>
         <button className="library-track-play" aria-label={`${playing(track) ? '暂停' : '播放'} ${track.title}`} title={`${playing(track) ? '暂停' : '播放'} ${track.title}`} disabled={!song} onClick={() => playItem(track, tracks)}>{playing(track) ? <Pause size={17} /> : <Play size={17} />}</button>
         <span className="library-track-number">{String((trackPage - 1) * pageSize + index + 1).padStart(2, '0')}</span><div className="library-track-info"><span>{track.title}</span><small>{track.subtitle}</small></div><span className="library-track-album">{song?.albumname}</span><span className="library-track-duration">{song?.duration ? `${Math.floor(song.duration / 60)}:${String(Math.floor(song.duration % 60)).padStart(2, '0')}` : '—'}</span>
       </li>; })}</ol>
       {pagination(filteredTracks.length, trackPage, setTrackPage)}{!collectionBusy && !collectionError && !filteredTracks.length && <p className="library-empty">暂无匹配的歌曲</p>}
+      </>}
     </section>}
   </div>;
 }

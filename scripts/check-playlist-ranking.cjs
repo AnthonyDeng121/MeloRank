@@ -1,0 +1,34 @@
+const fs = require('node:fs');
+const vm = require('node:vm');
+const assert = require('node:assert/strict');
+const ts = require('typescript');
+const output = { exports: {} };
+const js = ts.transpileModule(fs.readFileSync('src/app/utils/playlistRanking.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
+vm.runInNewContext(js, { exports: output.exports, crypto: require('node:crypto') });
+const { buildPlaylistRanking, reorderPlaylist } = output.exports;
+for (const provider of ['qq', 'netease']) {
+  const songs = [3, 1, 2].map((id, index) => ({ provider, providerId: String(id), songmid: `m${id}`, songname: `Song ${id}`, singer: [{ name: 'Artist' }], albumId: index < 2 ? 'albumA' : 'albumB', albumname: index < 2 ? 'Album A' : 'Album B', coverUrl: 'https://example.com/cover.jpg' }));
+  const singles = buildPlaylistRanking(songs, 'songs');
+  assert.deepEqual(Array.from(singles, item => item.title), ['Song 3', 'Song 1', 'Song 2']);
+  assert.deepEqual(Array.from(singles, item => item.rank), [1, 2, 3]);
+  assert.ok(singles.every(item => item.originalScore === 0 && item.integrity === 0 && item.durability === 0 && item.finalScore === 0));
+  assert.equal(new Set(singles.map(item => item.id)).size, 3);
+  const albums = buildPlaylistRanking(songs, 'albums');
+  assert.deepEqual(Array.from(albums, item => item.title), ['Album A', 'Album B']);
+  assert.throws(() => buildPlaylistRanking([{ ...songs[0], albumname: '' }], 'albums'), /专辑/);
+}
+const list = Array.from({ length: 30 }, (_, index) => ({ id: String(index), title: `Song ${index}` }));
+const moved = reorderPlaylist(list, '0', '29');
+assert.equal(moved[29].id, '0'); assert.equal(list[0].id, '0'); assert.equal(new Set(moved.map(item => item.id)).size, 30);
+assert.deepEqual(Array.from(reorderPlaylist(moved, '0', '0'), item => item.id), Array.from(moved, item => item.id));
+assert.equal(reorderPlaylist(list, 'missing', '29'), list);
+const page = ts.createSourceFile('YearlyRanking.tsx', fs.readFileSync('src/app/pages/YearlyRanking.tsx', 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+const component = page.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === 'YearlyRanking');
+const calculate = component.body.statements.filter(ts.isVariableStatement).flatMap(statement => [...statement.declarationList.declarations]).find(declaration => declaration.name.text === 'calculateLinearScores');
+const model = {};
+vm.runInNewContext(ts.transpileModule(`globalThis.calculate = ${calculate.initializer.getText(page)};`, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, model);
+const zeroes = [3, 1, 2].map(id => ({ id: String(id), title: String(id), originalScore: 0, integrity: 0, durability: 0, finalScore: 0 }));
+const recalculated = model.calculate(zeroes);
+assert.ok(recalculated.every(item => item.finalScore === 0));
+assert.deepEqual(Array.from(recalculated, item => item.id), ['3', '1', '2']);
+console.log('PASS 两端歌单转榜单：顺序、初始零分、专辑按身份去重、缺失数据拒绝；拖拽跨 30 首不丢曲');

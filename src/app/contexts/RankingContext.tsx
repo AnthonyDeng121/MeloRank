@@ -13,6 +13,10 @@ export interface RankingItem {
   durability: number;
   finalScore: number;
 }
+export interface SavedRanking {
+  id: string; name: string; year: number; type: string; scoringMode: 'scoring' | 'non-scoring';
+  rankingList: RankingItem[]; createdAt: string; updatedAt: string;
+}
 
 // 定义Context类型
 interface RankingContextType {
@@ -20,6 +24,8 @@ interface RankingContextType {
   setRankingMode: (mode: string) => void;
   rankingList: RankingItem[];
   setRankingList: React.Dispatch<React.SetStateAction<RankingItem[]>>;
+  pendingRanking: SavedRanking | null;
+  setPendingRanking: (ranking: SavedRanking | null) => void;
 }
 
 // 创建Context
@@ -78,9 +84,10 @@ export const RankingProvider: React.FC<RankingProviderProps> = ({ children }) =>
   
   // 默认榜单数据
   const [rankingList, setRankingList] = useState<RankingItem[]>(DEFAULT_RANKING_LIST);
+  const [pendingRanking, setPendingRanking] = useState<SavedRanking | null>(null);
 
   return (
-    <RankingContext.Provider value={{ rankingMode, setRankingMode, rankingList, setRankingList }}>
+    <RankingContext.Provider value={{ rankingMode, setRankingMode, rankingList, setRankingList, pendingRanking, setPendingRanking }}>
       {children}
     </RankingContext.Provider>
   );

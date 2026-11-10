@@ -20,7 +20,7 @@ module.exports = async ctx => {
     if (ctx.query.kind === 'collection') {
       const id = String(ctx.query.id || '');
       if (!/^[a-zA-Z0-9]{1,32}$/.test(id)) { ctx.status = 400; ctx.body = { error: '无效的歌单或专辑标识' }; return; }
-      let songs;
+      let songs, metadata;
       if (ctx.query.type === 'albums') {
         const { UCommon } = require('../../module');
         const result = await UCommon({ method: 'get', params: { format: 'json', data: JSON.stringify({ req: { module: 'music.musichallAlbum.AlbumSongList', method: 'GetAlbumSongList', param: { albumMid: id, albumID: 0, begin: offset, num: limit, order: 2 } } }) }, cookie, option: { headers: { Cookie: cookie } } });
@@ -34,8 +34,9 @@ module.exports = async ctx => {
         const data = await playlistRpc(cookie, 'music.srfDissInfo.DissInfo', 'CgiGetDiss', { disstid: Number(id), dirid: 0, tag: true, userinfo: true, orderlist: true, song_begin: offset, song_num: limit });
         if (!Array.isArray(data.songlist) || !Number.isSafeInteger(data.total_song_num)) throw new Error('歌单歌曲读取失败');
         songs = data.songlist;
+        metadata = { title: data.dirinfo?.title, image: data.dirinfo?.picurl };
       }
-      ctx.body = { items: songs.map(s => { const mid = s.mid || s.songmid; return { id: mid, title: s.title || s.songname, subtitle: (s.singer || []).map(a => a.name).join(' / '), externalUrl: `https://y.qq.com/n/ryqq/songDetail/${mid}`, qqSong: { songmid: mid, songname: s.title || s.songname, singer: s.singer || [], albummid: s.album?.mid || s.albummid || '', albumname: s.album?.name || s.albumname || '' } }; }), hasMore: songs.length === limit }; return;
+      ctx.body = { metadata, items: songs.map(s => { const mid = s.mid || s.songmid; return { id: mid, title: s.title || s.songname, subtitle: (s.singer || []).map(a => a.name).join(' / '), externalUrl: `https://y.qq.com/n/ryqq/songDetail/${mid}`, qqSong: { songmid: mid, songname: s.title || s.songname, singer: s.singer || [], albummid: s.album?.mid || s.albummid || '', albumname: s.album?.name || s.albumname || '', albumid: String(s.album?.id || s.albumid || ''), duration: Number(s.interval || s.duration || 0) } }; }), hasMore: songs.length === limit }; return;
     }
     if (ctx.query.kind === 'playlists') {
       const list = await playlists();
@@ -59,7 +60,7 @@ module.exports = async ctx => {
     const songs = data.cdlist?.[0]?.songlist || [];
     ctx.body = { items: songs.slice(offset, offset + limit).map(s => {
       const mid = s.mid || s.songmid, albumMid = s.album?.mid || s.albummid;
-      return { id: mid, title: s.title || s.songname, subtitle: (s.singer || []).map(a => a.name).join(' / '), image: albumMid ? `https://y.qq.com/music/photo_new/T002R300x300M000${albumMid}.jpg` : '', externalUrl: `https://y.qq.com/n/ryqq/songDetail/${mid}`, qqSong: { songmid: mid, songname: s.title || s.songname, singer: s.singer || [], albummid: albumMid || '', albumname: s.album?.name || s.albumname || '' } };
+      return { id: mid, title: s.title || s.songname, subtitle: (s.singer || []).map(a => a.name).join(' / '), image: albumMid ? `https://y.qq.com/music/photo_new/T002R300x300M000${albumMid}.jpg` : '', externalUrl: `https://y.qq.com/n/ryqq/songDetail/${mid}`, qqSong: { songmid: mid, songname: s.title || s.songname, singer: s.singer || [], albummid: albumMid || '', albumname: s.album?.name || s.albumname || '', albumid: String(s.album?.id || s.albumid || ''), duration: Number(s.interval || s.duration || 0) } };
     }), hasMore: offset + limit < songs.length };
   } catch (error) { ctx.status = error.status || 502; ctx.body = { error: error.message || 'QQ 曲库暂不可用' }; }
 };

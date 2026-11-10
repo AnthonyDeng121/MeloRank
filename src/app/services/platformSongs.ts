@@ -4,20 +4,20 @@ import { qqMusicService } from './qqMusicService';
 export interface PlatformSong {
   songmid: string; songname: string; singer: Array<{ name: string; mid: string }>;
   albumname: string; albummid: string; coverUrl?: string; duration?: number;
-  provider?: MusicProvider; providerId?: string; uri?: string; url?: string;
+  provider?: MusicProvider; providerId?: string; uri?: string; url?: string; albumId?: string;
 }
 export function neteaseSong(value: any): PlatformSong {
   const album = value.al || value.album || {};
   return { provider: 'netease', providerId: String(value.id), songmid: `netease:${value.id}`, songname: value.name,
     singer: (value.ar || value.artists || []).map((artist: any) => ({ name: artist.name, mid: String(artist.id || '') })),
-    albumname: album.name || '', albummid: '', coverUrl: album.picUrl, duration: (value.dt || value.duration || 0) / 1000 };
+    albumname: album.name || '', albumId: String(album.id || ''), albummid: '', coverUrl: album.picUrl, duration: (value.dt || value.duration || 0) / 1000 };
 }
 export function spotifySong(value: any): PlatformSong {
   return { provider: 'spotify', providerId: value.id, uri: value.uri || `spotify:track:${value.id}`, songmid: `spotify:${value.id}`, songname: value.name,
     singer: (value.artists || []).map((artist: any) => ({ name: artist.name, mid: artist.id || '' })), albumname: value.album?.name || '', albummid: '',
     coverUrl: value.album?.images?.[0]?.url, duration: (value.duration_ms || 0) / 1000 };
 }
-export const songCover = (song: { coverUrl?: string; albummid?: string }) => song.coverUrl || (song.albummid ? `https://y.qq.com/music/photo_new/T002R300x300M000${song.albummid}.jpg` : '');
+export const songCover = (song: { coverUrl?: string; albummid?: string }) => (song.coverUrl || (song.albummid ? `https://y.qq.com/music/photo_new/T002R300x300M000${song.albummid}.jpg` : '')).replace(/^http:/, 'https:');
 export async function searchPlatform(provider: MusicProvider, query: string, limit: number, page: number) {
   if (provider === 'qq') return qqMusicService.searchWithType(query, limit, 'songs', page);
   let list: PlatformSong[], total: number;

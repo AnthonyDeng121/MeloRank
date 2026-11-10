@@ -30,7 +30,7 @@ const model = {
   })(),
   setImportError() {}, fillImportedCovers() {}, coverGeneration: { current: 0 }, setCoverProgress() {},
   console, Date: TestDate, Math, JSON, parseFloat, parseInt,
-  currentYear: 2026, rankingMode: '年度专辑榜', scoringMode: 'scoring',
+  currentYear: 2026, setCurrentYear(value) { model.currentYear = value; }, rankingMode: '年度专辑榜', scoringMode: 'scoring',
   rankingList: [], currentRankingId: null, currentRankingName: null,
   showSaveDialog: false, rankingName: '', newRankingName: '', renamingRankingId: null,
   coverUrl: '/artists/images/LG2.jpg', editMode: false, editingItemId: null,
@@ -73,7 +73,8 @@ async function main() {
     assert.ok(record.createdAt && record.updatedAt);
   });
   check('load restores the editable identity', () => {
-    handlers.loadHistoryRanking(read()[0]);
+    handlers.loadHistoryRanking({ ...read()[0], year: 2024 });
+    assert.equal(model.currentYear, 2024);
     assert.equal(model.currentRankingId, read()[0].id);
     assert.equal(model.currentRankingName, '验收榜单');
   });

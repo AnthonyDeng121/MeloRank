@@ -1,6 +1,6 @@
 const express = require('express');
 
-function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicapienhanced/api'), goFetch = fetch) {
+function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicapienhanced/api'), goFetch = fetch, coverFetch = fetch) {
   const router = express.Router();
   // Load the SDK during server startup, before accepting requests. Its entry point
   // synchronously loads all API modules; deferring this blocks the first QR request.
@@ -35,7 +35,7 @@ function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicap
     return user;
   };
   router.use(require('./neteaseLogin').createNeteaseLoginRouter({ profile, wrap, goFetch }));
-  router.use(require('./playlistWrite').createPlaylistWriteRouter({ call, auth, profile, wrap }));
+  router.use(require('./playlistWrite').createPlaylistWriteRouter({ call, auth, profile, wrap, coverFetch }));
   const songId = req => {
     const id = String(req.body.id || '');
     if (!/^\d{1,20}$/.test(id)) throw Object.assign(new Error('歌曲标识无效'), { status: 400 });
@@ -85,7 +85,8 @@ function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicap
     const offset = Math.max(0, Number(req.body.offset) || 0), limit = 30;
     const data = await call(kind === 'albums' ? 'album' : 'playlist_track_all', { cookie, id, offset, limit });
     const songs = kind === 'albums' ? (data.songs || []).slice(offset, offset + limit) : data.songs || [];
-    res.json({ items: songs.map(s => ({ neteaseTrack: s, id: String(s.id), title: s.name, subtitle: (s.ar || s.artists || []).map(a => a.name).join(' / '), externalUrl: `https://music.163.com/#/song?id=${s.id}` })), hasMore: songs.length === limit });
+    const playlist = kind === 'playlists' && offset === 0 ? (await call('playlist_detail', { cookie, id })).playlist : null;
+    res.json({ ...(playlist ? { metadata: { title: playlist.name, image: playlist.coverImgUrl } } : {}), items: songs.map(s => ({ neteaseTrack: s, id: String(s.id), title: s.name, subtitle: (s.ar || s.artists || []).map(a => a.name).join(' / '), externalUrl: `https://music.163.com/#/song?id=${s.id}` })), hasMore: songs.length === limit });
   }));
   router.post('/library', wrap(async (req, res) => {
     const cookie = auth(req);

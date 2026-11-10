@@ -29,7 +29,7 @@ export function YearlyRanking({
   }
 
   // 使用RankingContext获取和更新榜单状态
-  const { rankingMode, setRankingMode, rankingList, setRankingList } =
+  const { rankingMode, setRankingMode, rankingList, setRankingList, pendingRanking, setPendingRanking } =
     useRankingContext();
 
   // 根据pageType设置初始榜单类型
@@ -41,7 +41,7 @@ export function YearlyRanking({
     }
   }, [pageType, setRankingMode]);
 
-  const currentYear = new Date().getFullYear();
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   // 添加状态管理来存储上传的图片和预览URL
   const [coverUrl, setCoverUrl] = useState<string>("");
@@ -155,12 +155,20 @@ export function YearlyRanking({
 
   // 组件挂载时，使用线性映射计算初始数据的分数
   React.useEffect(() => {
+    if (pendingRanking) {
+      setRankingMode(pendingRanking.type); setScoringMode(pendingRanking.scoringMode);
+      setCurrentYear(pendingRanking.year);
+      setRankingList(pendingRanking.rankingList); setCurrentRankingId(pendingRanking.id); setCurrentRankingName(pendingRanking.name);
+      setPendingRanking(null);
+      return;
+    }
     const updatedList = calculateLinearScores(rankingList);
     setRankingList(updatedList);
   }, []);
 
   // 当榜单类型或评分模式变化时，更新样例数据的标题
   React.useEffect(() => {
+    if (pendingRanking) return;
     // 检查是否是样例数据
     const isSampleData =
       rankingList.length === 3 &&
@@ -554,7 +562,7 @@ export function YearlyRanking({
           totalScore,
           finalScore:
             max === min
-              ? 10
+              ? (max === 0 ? 0 : 10)
               : parseFloat(
                   (((totalScore - min) / (max - min)) * 10).toFixed(1)
                 ),
@@ -988,6 +996,7 @@ export function YearlyRanking({
 
   // 加载历史榜单到当前编辑
   const loadHistoryRanking = (ranking: any) => {
+    setCurrentYear(ranking.year || new Date().getFullYear());
     coverGeneration.current++;
     setCoverProgress({ loading: false, completed: 0, total: 0, unmatched: 0 });
     // 更新当前榜单状态
@@ -1075,7 +1084,7 @@ export function YearlyRanking({
         originalScore: item.originalScore, // 明确保留原始评分
         integrity: item.integrity,
         durability: item.durability,
-        finalScore: 10.0,
+        finalScore: maxScore === 0 ? 0 : 10.0,
         totalScore: item.totalScore,
       }));
     }
