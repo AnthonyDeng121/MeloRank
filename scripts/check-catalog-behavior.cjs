@@ -1,0 +1,44 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const ts = require('typescript');
+const calls = [];
+let qqResponse, neteaseResponse, spotifyResponse;
+const qq = { searchWithType: async (...args) => { calls.push(args); return qqResponse; }, catalogRequest: async (...args) => { calls.push(args); return qqResponse; } };
+const netease = { request: async (...args) => { calls.push(args); return neteaseResponse; } };
+const spotify = { request: async (...args) => { calls.push(args); return spotifyResponse(args[0]); } };
+const modules = { './musicPlatforms': { netease, spotify }, './qqMusicService': { qqMusicService: qq } };
+function load(file) {
+  const exports = {};
+  vm.runInNewContext(ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS } }).outputText, { exports, require: name => { if (!(name in modules)) throw Error(name); return modules[name]; }, URLSearchParams, Date });
+  return exports;
+}
+const songs = modules['./platformSongs'] = load('src/app/services/platformSongs.ts');
+const catalog = load('src/app/services/catalog.ts');
+(async () => {
+  qqResponse = { response: { data: { album: { list: [{ albummid: 'album1', albumname: 'Album', singername: 'Artist' }], totalnum: 22 } } } };
+  const albums = await catalog.searchCatalog('qq', 'albums', 'query', 10, 2);
+  assert.equal(albums.items[0].id, 'album1'); assert.equal(albums.total, 22); assert.equal(calls.at(-1)[2], 'albums'); assert.equal(calls.at(-1)[3], 2);
+  qqResponse = { response: { data: { singer: { list: [{ singermid: 'artist1', singername: 'Artist' }], totalnum: 1 } } } };
+  assert.equal((await catalog.searchCatalog('qq', 'artists', 'query', 10, 1)).items[0].kind, 'artists');
+  const album = albums.items[0];
+  qqResponse = { response: { data: { aDate: '2026-01-01', total_song_num: 1, list: [{ mid: 'song1', title: 'Song', singer: [{ name: 'Artist', mid: 'artist1' }], album: { mid: 'album1', name: 'Album' }, interval: 180 }] } } };
+  const detail = await catalog.getCatalogDetail(album);
+  assert.equal(detail.songs[0].songname, 'Song'); assert.equal(detail.songs[0].duration, 180); assert.equal(detail.item.date, '2026-01-01');
+  assert.equal(catalog.songEntity(detail.songs[0], 'albums').id, 'album1'); assert.equal(catalog.songEntity(detail.songs[0], 'artists').id, 'artist1');
+  qqResponse.response.data.total_song_num = 2;
+  await assert.rejects(() => catalog.getCatalogDetail(album), /不完整/);
+  await assert.rejects(() => catalog.getCatalogDetail({ ...album, id: '' }), /平台标识/);
+  neteaseResponse = { items: [{ id: 7, name: 'Artist', picUrl: 'https://fixture.invalid/artist.jpg' }], total: 1 };
+  const artists = await catalog.searchCatalog('netease', 'artists', 'query', 20, 3);
+  assert.equal(artists.items[0].id, '7'); assert.equal(calls.at(-1)[1].offset, 40);
+  neteaseResponse = { metadata: { title: 'Artist' }, songs: [{ id: 9, name: 'Song', al: { id: 10, name: 'Album' }, ar: [{ id: 7, name: 'Artist' }], dt: 180000 }], hasMore: false };
+  const artistDetail = await catalog.getCatalogDetail(artists.items[0]);
+  assert.equal(artistDetail.songs[0].songmid, 'netease:9'); assert.equal(artistDetail.songs[0].albumId, '10');
+  spotifyResponse = url => url.startsWith('/search') ? { albums: { items: [{ id: 'sp-album', name: 'Album', artists: [{ id: 'sp-artist', name: 'Artist' }] }], total: 1 } } : url.includes('/tracks') ? { items: [{ id: 'sp-song', name: 'Song', artists: [{ id: 'sp-artist', name: 'Artist' }], duration_ms: 180000 }], next: null } : { id: 'sp-album', name: 'Album', artists: [{ id: 'sp-artist', name: 'Artist' }], images: [], total_tracks: 1 };
+  const spAlbums = await catalog.searchCatalog('spotify', 'albums', 'query', 10, 1);
+  const spDetail = await catalog.getCatalogDetail(spAlbums.items[0]);
+  assert.equal(spDetail.songs[0].uri, 'spotify:track:sp-song'); assert.equal(spDetail.songs[0].albumId, 'sp-album');
+  assert.equal(catalog.songEntity(spDetail.songs[0], 'albums').id, 'sp-album');
+  console.log('PASS QQ/网易云/Spotify: typed search, pagination, album and artist identity, normalized songs, incomplete album rejection');
+})().catch(error => { console.error(error); process.exitCode = 1; });

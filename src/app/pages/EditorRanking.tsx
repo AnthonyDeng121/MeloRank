@@ -100,7 +100,7 @@ export function EditorRanking({ kind }: { kind: 'songs' | 'albums' }) {
               <div className="user-rank-artist">{item.artist}</div>
               {item.review && <div className="user-rank-review">{item.review}</div>}
             </div>
-            <button className="play-btn" disabled={!!playingId} aria-label={`${isCurrent(item) && isPlaying ? '暂停' : '播放'} ${item.title}`} onClick={() => play(item)}>
+            <button className="play-btn" disabled={!!playingId} data-disabled-reason={'正在准备音源，请等待当前请求完成'} aria-label={`${isCurrent(item) && isPlaying ? '暂停' : '播放'} ${item.title}`} onClick={() => play(item)}>
               {playingId === item.id ? '…' : isCurrent(item) && isPlaying ? '⏸️' : '▶️'}
             </button>
           </div>

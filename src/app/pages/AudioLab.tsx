@@ -289,14 +289,14 @@ export function AudioLab() {
         <h3>从歌曲开始制作</h3>
         <form onSubmit={e => { e.preventDefault(); searchSongs(); }}>
           <input aria-label="搜索制作音源" placeholder="搜索歌曲或歌手" value={query} onChange={e => setQuery(e.target.value)} />
-          <button disabled={busy || !query.trim()}>搜索</button>
-          {currentSong && <button type="button" disabled={busy} onClick={() => importSong(currentSong)}>使用当前播放歌曲</button>}
+          <button disabled={busy || !query.trim()} data-disabled-reason={!query.trim() ? '请先输入搜索关键词' : '正在搜索或导入音频，请稍候'}>搜索</button>
+          {currentSong && <button type="button" disabled={busy} data-disabled-reason={'正在读取或处理数据，请稍候'} onClick={() => importSong(currentSong)}>使用当前播放歌曲</button>}
         </form>
         {busy && <p role="status">正在加载音源…</p>}
         {sourceError && <p role="alert">{sourceError}</p>}
         {songs.map(song => <div className="lab-song-result" key={song.songmid}>
           <span>{song.songname} · {song.singer?.map((s: any) => s.name).join(', ')}</span>
-          <button disabled={busy} onClick={() => importSong(song)}>选择制作</button>
+          <button disabled={busy} data-disabled-reason={'正在读取或处理数据，请稍候'} onClick={() => importSong(song)}>选择制作</button>
         </div>)}
         {audioFile && <p>当前素材：{audioFile.name}</p>}
       </section>
@@ -347,7 +347,7 @@ export function AudioLab() {
               {/* 音频进度条 */}
               <div className="player-progress-section">
                 <div className="player-controls">
-                  <button className="play-btn" onClick={togglePlay} disabled={processing || !previewUrl}>
+                  <button className="play-btn" onClick={togglePlay} disabled={processing || !previewUrl} data-disabled-reason={processing ? '正在处理音频，请稍候' : '请先导入音频并生成预览'}>
                     {isPlaying ? '⏸️' : '▶️'}
                   </button>
                   <div className="time-display">
@@ -416,7 +416,7 @@ export function AudioLab() {
             <div className="control-group">
               <h3>音频片段</h3>
               <p className="lab-selection-summary">{trim ? `${formatTime(trim[0])} — ${formatTime(trim[1])}` : '保留完整音频'}</p>
-              <button className="lab-trim-open" onClick={() => { audioRef.current?.pause(); setTrimOpen(true); }} disabled={!original}>修剪音频</button>
+              <button className="lab-trim-open" onClick={() => { audioRef.current?.pause(); setTrimOpen(true); }} disabled={!original} data-disabled-reason={'请先导入音频'}>修剪音频</button>
             </div>
             <div className="control-group">
               <div className="lab-control-heading"><h3>播放速度</h3><output>{playbackRate.toFixed(2).replace(/0$/, '')}×</output></div>
@@ -452,12 +452,12 @@ export function AudioLab() {
 
           <div className="save-section">
             <label className="export-format" htmlFor="audio-export-format">导出格式
-              <select id="audio-export-format" value={exportFormat} disabled={exporting} onChange={e => setExportFormat(e.target.value as 'mp3' | 'wav')}>
+              <select id="audio-export-format" value={exportFormat} disabled={exporting} data-disabled-reason={'正在导出音频，请等待导出完成'} onChange={e => setExportFormat(e.target.value as 'mp3' | 'wav')}>
                 <option value="mp3">MP3（192 kbps，体积更小）</option>
                 <option value="wav">WAV（无压缩，体积较大）</option>
               </select>
             </label>
-            <button className="save-project-btn" onClick={saveAudio} disabled={exporting || processing || !previewUrl}>{exporting ? '正在导出…' : '保存音频'}</button>
+            <button className="save-project-btn" onClick={saveAudio} disabled={exporting || processing || !previewUrl} data-disabled-reason={!previewUrl ? '请先导入音频并生成预览' : '正在处理或导出音频，请稍候'}>{exporting ? '正在导出…' : '保存音频'}</button>
           </div>
         </>
       )}

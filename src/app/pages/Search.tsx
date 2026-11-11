@@ -1,3 +1,4 @@
+import { searchCatalog, type CatalogItem } from '../services/catalog';
 import { usePlatformAccounts, platformNames } from '../contexts/PlatformAccountsContext';
 import { toast } from 'sonner';
 import { searchPlatform, songCover } from '../services/platformSongs';
@@ -9,7 +10,7 @@ import { useSearch } from '../contexts/SearchContext';
 import { useRankingContext } from '../contexts/RankingContext';
 import '../../styles/Search.css';
 
-export function Search() {
+export function Search({ onOpenCatalog }: { onOpenCatalog: (item: CatalogItem) => void }) {
   const { activeProvider } = usePlatformAccounts();
   const { setCurrentSong, addSongToQueue } = useMusic();
   const {
@@ -73,7 +74,7 @@ export function Search() {
   const totalScore = ratings.lyrics + ratings.composition + ratings.arrangement + ratings.singing + ratings.innovation + ratings.preference;
 
   // 执行搜索 - 使用useCallback优化，避免无限循环
-  const handleSearch = useCallback(async (page: number = 1, query: string = searchQuery) => {
+  const handleSearch = useCallback(async (page: number = 1, query: string = searchQuery, kind: 'songs' | 'albums' | 'artists' = activeTab) => {
     if (!query.trim()) return;
     const id = ++requestId.current;
     setSubmittedQuery(query.trim());
@@ -82,8 +83,8 @@ export function Search() {
     setLoading(true);
     try {
       console.log('开始搜索:', searchQuery, '页码:', page);
-      // 只搜索歌曲类型
-      const searchResponse = await searchPlatform(activeProvider, query.trim(), pageSize, page);
+      // 使用本次请求的类型，避免切换标签时读取旧状态。
+      const searchResponse = kind === 'songs' ? await searchPlatform(activeProvider, query.trim(), pageSize, page) : await searchCatalog(activeProvider, kind, query.trim(), pageSize, page);
       console.log('搜索响应:', searchResponse);
       
       // 处理API响应
@@ -94,10 +95,12 @@ export function Search() {
       setSearchResults(searchResultsData);
       setCurrentPage(page);
       
-      // 设置总结果数（只处理歌曲）
+      // 按结果类型读取总数。
       const responseData = searchResultsData.response || searchResultsData;
       const actualData = responseData.data || responseData;
-      if (actualData.song?.totalnum) {
+      if (kind !== 'songs') {
+        setTotalResults(searchResultsData.total);
+      } else if (actualData.song?.totalnum) {
         setTotalResults(actualData.song.totalnum);
       } else if (actualData.song?.list) {
         setTotalResults(actualData.song.list.length);
@@ -114,7 +117,7 @@ export function Search() {
     } finally {
       if (id === requestId.current) setLoading(false);
     }
-  }, [searchQuery, pageSize, activeProvider]);
+  }, [searchQuery, pageSize, activeProvider, activeTab]);
 
   const debouncedSearch = (page = 1) => handleSearch(page, page === 1 ? searchQuery : submittedQuery);
 
@@ -131,11 +134,15 @@ export function Search() {
   };
 
   // 处理标签页切换
-  const handleTabChange = (tab: 'songs') => {
+  const handleTabChange = (tab: 'songs' | 'albums' | 'artists') => {
+    requestId.current++;
     setActiveTab(tab);
+    setSearchResults(null);
+    setTotalResults(0);
+    setLoading(false);
     setCurrentPage(1); // 切换标签页时重置到第一页
     if (searchQuery.trim()) {
-      debouncedSearch(1); // 如果有搜索内容，重新搜索
+      void handleSearch(1, submittedQuery || searchQuery, tab);
     }
   };
   
@@ -322,7 +329,7 @@ export function Search() {
       return <div className="no-results">没有找到相关结果</div>;
     }
 
-    console.log('渲染搜索结果，当前searchResults:', searchResults);
+    if (activeTab !== 'songs') return searchResults.items?.length ? searchResults.items.map((item: CatalogItem) => <button key={`${item.provider}:${item.id}`} className="catalog-search-result" onClick={() => onOpenCatalog(item)}>{item.image && <img src={item.image} alt="" />}<span><strong>{item.title}</strong><small>{item.artist || (item.kind === 'artists' ? '歌手' : '专辑')}{item.date && ` · ${item.date}`}</small></span><span>查看{activeTab === 'albums' ? '专辑' : '歌手'} →</span></button>) : <div className="no-results">没有找到相关结果</div>;
 
     // 处理qq-music-api返回的搜索结果格式
     let songList: any[] = [];
@@ -391,7 +398,7 @@ export function Search() {
                 className="action-btn" 
                 onClick={() => openCommentModal(song)}
               >
-                评论
+                加入年度榜单
               </button>
             </div>
           </div>
@@ -439,6 +446,8 @@ export function Search() {
       </div>
 
       <div className="search-tabs">
+        <button className={`tab ${activeTab === 'albums' ? 'active' : ''}`} onClick={() => handleTabChange('albums')}>专辑</button>
+        <button className={`tab ${activeTab === 'artists' ? 'active' : ''}`} onClick={() => handleTabChange('artists')}>歌手</button>
         <button
           className={`tab ${activeTab === 'songs' ? 'active' : ''}`}
           onClick={() => handleTabChange('songs')}
@@ -460,7 +469,8 @@ export function Search() {
               let actualResultsCount = 0;
               
               // 只计算歌曲结果数量
-              if (actualData.song?.list) {
+              if (activeTab !== 'songs') { actualResultsCount = searchResults.items?.length || 0; }
+              else if (actualData.song?.list) {
                 actualResultsCount = actualData.song.list.length;
               }
               
@@ -505,7 +515,7 @@ export function Search() {
                   <div className="pagination-controls">
                     <button
                       className="page-btn"
-                      disabled={currentPage === 1}
+                      disabled={currentPage === 1} data-disabled-reason="已经是第一页"
                       onClick={() => handlePageChange(currentPage - 1)}
                     >
                       上一页
@@ -529,7 +539,7 @@ export function Search() {
                     
                     <button
                       className="page-btn"
-                      disabled={currentPage === finalTotalPages}
+                      disabled={currentPage === finalTotalPages} data-disabled-reason="已经是最后一页"
                       onClick={() => handlePageChange(currentPage + 1)}
                     >
                       下一页
@@ -547,7 +557,7 @@ export function Search() {
         <div className="modal-overlay">
           <div className="comment-modal">
             <div className="modal-header">
-              <h3>快速评论</h3>
+              <h3>年度榜单评分</h3>
               <button 
                 className="close-btn" 
                 onClick={() => setShowCommentModal(false)}
@@ -733,11 +743,11 @@ export function Search() {
                   className="search-submit-review-btn"
                   onClick={handleSubmitReview}
                 >
-                  提交评论
+                  加入年度榜单
                 </button>
                 {showSubmitSuccess && (
                   <div className="search-submit-success-toast">
-                    评论提交成功！
+                    已加入年度榜单！
                   </div>
                 )}
               </div>

@@ -4,7 +4,7 @@
 .music-library-page header p { color: #9298aa; font-size: 14px; margin: 0; line-height: 1.7; }
 .music-library-page button, .music-library-page a { font-family: inherit; font-size: 14px; line-height: 20px; }
 .music-library-page button { background: #272a34; border: 1px solid #3a4051; border-radius: 9px; color: #d7def4; padding: 9px 16px; cursor: pointer; }
-.music-library-page button:disabled { opacity: .5; cursor: wait; }
+.music-library-page button:disabled { opacity: .5; cursor: not-allowed; }
 .music-library-page button:hover:not(:disabled) { border-color: #8899f8; }
 .library-account { display: flex; align-items: center; gap: 16px; font-size: 14px; }
 .library-providers { display: flex; gap: 8px; margin-bottom: 26px; border-bottom: 1px solid #303441; padding-bottom: 18px; }

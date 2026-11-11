@@ -1,3 +1,6 @@
+import { DisabledFeedback } from './components/DisabledFeedback';
+import type { CatalogItem } from './services/catalog';
+import '../styles/MusicExperience.css';
 import { PlatformAccountsProvider } from './contexts/PlatformAccountsContext';
 import { Toaster } from 'sonner';
 import React, { useState } from 'react';
@@ -20,6 +23,8 @@ import '../styles/App.css';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState(() => /[?&](code|connectSpotify|error)=/.test(location.search) ? 'music-library' : 'home');
+  const [catalogSelection, setCatalogSelection] = useState<CatalogItem | null>(null);
+  const openCatalog = (item: CatalogItem) => { setCatalogSelection(item); navigate('player'); };
   const [pageHistory, setPageHistory] = useState<string[]>([]);
   const navigate = (page: string) => {
     if (page === currentPage) return;
@@ -38,9 +43,9 @@ export default function App() {
       case 'home':
         return <Home onNavigate={navigate} />;
       case 'search':
-        return <Search />;
+        return <Search onOpenCatalog={openCatalog} />;
       case 'player':
-        return <Player />;
+        return <Player selection={catalogSelection} onSelectionChange={setCatalogSelection} />;
       case 'yearly-ranking':
         return <YearlyRanking pageType="yearly-ranking" />;
       case 'yearly-songs':
@@ -70,13 +75,13 @@ export default function App() {
             onNavigate={navigate}
             onTogglePlayQueue={() => setIsPlayQueueVisible(!isPlayQueueVisible)}
           />
-          <main className="main-content">
+          <DisabledFeedback /><main className={`main-content ${currentPage === 'player' ? 'compact-player-content' : ''}`}>
             {['yearly-songs', 'yearly-albums', 'artist-recommendations'].includes(currentPage) && (
               <button className="page-back-button" onClick={goBack} aria-label="返回" title="返回">{'<'}</button>
             )}
             {renderPage()}
           </main>
-          <MiniPlayer />
+          {currentPage !== 'player' && <MiniPlayer />}
           <PlayQueue 
             isVisible={isPlayQueueVisible} 
             onClose={() => setIsPlayQueueVisible(false)} 

@@ -1,3 +1,4 @@
+import { Modal } from '../components/Modal';
 import { usePlatformAccounts } from '../contexts/PlatformAccountsContext';
 import { searchPlatform } from '../services/platformSongs';
 import React, { useState, useRef, useCallback, useEffect } from "react";
@@ -51,6 +52,7 @@ export function YearlyRanking({
   const [coverPreview, setCoverPreview] = useState<string>("");
 
   // 添加编辑状态管理
+  const [showExportDialog, setShowExportDialog] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<
@@ -1362,7 +1364,7 @@ export function YearlyRanking({
                 step="0.01"
                 placeholder="0-100"
                 autoComplete="off"
-                disabled={scoringMode === "non-scoring"}
+                disabled={scoringMode === "non-scoring"} data-disabled-reason="当前模式下无法评分，请切换到评分模式"
               />
             </div>
             <div className="form-group">
@@ -1378,14 +1380,14 @@ export function YearlyRanking({
                     placeholder="0-2"
                     readOnly={!0}
                     ref={integrityRef}
-                    disabled={scoringMode === "non-scoring"}
+                    disabled={scoringMode === "non-scoring"} data-disabled-reason="当前模式下无法评分，请切换到评分模式"
                   />
                   <div className="arrow-controls">
                     <button
                       type="button"
                       className="arrow-btn arrow-up"
                       onClick={() => adjustScore(integrityRef, !0)}
-                      disabled={scoringMode === "non-scoring"}
+                      disabled={scoringMode === "non-scoring"} data-disabled-reason="当前模式下无法评分，请切换到评分模式"
                     >
                       {"▲"}
                     </button>
@@ -1393,7 +1395,7 @@ export function YearlyRanking({
                       type="button"
                       className="arrow-btn arrow-down"
                       onClick={() => adjustScore(integrityRef, !1)}
-                      disabled={scoringMode === "non-scoring"}
+                      disabled={scoringMode === "non-scoring"} data-disabled-reason="当前模式下无法评分，请切换到评分模式"
                     >
                       {"▼"}
                     </button>
@@ -1414,14 +1416,14 @@ export function YearlyRanking({
                     placeholder="0-2"
                     readOnly={!0}
                     ref={durabilityRef}
-                    disabled={scoringMode === "non-scoring"}
+                    disabled={scoringMode === "non-scoring"} data-disabled-reason="当前模式下无法评分，请切换到评分模式"
                   />
                   <div className="arrow-controls">
                     <button
                       type="button"
                       className="arrow-btn arrow-up"
                       onClick={() => adjustScore(durabilityRef, !0)}
-                      disabled={scoringMode === "non-scoring"}
+                      disabled={scoringMode === "non-scoring"} data-disabled-reason="当前模式下无法评分，请切换到评分模式"
                     >
                       {"▲"}
                     </button>
@@ -1429,7 +1431,7 @@ export function YearlyRanking({
                       type="button"
                       className="arrow-btn arrow-down"
                       onClick={() => adjustScore(durabilityRef, !1)}
-                      disabled={scoringMode === "non-scoring"}
+                      disabled={scoringMode === "non-scoring"} data-disabled-reason="当前模式下无法评分，请切换到评分模式"
                     >
                       {"▼"}
                     </button>
@@ -1466,30 +1468,26 @@ export function YearlyRanking({
               <button
                 className="export-btn"
                 onClick={handleSaveClick}
-                disabled={isSaving}
+                disabled={isSaving} data-disabled-reason={'正在保存榜单，请等待保存完成'}
               >
                 {isSaving ? "保存中..." : "保存榜单"}
               </button>
               <button
                 className="export-btn"
                 onClick={handleSaveAsClick}
-                disabled={isSaving}
+                disabled={isSaving} data-disabled-reason={'正在保存榜单，请等待保存完成'}
               >
                 {isSaving ? "保存中..." : "另存为"}
               </button>
               <button
                 className="export-btn"
                 onClick={fetchHistoryRankings}
-                disabled={isSaving}
+                disabled={isSaving} data-disabled-reason={'正在保存榜单，请等待保存完成'}
               >
                 {"历史榜单记录"}
               </button>
-              <button className="export-btn" disabled={isExporting || coverProgress.loading} onClick={() => exportRanking('docx')}>
-                {"导出 DOCX"}
-              </button>
-              <button className="export-btn" disabled={isExporting || coverProgress.loading} onClick={() => exportRanking('pdf')}>导出 PDF</button>
-              <button className="export-btn" disabled={isExporting || coverProgress.loading} onClick={() => exportRanking('long-image')}>导出长图片</button>
-              <button className="export-btn" disabled={isExporting || coverProgress.loading} onClick={() => exportRanking('pages')}>导出每页图片</button>
+              <button className="export-btn" disabled={isExporting || coverProgress.loading} data-disabled-reason={isExporting ? '正在导出，请等待当前任务完成' : '正在匹配封面，请完成后再导出'} onClick={() => setShowExportDialog(true)}>导出</button>
+              {showExportDialog && <Modal title="导出榜单" onClose={() => setShowExportDialog(false)}><p className="muted">选择导出形式</p><div className="export-format-grid">{([['docx', 'Word 文档', '可继续编辑的 DOCX'], ['pdf', 'PDF 文档', '适合阅读和打印'], ['long-image', '长图片', '一张图片分享完整榜单'], ['pages', '每页图片', '按页生成 PNG 图片']] as const).map(([format, label, description]) => <button key={format} onClick={() => { setShowExportDialog(false); void exportRanking(format); }}><strong>{label}</strong><small>{description}</small></button>)}</div></Modal>}
             </div>
           </div>
           {(coverProgress.total > 0 || (hasRealRanking && missingCoverItems.length > 0)) && <div className="ranking-cover-status">
@@ -1535,7 +1533,7 @@ export function YearlyRanking({
                         <button
                           className="action-btn move-btn"
                           onClick={() => moveItemUp(Ne)}
-                          disabled={je === 0}
+                          disabled={je === 0} data-disabled-reason="已经是榜单第一项"
                           title="上移"
                         >
                           {"▲"}
@@ -1543,7 +1541,7 @@ export function YearlyRanking({
                         <button
                           className="action-btn move-btn"
                           onClick={() => moveItemDown(Ne)}
-                          disabled={je === rankingList.length - 1}
+                          disabled={je === rankingList.length - 1} data-disabled-reason="已到达排序边界，无法继续移动"
                           title="下移"
                         >
                           {"▼"}
@@ -1853,7 +1851,7 @@ export function YearlyRanking({
                     step="0.01"
                     placeholder="0-100"
                     autoComplete="off"
-                    disabled={scoringMode === "non-scoring"}
+                    disabled={scoringMode === "non-scoring"} data-disabled-reason="当前模式下无法评分，请切换到评分模式"
                   />
                 </div>
                 <div className="form-group">
@@ -1869,14 +1867,14 @@ export function YearlyRanking({
                         placeholder="0-2"
                         readOnly={!0}
                         ref={integrityRef}
-                        disabled={scoringMode === "non-scoring"}
+                        disabled={scoringMode === "non-scoring"} data-disabled-reason="当前模式下无法评分，请切换到评分模式"
                       />
                       <div className="arrow-controls">
                         <button
                           type="button"
                           className="arrow-btn arrow-up"
                           onClick={() => adjustScore(integrityRef, !0)}
-                          disabled={scoringMode === "non-scoring"}
+                          disabled={scoringMode === "non-scoring"} data-disabled-reason="当前模式下无法评分，请切换到评分模式"
                         >
                           {"▲"}
                         </button>
@@ -1884,7 +1882,7 @@ export function YearlyRanking({
                           type="button"
                           className="arrow-btn arrow-down"
                           onClick={() => adjustScore(integrityRef, !1)}
-                          disabled={scoringMode === "non-scoring"}
+                          disabled={scoringMode === "non-scoring"} data-disabled-reason="当前模式下无法评分，请切换到评分模式"
                         >
                           {"▼"}
                         </button>
@@ -1905,14 +1903,14 @@ export function YearlyRanking({
                         placeholder="0-2"
                         readOnly={!0}
                         ref={durabilityRef}
-                        disabled={scoringMode === "non-scoring"}
+                        disabled={scoringMode === "non-scoring"} data-disabled-reason="当前模式下无法评分，请切换到评分模式"
                       />
                       <div className="arrow-controls">
                         <button
                           type="button"
                           className="arrow-btn arrow-up"
                           onClick={() => adjustScore(durabilityRef, !0)}
-                          disabled={scoringMode === "non-scoring"}
+                          disabled={scoringMode === "non-scoring"} data-disabled-reason="当前模式下无法评分，请切换到评分模式"
                         >
                           {"▲"}
                         </button>
@@ -1920,7 +1918,7 @@ export function YearlyRanking({
                           type="button"
                           className="arrow-btn arrow-down"
                           onClick={() => adjustScore(durabilityRef, !1)}
-                          disabled={scoringMode === "non-scoring"}
+                          disabled={scoringMode === "non-scoring"} data-disabled-reason="当前模式下无法评分，请切换到评分模式"
                         >
                           {"▼"}
                         </button>
@@ -2045,7 +2043,7 @@ export function YearlyRanking({
               <button
                 className="confirm-dialog-confirm"
                 onClick={saveRanking}
-                disabled={isSaving}
+                disabled={isSaving} data-disabled-reason={'正在保存榜单，请等待保存完成'}
               >
                 {isSaving ? "保存中..." : "保存"}
               </button>
@@ -2095,7 +2093,7 @@ export function YearlyRanking({
               <button
                 className="confirm-dialog-confirm"
                 onClick={renameHistoryRanking}
-                disabled={isSaving}
+                disabled={isSaving} data-disabled-reason={'正在保存榜单，请等待保存完成'}
               >
                 {"保存"}
               </button>

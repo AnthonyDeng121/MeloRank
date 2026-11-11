@@ -1532,4 +1532,4 @@
 .ranking-cover-status { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin:0 0 20px; }
 .ranking-cover-status .ranking-import-status { margin:0; }
 .export-buttons { flex-wrap:wrap; }
-.export-btn:disabled { opacity:.5; cursor:wait; }
+.export-btn:disabled { opacity:.5; cursor:not-allowed; }

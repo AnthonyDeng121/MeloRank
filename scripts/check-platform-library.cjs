@@ -56,6 +56,16 @@ const server = app.listen(0, '127.0.0.1', async () => {
     assert.equal(search.songs[0].id, 5);
     assert.equal(calls.at(-1).params.cookie, 'MUSIC_U=fixture');
     assert.equal(calls.at(-1).params.offset, 20);
+    assert.equal((await request('/catalog/search', { kind: 'artists', query: 'test' }, '')).status, 401);
+    assert.equal((await request('/catalog/search', { kind: 'unknown', query: 'test' })).status, 400);
+    assert.equal((await request('/catalog/search', { kind: 'albums', query: ' ' })).status, 400);
+    await request('/catalog/search', { kind: 'artists', query: 'Artist', limit: 10, offset: 20 });
+    assert.equal(calls.at(-1).params.type, 100); assert.equal(calls.at(-1).params.offset, 20);
+    await request('/catalog/search', { kind: 'albums', query: 'Album' });
+    assert.equal(calls.at(-1).params.type, 10);
+    assert.equal((await request('/catalog/detail', { kind: 'albums', id: '../invalid' })).status, 400);
+    const catalogAlbum = await (await request('/catalog/detail', { kind: 'albums', id: '4' })).json();
+    assert.equal(catalogAlbum.songs[0].id, 6); assert.equal(catalogAlbum.hasMore, false);
     const playable = await (await request('/playback', { id: '5' })).json();
     assert.equal(playable.url, 'https://music.126.net/fixture.mp3');
     assert.equal(playable.isPreview, false);

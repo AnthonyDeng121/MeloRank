@@ -9,7 +9,7 @@ const CONTENT_WIDTH = PAGE_WIDTH - 2 * MARGIN;
 const border = { style: BorderStyle.SINGLE, size: 4, color: '999999' };
 const borders = { top: border, bottom: border, left: border, right: border };
 
-export async function imageToPng(url: string): Promise<Uint8Array> {
+export async function imageToPng(url: string, strict = false): Promise<Uint8Array> {
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = 300;
   const context = canvas.getContext('2d')!;
@@ -27,10 +27,11 @@ export async function imageToPng(url: string): Promise<Uint8Array> {
     try { await draw(url); } catch {
       const host = new URL(url).hostname;
       if (!['y.qq.com', 'y.gtimg.cn'].includes(host)) throw new Error('无可用封面');
-      const base = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+      const base = import.meta.env.VITE_BACKEND_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
       await draw(`${base}/api/proxy/qqmusic/image?url=${encodeURIComponent(url)}`);
     }
   } catch {
+    if (strict) throw new Error('封面读取失败，请选择其他封面或上传本地图片');
     context.fillStyle = '#eeeeee'; context.fillRect(0, 0, 300, 300);
     context.fillStyle = '#666666'; context.font = '24px Arial'; context.textAlign = 'center';
     context.fillText('MeloRank', 150, 155);

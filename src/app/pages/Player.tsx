@@ -1,13 +1,17 @@
+import { CatalogPanel } from '../components/CatalogPanel';
+import { WorkReview } from '../components/WorkReview';
+import { songEntity, type CatalogItem } from '../services/catalog';
 import { songCover, platformLyric, platformPlayableUrl } from '../services/platformSongs';
 import { toast } from 'sonner';
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useMusic } from '../contexts/MusicContext';
-import { useRankingContext } from '../contexts/RankingContext';
 import '../../styles/Player.css';
 import { Repeat1, ListMusic, Shuffle } from 'lucide-react';
 import { parseLrc, matchLyric } from '../services/lyrics';
 
-export function Player() {
+export function Player({ selection, onSelectionChange }: { selection: CatalogItem | null; onSelectionChange: (value: CatalogItem | null) => void }) {
+  const [view, setView] = useState<'songs' | 'albums' | 'artists'>(selection?.kind || 'songs');
+  useEffect(() => { if (selection) setView(selection.kind); }, [selection]);
   const [downloading, setDownloading] = useState(false);
   const setDownloadError = (message: string) => { if (message) toast.error(message, { duration: 3000 }); };
   const [translation, setTranslation] = useState('');
@@ -40,26 +44,7 @@ export function Player() {
   // 使用音乐播放上下文
   const { currentSong, isPlaying, togglePlay, volume, setVolume, setLyrics, lyrics, currentTime, duration, seekTo, previousSong, nextSong, playMode, setPlayMode } = useMusic();
   
-  // 使用榜单上下文
-  const { rankingList, setRankingList, setRankingMode } = useRankingContext();
-  
-  // 复制成功提示状态
   const [showCopySuccess, setShowCopySuccess] = useState(false);
-  
-  // 评论表单状态管理
-  const [ratings, setRatings] = useState({
-    lyrics: 0,
-    composition: 0,
-    arrangement: 0,
-    singing: 0,
-    innovation: 0,
-    preference: 0
-  });
-  const [comment, setComment] = useState('');
-  const [showSubmitSuccess, setShowSubmitSuccess] = useState(false);
-  
-  // 计算总分
-  const totalScore = ratings.lyrics + ratings.composition + ratings.arrangement + ratings.singing + ratings.innovation + ratings.preference;
 
   // 播放模式切换
   const togglePlayMode = () => {
@@ -229,169 +214,17 @@ export function Player() {
       coverUrl: songCover(currentSong)
     }
   } : mockTrack;
-  
-  // 处理评分变化
-  const handleRatingChange = (field: keyof typeof ratings, value: number) => {
-    setRatings(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const browsingItem = view === 'songs' ? null : selection?.kind === view ? selection : currentSong ? songEntity(currentSong, view) : null;
+  const changeView = (kind: 'songs' | 'albums' | 'artists') => {
+    setView(kind);
+    if (kind === 'songs') onSelectionChange(null);
+    else if (selection?.kind !== kind && currentSong) onSelectionChange(songEntity(currentSong, kind));
   };
   
-  // 计算线性映射十分制分数的函数
-  const calculateLinearScores = (items: any[]): any[] => {
-    // 计算每个作品的百分制总分，解决浮点数精度问题
-    const itemsWithTotalScore = items.map(item => ({
-      ...item,
-      totalScore: parseFloat((item.originalScore + item.integrity + item.durability).toFixed(2))
-    }));
-    
-    // 根据总分降序排序
-    const sortedItems = [...itemsWithTotalScore].sort((a, b) => b.totalScore - a.totalScore);
-    
-    // 找出最高分和最低分
-    const scores = sortedItems.map(item => item.totalScore);
-    const maxScore = Math.max(...scores);
-    const minScore = Math.min(...scores);
-    
-    // 如果所有分数相同，直接返回10.0分（或平均分）并重新分配排名
-    if (maxScore === minScore) {
-      return sortedItems.map((item, index) => ({
-        id: item.id,
-        rank: index + 1,
-        title: item.title,
-        artist: item.artist,
-        coverUrl: item.coverUrl,
-        review: item.review,
-        originalScore: item.originalScore,
-        integrity: item.integrity,
-        durability: item.durability,
-        finalScore: 10.0,
-        totalScore: item.totalScore
-      }));
-    }
-    
-    // 线性映射到0-10分，并重新分配排名
-    return sortedItems.map((item, index) => {
-      const normalizedScore = (item.totalScore - minScore) / (maxScore - minScore) * 10;
-      return {
-        id: item.id,
-        rank: index + 1,
-        title: item.title,
-        artist: item.artist,
-        coverUrl: item.coverUrl,
-        review: item.review,
-        originalScore: item.originalScore,
-        integrity: item.integrity,
-        durability: item.durability,
-        finalScore: parseFloat(normalizedScore.toFixed(1)),
-        totalScore: item.totalScore
-      };
-    });
-  };
-
-  // 将评分数据添加到年度单曲榜单的函数
-  const addToYearlyRanking = () => {
-    if (!currentSong) return;
-    
-    // 确保切换到年度单曲榜
-    setRankingMode('年度单曲榜');
-    
-    // 创建新的榜单项目
-    const newRankingItem = {
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      rank: 1,
-      title: currentSong.songname,
-      artist: currentSong.singer.map((s: any) => s.name).join(', '),
-      coverUrl: songCover(currentSong),
-      review: comment || '没有评价的义务！',
-      originalScore: totalScore,
-      integrity: 0,
-      durability: 0,
-      finalScore: 0
-    };
-    
-    // 检查是否是样例数据（默认的3条数据）
-    const isSampleData = rankingList.length === 3 && rankingList.every(item => 
-      item.id === '1' || item.id === '2' || item.id === '3'
-    );
-    
-    let updatedList;
-    if (isSampleData) {
-      // 如果是样例数据，直接替换为新的榜单
-      updatedList = [newRankingItem];
-    } else {
-      // 检查歌曲是否已存在于榜单中
-      const existingIndex = rankingList.findIndex(item => 
-        item.title === currentSong.songname && 
-        item.artist === currentSong.singer.map((s: any) => s.name).join(', ')
-      );
-      
-      if (existingIndex >= 0) {
-        // 如果歌曲已存在，更新评分和评论
-        updatedList = [...rankingList];
-        updatedList[existingIndex] = {
-          ...updatedList[existingIndex],
-          originalScore: totalScore,
-          review: comment || '没有评价的义务！'
-        };
-      } else {
-        // 如果歌曲不存在，添加新条目
-        updatedList = [...rankingList, newRankingItem];
-      }
-    }
-    
-    // 重新计算分数和排名
-    const recalculatedList = calculateLinearScores(updatedList);
-    
-    // 更新榜单
-    setRankingList(recalculatedList);
-    
-    console.log('成功将歌曲添加到年度单曲榜单:', newRankingItem.title);
-  };
-
-  // 处理评论提交
-  const handleSubmitReview = () => {
-    if (!currentSong) return;
-    
-    // 创建评论数据（仅用于本地日志）
-    const reviewData = {
-      songId: currentSong.songmid,
-      songName: currentSong.songname,
-      artist: currentSong.singer.map((s: any) => s.name).join(', '),
-      album: currentSong.albumname,
-      coverUrl: songCover(currentSong),
-      ratings,
-      totalScore,
-      comment,
-      createdAt: new Date().toISOString()
-    };
-    
-    console.log('准备提交评论数据:', reviewData);
-    
-    // 将评分添加到年度单曲榜单
-    addToYearlyRanking();
-    
-    // 显示提交成功提示
-    setShowSubmitSuccess(true);
-    setTimeout(() => setShowSubmitSuccess(false), 2000);
-    
-    // 重置表单
-    setRatings({
-      lyrics: 0,
-      composition: 0,
-      arrangement: 0,
-      singing: 0,
-      innovation: 0,
-      preference: 0
-    });
-    setComment('');
-    
-    console.log('评论和评分已成功添加到本地年度榜单');
-  };
-
   return (
     <div className="player-page">
+      <nav className="player-view-tabs" aria-label="播放器内容">{([['songs', '歌曲'], ['albums', '专辑'], ['artists', '歌手']] as const).map(([kind, label]) => <button key={kind} aria-pressed={view === kind} disabled={kind !== 'songs' && !currentSong && selection?.kind !== kind} data-disabled-reason="请先选择歌曲，或从搜索结果打开专辑、歌手" onClick={() => changeView(kind)}>{label}</button>)}</nav>
+      {view !== 'songs' ? (browsingItem ? <CatalogPanel key={`${browsingItem.provider}:${browsingItem.id}:${view}`} item={browsingItem} /> : <p>请先选择歌曲或搜索作品</p>) : <>
       <div className="player-main">
         <div className="player-left">
           {/* QQ音乐播放器 */}
@@ -416,16 +249,16 @@ export function Player() {
               
               <div className="player-controls-row">
                 <div className="player-controls">
-                  <button className="control-btn" onClick={previousSong}>
+                  <button className="control-btn" aria-label="上一首" disabled={!currentSong} data-disabled-reason="请先选择歌曲" onClick={previousSong}>
                     ⏮
                   </button>
                   <button 
                     className={`control-btn ${isPlaying ? 'pause' : 'play'}`}
-                    onClick={togglePlay}
+                    onClick={togglePlay} aria-label={isPlaying ? '暂停' : '播放'} disabled={!currentSong} data-disabled-reason="请先选择歌曲"
                   >
                     {isPlaying ? '⏸' : '▶'}
                   </button>
-                  <button className="control-btn" onClick={nextSong}>
+                  <button className="control-btn" aria-label="下一首" disabled={!currentSong} data-disabled-reason="请先选择歌曲" onClick={nextSong}>
                     ⏭
                   </button>
                 </div>
@@ -437,7 +270,7 @@ export function Player() {
                 >
                   {playMode === 'single' ? <Repeat1 size={16} /> : playMode === 'random' ? <Shuffle size={16} /> : <ListMusic size={16} />} {getPlayModeText()}
                 </button>
-                <button className="player-action-button" onClick={downloadSong} disabled={!currentSong || downloading} title="下载当前歌曲" aria-label="下载当前歌曲">
+                <button className="player-action-button" onClick={downloadSong} disabled={!currentSong || downloading || currentSong.provider === 'spotify'} data-disabled-reason={!currentSong ? '请先选择歌曲' : currentSong.provider === 'spotify' ? 'Spotify 不提供音频文件下载' : '正在下载当前歌曲，请稍候'} title="下载当前歌曲" aria-label="下载当前歌曲">
                   {downloading ? '下载中…' : '下载'}
                 </button>
               </div>
@@ -487,14 +320,14 @@ export function Player() {
             <div className="lyrics-header">
               <h3>歌词</h3>
               <div className="lyrics-actions">
-                <button className="lyrics-btn" onClick={async () => {
+                <button className="lyrics-btn" disabled={!parsedLyrics.length} data-disabled-reason="当前歌曲暂无歌词" onClick={async () => {
                   // 提取纯歌词文本，不包含时间戳
                   const pureLyrics = parsedLyrics.map(lyric => lyric.text).join('\n');
                   await navigator.clipboard.writeText(pureLyrics);
                   setShowCopySuccess(true);
                   setTimeout(() => setShowCopySuccess(false), 1500);
                 }}>复制</button>
-                <button className="lyrics-btn" onClick={() => {
+                <button className="lyrics-btn" disabled={!parsedLyrics.length} data-disabled-reason="当前歌曲暂无歌词" onClick={() => {
                   // 提取纯歌词文本，不包含时间戳
                   const pureLyrics = parsedLyrics.map(lyric => lyric.text).join('\n');
                   const blob = new Blob([pureLyrics], { type: 'text/plain;charset=utf-8' });
@@ -544,179 +377,10 @@ export function Player() {
           </div>
 
           {/* 互换位置：Quick Review面板放在下面 */}
-          <div className="quick-review-panel">
-            <h3>快速评论</h3>
-            <div className="review-form">
-              <div className="rating-row">
-                <label>歌词</label>
-                <input 
-                  type="number" 
-                  min="0" 
-                  max="25" 
-                  placeholder="0-25" 
-                  value={ratings.lyrics === 0 ? '' : ratings.lyrics}
-                  onChange={(e) => {
-                    let value = e.target.value;
-                    // 移除前导零
-                    if (value.length > 1 && value.startsWith('0')) {
-                      value = value.replace(/^0+/, '');
-                    }
-                    // 确保是数字
-                    const numValue = parseInt(value) || 0;
-                    // 确保在范围内
-                    const clampedValue = Math.max(0, Math.min(25, numValue));
-                    handleRatingChange('lyrics', clampedValue);
-                  }}
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                />
-              </div>
-              <div className="rating-row">
-                <label>作曲</label>
-                <input 
-                  type="number" 
-                  min="0" 
-                  max="25" 
-                  placeholder="0-25" 
-                  value={ratings.composition === 0 ? '' : ratings.composition}
-                  onChange={(e) => {
-                    let value = e.target.value;
-                    // 移除前导零
-                    if (value.length > 1 && value.startsWith('0')) {
-                      value = value.replace(/^0+/, '');
-                    }
-                    // 确保是数字
-                    const numValue = parseInt(value) || 0;
-                    // 确保在范围内
-                    const clampedValue = Math.max(0, Math.min(25, numValue));
-                    handleRatingChange('composition', clampedValue);
-                  }}
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                />
-              </div>
-              <div className="rating-row">
-                <label>编曲</label>
-                <input 
-                  type="number" 
-                  min="0" 
-                  max="25" 
-                  placeholder="0-25" 
-                  value={ratings.arrangement === 0 ? '' : ratings.arrangement}
-                  onChange={(e) => {
-                    let value = e.target.value;
-                    // 移除前导零
-                    if (value.length > 1 && value.startsWith('0')) {
-                      value = value.replace(/^0+/, '');
-                    }
-                    // 确保是数字
-                    const numValue = parseInt(value) || 0;
-                    // 确保在范围内
-                    const clampedValue = Math.max(0, Math.min(25, numValue));
-                    handleRatingChange('arrangement', clampedValue);
-                  }}
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                />
-              </div>
-              <div className="rating-row">
-                <label>演唱</label>
-                <input 
-                  type="number" 
-                  min="0" 
-                  max="10" 
-                  placeholder="0-10" 
-                  value={ratings.singing === 0 ? '' : ratings.singing}
-                  onChange={(e) => {
-                    let value = e.target.value;
-                    // 移除前导零
-                    if (value.length > 1 && value.startsWith('0')) {
-                      value = value.replace(/^0+/, '');
-                    }
-                    // 确保是数字
-                    const numValue = parseInt(value) || 0;
-                    // 确保在范围内
-                    const clampedValue = Math.max(0, Math.min(10, numValue));
-                    handleRatingChange('singing', clampedValue);
-                  }}
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                />
-              </div>
-              <div className="rating-row">
-                <label>创新性</label>
-                <input 
-                  type="number" 
-                  min="0" 
-                  max="5" 
-                  placeholder="0-5" 
-                  value={ratings.innovation === 0 ? '' : ratings.innovation}
-                  onChange={(e) => {
-                    let value = e.target.value;
-                    // 移除前导零
-                    if (value.length > 1 && value.startsWith('0')) {
-                      value = value.replace(/^0+/, '');
-                    }
-                    // 确保是数字
-                    const numValue = parseInt(value) || 0;
-                    // 确保在范围内
-                    const clampedValue = Math.max(0, Math.min(5, numValue));
-                    handleRatingChange('innovation', clampedValue);
-                  }}
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                />
-              </div>
-              <div className="rating-row">
-                <label>个人喜好</label>
-                <input 
-                  type="number" 
-                  min="0" 
-                  max="10" 
-                  placeholder="0-10" 
-                  value={ratings.preference === 0 ? '' : ratings.preference}
-                  onChange={(e) => {
-                    let value = e.target.value;
-                    // 移除前导零
-                    if (value.length > 1 && value.startsWith('0')) {
-                      value = value.replace(/^0+/, '');
-                    }
-                    // 确保是数字
-                    const numValue = parseInt(value) || 0;
-                    // 确保在范围内
-                    const clampedValue = Math.max(0, Math.min(10, numValue));
-                    handleRatingChange('preference', clampedValue);
-                  }}
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                />
-              </div>
-              <div className="total-score">
-                <span>总分：</span>
-                <span className="score-value">{totalScore} / 100</span>
-              </div>
-              <textarea
-                className="review-comment"
-                placeholder="在此写下你的评论..."
-                rows={4}
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-              ></textarea>
-              <button 
-                className="submit-review-btn"
-                onClick={handleSubmitReview}
-              >
-                提交评论
-              </button>
-              {showSubmitSuccess && (
-                <div className="submit-success-toast">
-                  评论提交成功！
-                </div>
-              )}
-            </div>
-          </div>
+          <div className="quick-review-panel"><h3>个人乐评</h3>{currentSong ? <WorkReview key={currentSong.songmid} id={`${currentSong.provider || 'qq'}:song:${currentSong.songmid}`} title={currentSong.songname} artist={currentSong.singer.map(s => s.name).join(' / ')} image={songCover(currentSong)} /> : <p>选择歌曲后即可评分</p>}</div>
         </div>
       </div>
+      </>}
     </div>
   );
 }

@@ -62,17 +62,17 @@ export function RankingPlaylistExport({ items, albums, disabled }: { items: Rank
   };
   const found = plan?.filter(value => value.song).length || 0;
   return <>
-    <button className="export-btn" disabled={disabled || !items.length} onClick={() => { snapshot.current = items.map(item => ({ ...item })); setOpen(true); }}>导入平台歌单</button>
+    <button className="export-btn" disabled={disabled || !items.length} data-disabled-reason={'请先创建或导入实际榜单，再导入平台歌单'} onClick={() => { snapshot.current = items.map(item => ({ ...item })); setOpen(true); }}>导入平台歌单</button>
     {open && <div className="rank-transfer-overlay"><div ref={dialog} className="rank-transfer-dialog" role="dialog" aria-modal="true" aria-label="导入平台歌单">
       <h3>将榜单导入歌单</h3><p>追加到本人创建的歌单。已有歌曲保留位置，新增歌曲按榜单顺序排列。</p>
-      <label>音乐平台<select value={provider} disabled={writing} onChange={event => setProvider(event.target.value as WritableProvider)}><option value="qq">QQ 音乐</option><option value="netease">网易云音乐</option></select></label>
-      {!accounts[provider].connected ? <p role="alert">请先登录{platformNames[provider]}，登录后重新打开此窗口。</p> : <label>目标歌单<select value={target} disabled={loading || writing || matching} onChange={event => { setTarget(event.target.value); setPlan(null); setProgress(''); }}><option value="">{loading ? '正在读取歌单…' : '选择本人创建的歌单'}</option>{playlists.map(playlist => <option key={playlist.id} value={playlist.id}>{playlist.title}</option>)}</select></label>}
+      <label>音乐平台<select value={provider} disabled={writing} data-disabled-reason={'正在同步到音乐平台，请等待操作完成'} onChange={event => setProvider(event.target.value as WritableProvider)}><option value="qq">QQ 音乐</option><option value="netease">网易云音乐</option></select></label>
+      {!accounts[provider].connected ? <p role="alert">请先登录{platformNames[provider]}，登录后重新打开此窗口。</p> : <label>目标歌单<select value={target} disabled={loading || writing || matching} data-disabled-reason={'正在读取、匹配或同步歌单，请等待当前操作完成'} onChange={event => { setTarget(event.target.value); setPlan(null); setProgress(''); }}><option value="">{loading ? '正在读取歌单…' : '选择本人创建的歌单'}</option>{playlists.map(playlist => <option key={playlist.id} value={playlist.id}>{playlist.title}</option>)}</select></label>}
       {albums && <p>平台未提供可核实的单曲收藏量，本次选取每张专辑的第一首歌曲。</p>}
       {accounts[provider].connected && !loading && !playlists.length && <p>未找到可编辑歌单，可先在音乐平台创建普通歌单，再刷新此列表。</p>}
-      <div className="rank-transfer-actions"><button disabled={writing || matching || loading} onClick={() => setReload(value => value + 1)}>刷新歌单</button><button disabled={!target || loading || writing || matching} onClick={() => void match()}>{matching ? '匹配中…' : '匹配并预览'}</button></div>
+      <div className="rank-transfer-actions"><button disabled={writing || matching || loading} data-disabled-reason={'正在读取、匹配或同步歌单，请等待当前操作完成'} onClick={() => setReload(value => value + 1)}>刷新歌单</button><button disabled={!target || loading || writing || matching} data-disabled-reason={!target ? '请先登录平台并选择目标歌单' : '正在处理歌单，请稍候'} onClick={() => void match()}>{matching ? '匹配中…' : '匹配并预览'}</button></div>
       {progress && <p role="status">{progress}</p>}{error && <p className="rank-transfer-error" role="alert">{error}</p>}
       {plan && <><p>匹配 {found} / {plan.length} 项；只导入匹配成功的歌曲。</p><ol className="rank-transfer-preview">{plan.map((value, index) => <li key={`${value.entry.id}-${index}`}><strong>{index + 1}. {value.entry.title}</strong>{value.song ? <><span>{value.song.songname} · {value.song.singer.map(artist => artist.name).join(' / ')}</span><small>{value.song.albumname}</small></> : <span className="rank-transfer-error">{value.error}</span>}</li>)}</ol></>}
-      <div className="rank-transfer-actions"><button disabled={writing} onClick={() => setOpen(false)}>关闭</button><button className="rank-transfer-primary" disabled={!found || writing || matching || !target} onClick={() => void write()}>{writing ? '导入中…' : `确认导入 ${found} 项`}</button></div>
+      <div className="rank-transfer-actions"><button disabled={writing} data-disabled-reason={'正在同步到音乐平台，请等待操作完成'} onClick={() => setOpen(false)}>关闭</button><button className="rank-transfer-primary" disabled={!found || writing || matching || !target} data-disabled-reason={!target ? '请先选择目标歌单' : !found ? '请先匹配歌曲，至少需要一首匹配成功的歌曲' : '正在匹配或导入歌曲，请稍候'} onClick={() => void write()}>{writing ? '导入中…' : `确认导入 ${found} 项`}</button></div>
     </div></div>}
   </>;
 }

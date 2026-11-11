@@ -85,7 +85,7 @@ export const PlayQueue: React.FC<PlayQueueProps> = ({ isVisible, onClose }) => {
             <button 
               className="clear-btn" 
               onClick={clearPlayQueue}
-              disabled={playQueue.length === 0}
+              disabled={playQueue.length === 0} data-disabled-reason={'播放队列为空，请先添加歌曲'}
             >
               清空队列
             </button>

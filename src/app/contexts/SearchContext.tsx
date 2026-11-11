@@ -9,8 +9,8 @@ interface SearchContextType {
   setSearchQuery: (query: string) => void;
   searchResults: any | null;
   setSearchResults: (results: any | null) => void;
-  activeTab: 'songs';
-  setActiveTab: (tab: 'songs') => void;
+  activeTab: 'songs' | 'albums' | 'artists';
+  setActiveTab: (tab: 'songs' | 'albums' | 'artists') => void;
   currentPage: number;
   setCurrentPage: (page: number) => void;
   pageSize: number;
@@ -34,7 +34,7 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'songs'>('songs');
+  const [activeTab, setActiveTab] = useState<'songs' | 'albums' | 'artists'>('songs');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalResults, setTotalResults] = useState(0);

@@ -6,7 +6,7 @@ const assert = require('node:assert/strict');
 const ts = require('typescript');
 function compile(file, globals = {}, modules = {}) {
   const exports = {};
-  vm.runInNewContext(ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React, esModuleInterop: true } }).outputText, { exports, require: name => { if (!(name in modules)) throw Error(`Unexpected module ${name}`); return modules[name]; }, crypto: require('node:crypto'), ...globals });
+  vm.runInNewContext(ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React, esModuleInterop: true } }).outputText, { exports, require: name => { if (!(name in modules)) throw Error(`Unexpected module ${name}`); return modules[name]; }, crypto: require('node:crypto'), ...globals });
   return exports;
 }
 const utils = compile('src/app/utils/playlistRanking.ts');
@@ -26,11 +26,12 @@ function harness(provider) {
   memory.set('yearlyRankings', JSON.stringify([{ id: 'keep-existing', name: 'Keep' }]));
   const { PlaylistEditor } = compile('src/app/components/PlaylistEditor.tsx', {
     window, document: { body: { style: {} }, elementFromPoint: () => ({ closest: () => ({ dataset: { playlistTrack: hovered } }) }) }, innerHeight: 800,
-    requestAnimationFrame: () => 1, cancelAnimationFrame() {}, localStorage, AbortSignal,
+    requestAnimationFrame: () => 1, cancelAnimationFrame() {}, localStorage, AbortSignal, File,
     fetch: async (_, options) => ({ ok: true, json: () => request('', JSON.parse(options.body)) }),
   }, {
     react, 'lucide-react': {}, '../utils/coverUpload': { prepareCoverUpload: async () => 'data:image/jpeg;base64,/9j/AAECAwQ=' }, '../services/musicPlatforms': { netease: { request } }, '../services/qqMusicConfig': { QQ_MUSIC_CONFIG: { baseUrl: 'https://fixture.invalid' } },
-    '../services/platformSongs': { songCover: () => '', searchPlatform: async () => ({}) }, '../contexts/RankingContext': { useRankingContext: () => ({ setPendingRanking: record => { opened = record; } }) }, '../utils/playlistRanking': utils,
+    '../services/rankingExport': { imageToPng: async (url, strict) => { assert.ok(url.startsWith('https://fixture.invalid/')); assert.equal(strict, true); return new Uint8Array([1]); } },
+    '../services/platformSongs': { songCover: song => `https://fixture.invalid/${song.albumId}.png`, searchPlatform: async () => ({}) }, '../contexts/RankingContext': { useRankingContext: () => ({ setPendingRanking: record => { opened = record; } }) }, '../utils/playlistRanking': utils,
   });
   const render = () => {
     cursor = 0; effects.length = 0;
@@ -70,6 +71,10 @@ async function run(provider) {
   assert.equal(ui.getOpened(), undefined, 'saving does not replace the active draft');
   ui.textButton('打开榜单').props.onClick(); assert.equal(ui.getOpened().id, saved[1].id); assert.equal(ui.getNavigation(), 'yearly-ranking');
   ui.textButton('编辑歌单').props.onClick(); ui.render();
+  const covers = ui.find(node => node.type === 'fieldset' && node.props.className === 'playlist-album-covers');
+  assert.equal(covers.props.children.find(node => node?.type === 'div').props.children.length, 2, 'album cover choices are deduplicated');
+  await ui.byLabel('使用 Album 0 的专辑封面').props.onClick(); await ui.settle();
+  assert.equal(ui.find(node => node.type === 'img' && node.props.className === 'playlist-upload-preview').props.src, 'data:image/jpeg;base64,/9j/AAECAwQ=');
   await ui.find(node => node.type === 'input' && node.props.type === 'file').props.onChange({ target: { files: [{}], value: 'fixture.jpg' } }); ui.render();
   assert.equal(ui.find(node => node.type === 'img' && node.props.className === 'playlist-upload-preview').props.src, 'data:image/jpeg;base64,/9j/AAECAwQ=');
   ui.byLabel('编辑歌单').props.onSubmit({ preventDefault() {} }); await ui.settle();

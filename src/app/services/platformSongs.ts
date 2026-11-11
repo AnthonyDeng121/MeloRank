@@ -15,7 +15,7 @@ export function neteaseSong(value: any): PlatformSong {
 export function spotifySong(value: any): PlatformSong {
   return { provider: 'spotify', providerId: value.id, uri: value.uri || `spotify:track:${value.id}`, songmid: `spotify:${value.id}`, songname: value.name,
     singer: (value.artists || []).map((artist: any) => ({ name: artist.name, mid: artist.id || '' })), albumname: value.album?.name || '', albummid: '',
-    coverUrl: value.album?.images?.[0]?.url, duration: (value.duration_ms || 0) / 1000 };
+    albumId: value.album?.id || '', coverUrl: value.album?.images?.[0]?.url, duration: (value.duration_ms || 0) / 1000 };
 }
 export const songCover = (song: { coverUrl?: string; albummid?: string }) => (song.coverUrl || (song.albummid ? `https://y.qq.com/music/photo_new/T002R300x300M000${song.albummid}.jpg` : '')).replace(/^http:/, 'https:');
 export async function searchPlatform(provider: MusicProvider, query: string, limit: number, page: number) {

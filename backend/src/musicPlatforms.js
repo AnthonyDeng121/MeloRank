@@ -63,6 +63,26 @@ function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicap
     const data = await call('cloudsearch', { cookie, keywords, type: 10, limit: 20 });
     res.json({ albums: data.result?.albums || [] });
   }));
+  router.post('/catalog/search', wrap(async (req, res) => {
+    const cookie = auth(req), { kind } = req.body;
+    if (!['albums', 'artists'].includes(kind)) return res.status(400).json({ error: '无效的搜索类型' });
+    const keywords = String(req.body.query || '').trim().slice(0, 200);
+    if (!keywords) return res.status(400).json({ error: '请输入搜索关键词' });
+    const limit = Math.min(50, Math.max(1, Number(req.body.limit) || 10)), offset = Math.max(0, Number(req.body.offset) || 0);
+    const data = await call('cloudsearch', { cookie, keywords, type: kind === 'albums' ? 10 : 100, limit, offset });
+    res.json({ items: data.result?.[kind] || [], total: data.result?.[kind === 'albums' ? 'albumCount' : 'artistCount'] || 0 });
+  }));
+  router.post('/catalog/detail', wrap(async (req, res) => {
+    const cookie = auth(req), id = songId(req), { kind } = req.body;
+    if (!['albums', 'artists'].includes(kind)) return res.status(400).json({ error: '无效的作品类型' });
+    const album = kind === 'albums', offset = Math.max(0, Number(req.body.offset) || 0);
+    const data = await call(album ? 'album' : 'artists', { cookie, id });
+    const info = album ? data.album || {} : data.artist || {};
+    const songs = album ? (data.songs || []).slice(offset, offset + 50) : data.hotSongs || [];
+    res.json({ metadata: { title: info.name, image: info.picUrl || info.img1v1Url, description: info.description || info.briefDesc || '',
+      date: info.publishTime ? new Date(info.publishTime).toISOString().slice(0, 10) : '', total: album ? (data.songs || []).length : info.musicSize },
+      songs, hasMore: album && offset + songs.length < (data.songs || []).length });
+  }));
   router.post('/playback', wrap(async (req, res) => {
     const cookie = auth(req), id = songId(req);
     const data = await call('song_url', { cookie, id, br: 320000 });

@@ -337,6 +337,10 @@ class QQMusicService {
   }
 
   // 获取歌曲详情
+  async catalogRequest(endpoint: '/getAlbumInfo' | '/getSingerHotsong', params: Record<string, unknown>): Promise<any> {
+    return this.request(endpoint, params);
+  }
+
   async getSuggestions(key: string): Promise<string[]> {
     const result = await this.request('/getSmartbox', { key });
     const response = (result.body || result).response || result;

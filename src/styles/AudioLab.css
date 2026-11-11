@@ -485,4 +485,4 @@
 .save-section { display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:16px; }
 .export-format { display:flex; align-items:center; gap:12px; color:#ddd; font-size:15px; }
 .export-format select { max-width:100%; padding:12px; border:1px solid #555; border-radius:10px; background:#252525; color:#fff; font:inherit; }
-.save-project-btn:disabled { opacity:.5; cursor:wait; transform:none; }
+.save-project-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
