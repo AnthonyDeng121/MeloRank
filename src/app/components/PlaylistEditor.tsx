@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Play, Pause, Menu, Pencil, Trash2, Plus, Search, ListOrdered, RefreshCw, X } from 'lucide-react';
+import { Play, Pause, Menu, Pencil, Plus, Search, ListOrdered, RefreshCw, X } from 'lucide-react';
 import { netease, type LibraryItem, type MusicProvider } from '../services/musicPlatforms';
 import { QQ_MUSIC_CONFIG } from '../services/qqMusicConfig';
-import { searchPlatform, songCover, type PlatformSong } from '../services/platformSongs';
+import { searchPlatform, type PlatformSong } from '../services/platformSongs';
 import { useRankingContext, type SavedRanking } from '../contexts/RankingContext';
+import { prepareCoverUpload } from '../utils/coverUpload';
 import { buildPlaylistRanking, reorderPlaylist } from '../utils/playlistRanking';
 
 interface Props {
@@ -18,9 +19,9 @@ export function PlaylistEditor({ provider, playlist, tracks, ready, saving, setS
   const [query, setQuery] = useState(''), [addQuery, setAddQuery] = useState('');
   const [adding, setAdding] = useState(false), [results, setResults] = useState<PlatformSong[]>([]), [searching, setSearching] = useState(false);
   const [message, setMessage] = useState(''), [error, setError] = useState('');
-  const [remove, setRemove] = useState<LibraryItem | null>(null), [menu, setMenu] = useState<string | null>(null);
   const [dialog, setDialog] = useState<'metadata' | 'ranking' | null>(null);
-  const [name, setName] = useState(playlist.title), [coverTrackId, setCoverTrackId] = useState('');
+  const [name, setName] = useState(playlist.title), [coverData, setCoverData] = useState('');
+  const [uploading, setUploading] = useState(false);
   const [rankingKind, setRankingKind] = useState<'songs' | 'albums'>('songs'), [scoringMode, setScoringMode] = useState<'scoring' | 'non-scoring'>('scoring');
   const [rankingName, setRankingName] = useState(playlist.title), [year, setYear] = useState(new Date().getFullYear());
   const [savedRanking, setSavedRanking] = useState<SavedRanking | null>(null);
@@ -30,16 +31,25 @@ export function PlaylistEditor({ provider, playlist, tracks, ready, saving, setS
   const previewRef = useRef<LibraryItem[]>([]), pointer = useRef({ x: 0, y: 0 });
   const mounted = useRef(true), pending = useRef(false), searchVersion = useRef(0);
   const dialogRef = useRef<HTMLElement | null>(null);
+  const coverTask = useRef(0);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; searchVersion.current++; drag.current = null; }; }, []);
+  useEffect(() => { if (dialog !== 'metadata') { coverTask.current++; setUploading(false); } }, [dialog]);
   const disabled = saving || !ready;
+  const selectCover = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]; event.target.value = ''; if (!file) return;
+    const task = ++coverTask.current; setUploading(true); setError('');
+    try { const data = await prepareCoverUpload(file); if (mounted.current && task === coverTask.current) setCoverData(data); }
+    catch (reason) { if (mounted.current && task === coverTask.current) setError((reason as Error).message); }
+    finally { if (mounted.current && task === coverTask.current) setUploading(false); }
+  };
   useEffect(() => {
-    if (!dialog && !remove) return;
+    if (!dialog) return;
     const root = dialogRef.current; if (!root) return;
     const previous = document.activeElement as HTMLElement | null, overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     root.querySelector<HTMLElement>('input, button')?.focus();
     const keydown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !saving) { setDialog(null); setRemove(null); }
+      if (event.key === 'Escape' && !saving) { setDialog(null);  }
       if (event.key !== 'Tab') return;
       const elements = [...root.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled)')];
       const first = elements[0], last = elements[elements.length - 1];
@@ -48,10 +58,10 @@ export function PlaylistEditor({ provider, playlist, tracks, ready, saving, setS
     };
     root.addEventListener('keydown', keydown);
     return () => { document.body.style.overflow = overflow; root.removeEventListener('keydown', keydown); previous?.focus(); };
-  }, [dialog, remove, saving]);
+  }, [dialog, saving]);
   const mutate = async (action: 'add' | 'remove' | 'reorder' | 'metadata', extra: Record<string, unknown>) => {
-    if (disabled || pending.current) return;
-    pending.current = true; setSaving(true); setError(''); setMessage(''); setRemove(null); setMenu(null);
+    if (disabled || pending.current || action === 'metadata' && uploading) return;
+    pending.current = true; setSaving(true); setError(''); setMessage('');
     const body = { id: playlist.id, action, baseIds: tracks.map(track => track.id), ...extra };
     let metadata: { title: string; image?: string } | undefined;
     try {
@@ -85,7 +95,7 @@ export function PlaylistEditor({ provider, playlist, tracks, ready, saving, setS
   const startDrag = (id: string, pointerId?: number) => {
     if (disabled || query.trim() || drag.current) return;
     drag.current = { id, pointerId, before: tracks.map(track => track.id) };
-    previewRef.current = [...tracks]; setPreview([...tracks]); setDragId(id); setMenu(null);
+    previewRef.current = [...tracks]; setPreview([...tracks]); setDragId(id);
   };
   const hover = () => {
     if (!drag.current || drag.current.pointerId === undefined) return;
@@ -132,8 +142,6 @@ export function PlaylistEditor({ provider, playlist, tracks, ready, saving, setS
     } catch (reason) { setError((reason as Error).message); }
   };
   const list = (preview || tracks).filter(track => [track.title, track.subtitle, asSong(track)?.albumname].filter(Boolean).join(' ').toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
-  const seenCovers = new Set<string>();
-  const covers = tracks.filter(track => { const image = asSong(track) && songCover(asSong(track)!); if (!image || seenCovers.has(image)) return false; seenCovers.add(image); return true; });
   const dragKeys = (event: React.KeyboardEvent, id: string) => {
     if (event.key === ' ' && !drag.current) { event.preventDefault(); startDrag(id); return; }
     if (drag.current?.pointerId !== undefined || drag.current?.id !== id) return;
@@ -145,22 +153,20 @@ export function PlaylistEditor({ provider, playlist, tracks, ready, saving, setS
     else if (event.key === 'Escape') finishDrag(false);
   };
   return <section className="playlist-workspace" aria-label="平台歌单编辑">
-    <div className="playlist-toolbar"><p className="playlist-sync-note">歌单编辑结果会同步对应音乐平台</p><input className="library-search" aria-label="搜索歌单歌曲" placeholder="搜索歌曲 / 歌手 / 专辑" value={query} disabled={saving || !!dragId} onChange={event => setQuery(event.target.value)} /><button aria-label="刷新歌单" title="刷新歌单" disabled={disabled || !!dragId} onClick={() => void reload()}><RefreshCw size={16} /></button><button disabled={disabled || !!dragId} onClick={() => setAdding(!adding)}><Plus size={16} />添加歌曲</button><button disabled={disabled || !!dragId} onClick={() => { setName(playlist.title); setCoverTrackId(''); setDialog('metadata'); }}><Pencil size={16} />歌单资料</button><button disabled={disabled || !tracks.length || !!dragId} onClick={() => { setRankingName(playlist.title); setDialog('ranking'); }}><ListOrdered size={16} />保存年度榜单</button></div>
-    <div className="playlist-list-caption"><span>共 {tracks.length} 首{query && ` · 匹配 ${list.length} 首`}</span><span id="playlist-drag-help">{query.trim() ? '清空搜索后可拖拽排序' : '拖动右侧三横线排序；键盘空格选中，方向键移动，回车保存'}</span></div>
+    <div className="playlist-toolbar"><p className="playlist-sync-note">歌单编辑结果会同步对应音乐平台</p><input className="library-search" aria-label="搜索歌单歌曲" placeholder="搜索歌曲 / 歌手 / 专辑" value={query} disabled={saving || !!dragId} onChange={event => setQuery(event.target.value)} /><button aria-label="刷新歌单" title="刷新歌单" disabled={disabled || !!dragId} onClick={() => void reload()}><RefreshCw size={16} /></button><button disabled={disabled || !!dragId} onClick={() => setAdding(!adding)}><Plus size={16} />添加歌曲</button><button disabled={disabled || !!dragId} onClick={() => { setName(playlist.title); setCoverData(''); setDialog('metadata'); }}><Pencil size={16} />编辑歌单</button><button disabled={disabled || !tracks.length || !!dragId} onClick={() => { setRankingName(playlist.title); setDialog('ranking'); }}><ListOrdered size={16} />保存年度榜单</button></div>
+    <div className="playlist-list-caption"><span>共 {tracks.length} 首{query && ` · 匹配 ${list.length} 首`}</span></div>
     {saving && <p role="status">正在保存并核对平台数据…</p>}{message && <p className="playlist-status" role="status">{message}{savedRanking && onNavigate && <button onClick={() => { setPendingRanking(savedRanking); onNavigate('yearly-ranking'); }}>打开榜单</button>}</p>}{error && <p className="library-error" role="alert">{error}</p>}
-    {adding && <div className="playlist-add-panel"><form className="playlist-add-search" onSubmit={event => { event.preventDefault(); void search(); }}><label htmlFor="playlist-add-query">搜索添加</label><input id="playlist-add-query" className="library-search" value={addQuery} placeholder="搜索歌曲名或歌手" disabled={disabled} onChange={event => { setAddQuery(event.target.value); searchVersion.current++; setResults([]); setSearching(false); }} /><button disabled={disabled || searching || !addQuery.trim()}><Search size={16} />{searching ? '搜索中…' : '搜索'}</button><button type="button" aria-label="关闭添加歌曲" onClick={() => setAdding(false)}><X size={16} /></button></form>
+    {adding && <div className="playlist-add-panel"><form className="playlist-add-search" onSubmit={event => { event.preventDefault(); void search(); }}><label htmlFor="playlist-add-query">搜索添加</label><input id="playlist-add-query" className="library-search" value={addQuery} placeholder="搜索歌曲名或歌手" disabled={disabled} onChange={event => { setAddQuery(event.target.value); searchVersion.current++; setResults([]); setSearching(false); }} /><button className="playlist-search-icon" aria-label="搜索歌曲" title="搜索歌曲" disabled={disabled || searching || !addQuery.trim()}><Search size={16} /></button><button type="button" aria-label="关闭添加歌曲" onClick={() => setAdding(false)}><X size={16} /></button></form>
       {!!results.length && <ul className="playlist-add-results">{results.map(song => { const id = provider === 'qq' ? song.songmid : song.providerId!; const exists = tracks.some(track => track.id === id); return <li key={id}><div><span>{song.songname}</span><small>{song.singer?.map(artist => artist.name).join(' / ')}</small></div><button disabled={disabled || exists} onClick={() => void mutate('add', { trackId: id })}><Plus size={16} />{exists ? '已在歌单' : '添加'}</button></li>; })}</ul>}
     </div>}
     <ol className="library-track-list playlist-unified-list">{list.map((track, index) => { const song = asSong(track); return <li key={track.id} data-playlist-track={track.id} className={`${song?.songmid === currentSongId ? 'current' : ''} ${dragId === track.id ? 'playlist-dragging' : ''}`}>
       <button className="library-track-play" aria-label={`${playing(track) ? '暂停' : '播放'} ${track.title}`} disabled={!song || !!dragId} onClick={() => play(track)}>{playing(track) ? <Pause size={17} /> : <Play size={17} />}</button><span className="library-track-number">{String(index + 1).padStart(2, '0')}</span><div className="library-track-info"><span>{track.title}</span><small>{track.subtitle}</small></div><span className="library-track-album">{song?.albumname}</span><span className="library-track-duration" aria-label="歌曲时长">{song?.duration ? `${Math.floor(song.duration / 60)}:${String(Math.floor(song.duration % 60)).padStart(2, '0')}` : '—'}</span>
-      <div className="playlist-row-actions"><button className="playlist-row-button" aria-label={`编辑 ${track.title}`} aria-expanded={menu === track.id} disabled={disabled || !!dragId} onClick={() => setMenu(menu === track.id ? null : track.id)}><Pencil size={17} /></button><button className="playlist-drag-handle playlist-row-button" aria-label={`拖动 ${track.title} 调整顺序`} aria-describedby="playlist-drag-help" aria-pressed={dragId === track.id} disabled={disabled || !!query.trim()} onPointerDown={event => { if (event.button !== 0) return; event.preventDefault(); pointer.current = { x: event.clientX, y: event.clientY }; startDrag(track.id, event.pointerId); if (drag.current) event.currentTarget.setPointerCapture(event.pointerId); }} onPointerUp={event => { if (drag.current?.pointerId === event.pointerId) finishDrag(true); }} onPointerCancel={() => finishDrag(false)} onKeyDown={event => dragKeys(event, track.id)}><Menu size={21} /></button></div>
-      {menu === track.id && <div className="playlist-row-menu"><button onClick={() => { setRemove(track); setMenu(null); }}><Trash2 size={16} />从歌单移除</button><button onClick={() => setMenu(null)}>取消</button></div>}
+      <div className="playlist-row-actions"><button className="playlist-drag-handle playlist-row-button" aria-label={`拖动 ${track.title} 调整顺序`} aria-pressed={dragId === track.id} disabled={disabled || !!query.trim()} onPointerDown={event => { if (event.button !== 0) return; event.preventDefault(); pointer.current = { x: event.clientX, y: event.clientY }; startDrag(track.id, event.pointerId); if (drag.current) event.currentTarget.setPointerCapture(event.pointerId); }} onPointerUp={event => { if (drag.current?.pointerId === event.pointerId) finishDrag(true); }} onPointerCancel={() => finishDrag(false)} onKeyDown={event => dragKeys(event, track.id)}><Menu size={21} /></button></div>
     </li>; })}</ol>{!list.length && ready && <p className="library-empty">暂无匹配的歌曲</p>}
-    {remove && <div className="playlist-dialog-backdrop"><section ref={element => { dialogRef.current = element; }} className="playlist-dialog" role="alertdialog" aria-modal="true" aria-label="确认移除歌曲"><h3>从歌单移除</h3><p>确定移除《{remove.title}》？</p><div className="playlist-dialog-actions"><button disabled={disabled} onClick={() => setRemove(null)}>取消</button><button disabled={disabled} onClick={() => void mutate('remove', { trackId: remove.id })}>确认移除</button></div></section></div>}
-    {dialog && <div className="playlist-dialog-backdrop"><form ref={element => { dialogRef.current = element; }} className="playlist-dialog" role="dialog" aria-modal="true" aria-label={dialog === 'metadata' ? '编辑歌单资料' : '保存年度榜单'} onSubmit={event => { event.preventDefault(); if (dialog === 'metadata') void mutate('metadata', { name, baseName: playlist.title, ...(coverTrackId ? { coverTrackId } : {}) }); else saveRanking(); }}>
-      <h3>{dialog === 'metadata' ? '编辑歌单资料' : '将歌单保存为年度榜单'}</h3>
-      {dialog === 'metadata' ? <><label>歌单名称<input autoFocus value={name} maxLength={provider === 'qq' ? 20 : 40} disabled={disabled} required onChange={event => setName(event.target.value)} /></label><p>从歌单歌曲的专辑封面中选择；不选择则保留原封面。</p><div className="playlist-cover-options">{covers.map(track => <button key={track.id} type="button" disabled={disabled} aria-pressed={coverTrackId === track.id} onClick={() => setCoverTrackId(coverTrackId === track.id ? '' : track.id)}><img src={songCover(asSong(track)!)} alt={asSong(track)?.albumname || track.title} loading="lazy" /><span>{asSong(track)?.albumname || track.title}</span></button>)}</div></> : <><label>榜单名称<input autoFocus value={rankingName} required onChange={event => setRankingName(event.target.value)} /></label><label>年份<input type="number" value={year} min="1900" max="2100" required onChange={event => setYear(Number(event.target.value))} /></label><label>榜单类型<select value={rankingKind} onChange={event => setRankingKind(event.target.value as 'songs' | 'albums')}><option value="songs">年度单曲榜</option><option value="albums">年度专辑榜</option></select></label><label>评分模式<select value={scoringMode} onChange={event => setScoringMode(event.target.value as 'scoring' | 'non-scoring')}><option value="scoring">评分</option><option value="non-scoring">不评分</option></select></label><p>保留歌单原顺序，所有初始分数为 0。专辑榜按同一专辑首次出现的位置合并。保存为独立新榜单，不覆盖历史榜单。</p></>}
-      {error && <p role="alert" className="library-error">{error}</p>}<div className="playlist-dialog-actions"><button type="button" disabled={saving} onClick={() => setDialog(null)}>取消</button><button disabled={disabled || (dialog === 'metadata' && !name.trim())}>{dialog === 'metadata' ? '保存到平台' : '保存为新榜单'}</button></div>
+    {dialog && <div className="playlist-dialog-backdrop"><form ref={element => { dialogRef.current = element; }} className="playlist-dialog" role="dialog" aria-modal="true" aria-label={dialog === 'metadata' ? '编辑歌单' : '保存年度榜单'} onSubmit={event => { event.preventDefault(); if (dialog === 'metadata') void mutate('metadata', { name, baseName: playlist.title, ...(coverData ? { coverData } : {}) }); else saveRanking(); }}>
+      <h3>{dialog === 'metadata' ? '编辑歌单' : '将歌单保存为年度榜单'}</h3>
+      {dialog === 'metadata' ? <><label>歌单名称<input autoFocus value={name} maxLength={provider === 'qq' ? 20 : 40} disabled={disabled} required onChange={event => setName(event.target.value)} /></label><label className="playlist-local-cover">封面图片<input type="file" accept="image/jpeg,image/png,image/webp" disabled={disabled || uploading} onChange={selectCover} /></label><p>{uploading ? "正在处理图片…" : "选择本地图片，将居中裁剪为正方形封面"}</p>{(coverData || playlist.image) && <img className="playlist-upload-preview" src={coverData || playlist.image} alt="封面预览" />}</> : <><label>榜单名称<input autoFocus value={rankingName} required onChange={event => setRankingName(event.target.value)} /></label><label>年份<input type="number" value={year} min="1900" max="2100" required onChange={event => setYear(Number(event.target.value))} /></label><label>榜单类型<select value={rankingKind} onChange={event => setRankingKind(event.target.value as 'songs' | 'albums')}><option value="songs">年度单曲榜</option><option value="albums">年度专辑榜</option></select></label><label>评分模式<select value={scoringMode} onChange={event => setScoringMode(event.target.value as 'scoring' | 'non-scoring')}><option value="scoring">评分</option><option value="non-scoring">不评分</option></select></label><p>保留歌单原顺序，所有初始分数为 0。专辑榜按同一专辑首次出现的位置合并。保存为独立新榜单，不覆盖历史榜单。</p></>}
+      {error && <p role="alert" className="library-error">{error}</p>}<div className="playlist-dialog-actions"><button type="button" disabled={saving} onClick={() => setDialog(null)}>取消</button><button disabled={disabled || uploading || (dialog === 'metadata' && !name.trim())}>{dialog === 'metadata' ? '保存到平台' : '保存为新榜单'}</button></div>
     </form></div>}
   </section>;
 }

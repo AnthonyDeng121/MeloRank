@@ -1466,6 +1466,12 @@
   gap: 16px;
 }
 
+.ranking-draggable { cursor: grab; }
+.ranking-draggable:active { cursor: grabbing; }
+.ranking-draggable .user-rank-number, .ranking-draggable .user-rank-cover { touch-action: none; user-select: none; }
+.ranking-draggable .user-rank-cover img { -webkit-user-drag: none; }
+.ranking-draggable.ranking-item-dragging { outline: 2px solid #8a9fff; box-shadow: 0 10px 30px #0006; background: #344270; }
+.ranking-draggable:focus-visible { outline: 2px solid #a4b5ff; outline-offset: 3px; }
 .history-ranking-item {
   display: flex;
   justify-content: space-between;

@@ -23,7 +23,7 @@ exec('npm info QQ-Music-API version', (err, stdout, stderr) => {
   }
 });
 
-app.use(bodyParser());
+app.use(bodyParser({ jsonLimit: '4mb' }));
 app.use(cookie());
 app.use(static(
   path.join(__dirname,  'public')

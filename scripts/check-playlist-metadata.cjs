@@ -13,7 +13,7 @@ async function netease() {
     playlist_name_update: async params => { if (acceptName) state.name = params.name; return { body: { code: 200 } }; },
     song_detail: async () => ({ body: { songs: [{ id: 1, al: { picUrl: source } }] } }),
     playlist_cover_update: async params => {
-      assert.ok(Buffer.isBuffer(params.imgFile.data)); assert.equal(params.imgFile.size, 4);
+      assert.ok(Buffer.isBuffer(params.imgFile.data)); assert.ok([4, 8].includes(params.imgFile.size));
       state.coverImgId = 20; state.coverImgUrl = 'https://p1.music.126.net/new.jpg';
       return { body: { code: 200, data: { imgId: 20 } } };
     },
@@ -30,6 +30,9 @@ async function netease() {
     assert.equal((await request({ coverTrackId: '2' })).status, 400);
     const renamed = await (await request({ name: 'Renamed' })).json(); assert.equal(renamed.metadata.title, 'Renamed');
     const covered = await (await request({ coverTrackId: '1' })).json(); assert.equal(covered.metadata.image, state.coverImgUrl); assert.equal(downloads, 1);
+    assert.equal((await request({ coverData: 'data:image/jpeg;base64,/9j/AAECAwQ=' })).status, 200);
+    assert.equal(downloads, 1, 'local upload does not download an external picture');
+    assert.equal((await request({ coverData: 'data:image/jpeg;base64,aGVsbG8=' })).status, 400);
     assert.equal(state.description, 'Keep me'); assert.deepEqual(state.tags, ['Keep tag']);
     source = 'http://127.0.0.1/private'; assert.equal((await request({ coverTrackId: '1' })).status, 502); assert.equal(downloads, 1);
     acceptName = false; assert.equal((await request({ name: 'Not accepted' })).status, 409);
@@ -41,6 +44,11 @@ async function qq() {
   const state = { id: 9, dirid: 1, owndir: 1, title: 'Original', desc: 'Keep description', picurl: 'https://y.qq.com/old.jpg', picurl2: 'https://y.qq.com/old2.jpg', vec_tagid: [3, 7], dir_show: 2 };
   let writes = 0, accept = true;
   const rpc = async (_, module, method, params) => {
+    if (method === 'PutImage') {
+      assert.equal(module, 'music.filesys.FileSystem'); assert.equal(params.BusID, 'songlist');
+      assert.equal(params.Data, 'data:image/jpeg;base64,/9j/AAECAwQ='); assert.match(params.FileName, /^7_\d+\.jpg$/);
+      return { URL: 'https://y.gtimg.cn/local-cover.jpg' };
+    }
     if (method === 'CgiGetDiss') return { dirinfo: state, total_song_num: 1, songlist: [{ mid: 'm1', id: 1, type: 0, album: { mid: 'album1' } }] };
     if (method === 'uniform_get_Dissinfo') return { dirinfo: structuredClone(state) };
     assert.equal(method, 'EditPlaylist'); assert.equal(params.mask, 95); assert.equal(params.dirId, 1);
@@ -59,6 +67,9 @@ async function qq() {
   assert.equal((await request({ coverTrackId: 'other' })).status, 400);
   delete state.vec_tagid; assert.equal((await request()).status, 502); state.vec_tagid = [3, 7];
   assert.equal(writes, 2, 'invalid edits must not write');
+  assert.equal((await request({ coverData: 'data:image/jpeg;base64,/9j/AAECAwQ=' })).status, 200);
+  assert.equal(state.picurl, 'https://y.gtimg.cn/local-cover.jpg');
+  assert.equal((await request({ coverData: 'data:text/html;base64,aGVsbG8=' })).status, 400);
   accept = false; assert.equal((await request({ name: 'Not accepted' })).status, 409);
   console.log('PASS QQ：mask95 资料编辑、专辑封面、名称校验、保留隐私描述标签、缺失字段拒绝和读回失败');
 }

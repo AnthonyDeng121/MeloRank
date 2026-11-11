@@ -1,0 +1,16 @@
+.rank-transfer-overlay { position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center; padding: 20px; background: #000b; backdrop-filter: blur(5px); }
+.rank-transfer-dialog { box-sizing: border-box; width: min(100%, 620px); max-height: 85dvh; overflow: auto; background: #1d2230; border: 1px solid #414c65; border-radius: 16px; padding: 26px; color: #e9edfa; box-shadow: 0 24px 80px #0008; }
+.rank-transfer-dialog h3 { margin: 0 0 18px; font-size: 22px; }
+.rank-transfer-dialog p { color: #a9b5cd; font-size: 13px; line-height: 1.8; }
+.rank-transfer-dialog label { display: block; margin: 18px 0; color: #c4cfe6; font-size: 14px; }
+.rank-transfer-dialog select { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; padding: 11px 12px; font: inherit; color: #e6edff; background: #121824; border: 1px solid #46516a; border-radius: 8px; }
+.rank-transfer-dialog button { font: inherit; font-size: 13px; color: #e6edff; padding: 10px 15px; background: #2b3346; border: 1px solid #46516a; border-radius: 8px; cursor: pointer; }
+.rank-transfer-dialog button:disabled { opacity: .5; cursor: default; }
+.rank-transfer-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.rank-transfer-dialog .rank-transfer-primary { background: #657bdf; border-color: #8297f9; }
+.rank-transfer-preview { padding: 0; margin: 12px 0; list-style: none; max-height: 310px; overflow: auto; }
+.rank-transfer-preview li { display: grid; gap: 5px; padding: 12px 0; border-bottom: 1px solid #343e53; font-size: 13px; }
+.rank-transfer-preview span, .rank-transfer-preview small { color: #9daac5; }
+.rank-transfer-dialog .rank-transfer-error { color: #f3b6be; }
+.rank-transfer-dialog :focus-visible { outline: 2px solid #9aaeff; outline-offset: 3px; }
+@media(max-width:600px) { .rank-transfer-dialog { padding: 20px; } }

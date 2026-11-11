@@ -6,6 +6,8 @@ import "../../styles/YearlyRanking.css";
 
 import { downloadRanking, type RankingExportFormat } from '../services/rankingExport';
 import { parseRankingText } from '../utils/rankingImport';
+import { useRankingDrag } from '../hooks/useRankingDrag';
+import { RankingPlaylistExport } from '../components/RankingPlaylistExport';
 
 import {
   useRankingContext,
@@ -31,6 +33,7 @@ export function YearlyRanking({
   // 使用RankingContext获取和更新榜单状态
   const { rankingMode, setRankingMode, rankingList, setRankingList, pendingRanking, setPendingRanking } =
     useRankingContext();
+  const rankingDrag = useRankingDrag(rankingList, items => setRankingList(items.map((item, index) => ({ ...item, rank: index + 1 }))));
 
   // 根据pageType设置初始榜单类型
   React.useEffect(() => {
@@ -162,8 +165,9 @@ export function YearlyRanking({
       setPendingRanking(null);
       return;
     }
-    const updatedList = calculateLinearScores(rankingList);
-    setRankingList(updatedList);
+    if (rankingList.length === 3 && rankingList.every(item => ['1', '2', '3'].includes(item.id))) {
+      setRankingList(calculateLinearScores(rankingList));
+    }
   }, []);
 
   // 当榜单类型或评分模式变化时，更新样例数据的标题
@@ -1458,6 +1462,7 @@ export function YearlyRanking({
               </button>
             </div>
             <div className="export-buttons">
+              {['年度单曲榜', '年度专辑榜'].includes(rankingMode) && <RankingPlaylistExport items={rankingList} albums={rankingMode === '年度专辑榜'} disabled={!hasRealRanking} />}
               <button
                 className="export-btn"
                 onClick={handleSaveClick}
@@ -1496,8 +1501,8 @@ export function YearlyRanking({
           </div>}
           <div className="user-ranking-list">
             {scoringMode === "non-scoring"
-              ? rankingList.map((Ne, je) => (
-                  <div className="user-rank-item" key={Ne.id}>
+              ? rankingDrag.items.map((Ne, je) => (
+                  <div {...rankingDrag.bind(Ne.id)} className={`user-rank-item ranking-draggable ${rankingDrag.activeId === Ne.id ? 'ranking-item-dragging' : ''}`} key={Ne.id}>
                     <div className="user-rank-number">{je + 1}</div>
                     <div className="user-rank-cover">
                       <img
@@ -1571,9 +1576,9 @@ export function YearlyRanking({
                     </div>
                   </div>
                 ))
-              : rankingList.map((Ne) => (
-                  <div className="user-rank-item" key={Ne.id}>
-                    <div className="user-rank-number">{Ne.rank}</div>
+              : rankingDrag.items.map((Ne, je) => (
+                  <div {...rankingDrag.bind(Ne.id)} className={`user-rank-item ranking-draggable ${rankingDrag.activeId === Ne.id ? 'ranking-item-dragging' : ''}`} key={Ne.id}>
+                    <div className="user-rank-number">{je + 1}</div>
                     <div className="user-rank-cover">
                       <img
                         src={

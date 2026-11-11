@@ -10,7 +10,7 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '4mb' }));
 app.use('/api/music/netease', require('./musicPlatforms').createMusicPlatformsRouter());
 
 // Root route

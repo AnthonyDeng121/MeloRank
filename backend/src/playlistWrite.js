@@ -6,13 +6,15 @@ const fail = (message, status = 400) => Object.assign(new Error(message), { stat
 function createPlaylistWriteRouter({ call, auth, profile, wrap, coverFetch = fetch }) {
   const router = require('express').Router();
   router.post('/playlist/edit', wrap(async (req, res) => {
-    const cookie = auth(req), { id, action, trackId, baseIds, ids, name, baseName, coverTrackId } = req.body;
+    const cookie = auth(req), { id, action, trackId, baseIds, ids, name, baseName, coverTrackId, coverData } = req.body;
     const validId = value => typeof value === 'string' && /^[1-9]\d{0,19}$/.test(value);
     const validList = value => Array.isArray(value) && value.length <= 10000 && value.every(validId) && new Set(value).size === value.length;
     if (!validId(id) || !['add', 'remove', 'reorder', 'metadata'].includes(action) || !validList(baseIds)
       || (action === 'reorder' ? !validList(ids) : action === 'metadata'
         ? typeof name !== 'string' || !name.trim() || name.trim().length > 40 || typeof baseName !== 'string' || coverTrackId !== undefined && !validId(coverTrackId)
         : !validId(trackId))) throw fail('无效的歌单编辑参数');
+    if (coverData !== undefined && (action !== 'metadata' || coverTrackId !== undefined)) throw fail('封面参数冲突');
+    const localImage = coverData === undefined ? null : require('./coverImage').decodeCoverImage(coverData);
     const user = await profile(cookie);
     const key = `${user.userId}:${id}`;
     if (locks.has(key)) throw fail('歌单正在保存，请稍后刷新重试', 409);
@@ -37,6 +39,11 @@ function createPlaylistWriteRouter({ call, auth, profile, wrap, coverFetch = fet
           if (result.code !== 200) throw fail('平台未确认歌单名称更新', 502);
         }
         let imageId;
+        if (localImage) {
+          const result = await call('playlist_cover_update', { cookie, id, imgFile: localImage });
+          if (result.code !== 200 || !result.data?.imgId) throw fail('平台未确认封面上传', 502);
+          imageId = result.data.imgId;
+        }
         if (coverTrackId) {
           const detail = await call('song_detail', { cookie, ids: coverTrackId });
           const cover = detail.songs?.find(song => String(song.id) === coverTrackId)?.al?.picUrl;

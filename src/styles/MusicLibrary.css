@@ -73,6 +73,13 @@
 .playlist-toolbar .library-search { margin-left: 0; width: 230px; min-width: 160px; }
 .playlist-list-caption { display: flex; justify-content: space-between; gap: 16px; margin: 10px 0 18px; color: #828ea6; font-size: 12px; line-height: 1.7; }
 .playlist-status { color: #b1dfc8; display: flex; align-items: center; gap: 16px; font-size: 13px; }
+.playlist-add-panel .playlist-add-search { margin: 12px 0 2px; gap: 8px; flex-wrap: nowrap; }
+.playlist-add-panel .playlist-add-search label { flex-shrink: 0; font-size: 13px; }
+.playlist-add-panel .library-search { box-sizing: border-box; min-width: 0; height: 42px; background: #151b28; border-color: #3c4961; }
+.playlist-add-panel .playlist-add-search > button { display: inline-grid; place-items: center; flex-shrink: 0; width: 42px; height: 42px; padding: 0; }
+.playlist-add-panel input:-webkit-autofill { -webkit-box-shadow: 0 0 0 1000px #151b28 inset; -webkit-text-fill-color: #e8eaf2; }
+.playlist-upload-preview { display: block; width: 180px; height: 180px; object-fit: cover; border-radius: 12px; border: 1px solid #46516a; margin: 16px 0; }
+.playlist-local-cover input::file-selector-button { color: #e5ecff; background: #354363; border: 0; border-radius: 6px; padding: 8px 12px; margin-right: 12px; cursor: pointer; }
 .playlist-add-panel { margin: 12px 0 22px; padding: 2px 16px 12px; background: #191e29; border: 1px solid #343c4e; border-radius: 12px; }
 .playlist-unified-list li { position: relative; gap: 12px; min-height: 80px; padding: 14px 12px; transition: background .15s; }
 .playlist-row-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }

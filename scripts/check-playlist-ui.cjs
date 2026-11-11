@@ -29,7 +29,7 @@ function harness(provider) {
     requestAnimationFrame: () => 1, cancelAnimationFrame() {}, localStorage, AbortSignal,
     fetch: async (_, options) => ({ ok: true, json: () => request('', JSON.parse(options.body)) }),
   }, {
-    react, 'lucide-react': {}, '../services/musicPlatforms': { netease: { request } }, '../services/qqMusicConfig': { QQ_MUSIC_CONFIG: { baseUrl: 'https://fixture.invalid' } },
+    react, 'lucide-react': {}, '../utils/coverUpload': { prepareCoverUpload: async () => 'data:image/jpeg;base64,/9j/AAECAwQ=' }, '../services/musicPlatforms': { netease: { request } }, '../services/qqMusicConfig': { QQ_MUSIC_CONFIG: { baseUrl: 'https://fixture.invalid' } },
     '../services/platformSongs': { songCover: () => '', searchPlatform: async () => ({}) }, '../contexts/RankingContext': { useRankingContext: () => ({ setPendingRanking: record => { opened = record; } }) }, '../utils/playlistRanking': utils,
   });
   const render = () => {
@@ -69,6 +69,16 @@ async function run(provider) {
   assert.ok(saved[1].rankingList.every(item => item.originalScore === 0 && item.finalScore === 0));
   assert.equal(ui.getOpened(), undefined, 'saving does not replace the active draft');
   ui.textButton('打开榜单').props.onClick(); assert.equal(ui.getOpened().id, saved[1].id); assert.equal(ui.getNavigation(), 'yearly-ranking');
+  ui.textButton('编辑歌单').props.onClick(); ui.render();
+  await ui.find(node => node.type === 'input' && node.props.type === 'file').props.onChange({ target: { files: [{}], value: 'fixture.jpg' } }); ui.render();
+  assert.equal(ui.find(node => node.type === 'img' && node.props.className === 'playlist-upload-preview').props.src, 'data:image/jpeg;base64,/9j/AAECAwQ=');
+  ui.byLabel('编辑歌单').props.onSubmit({ preventDefault() {} }); await ui.settle();
+  assert.equal(ui.calls.at(-1).coverData, 'data:image/jpeg;base64,/9j/AAECAwQ=');
+  assert.equal(ui.calls.at(-1).action, 'metadata');
+  ui.textButton('添加歌曲').props.onClick(); const tree = ui.render();
+  assert.equal(ui.byLabel('搜索歌曲').props.children.some(child => typeof child === 'string' && child.trim()), false, 'search is icon only');
+  assert.equal(JSON.stringify(tree).includes('键盘空格'), false, 'visible drag instruction removed');
+  assert.equal(JSON.stringify(tree).includes('编辑 Song'), false, 'row edit menu removed');
   console.log(`PASS ${provider} actual handlers: drag previews, one drop write, cancellation, save new album ranking, zero scores, explicit open`);
 }
 (async () => { await run('qq'); await run('netease'); })().catch(error => { console.error(error); process.exitCode = 1; });

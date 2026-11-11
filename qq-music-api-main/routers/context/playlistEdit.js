@@ -12,13 +12,15 @@ function createPlaylistEdit({ rpc = playlistRpc, get = axios.get } = {}) {
     try {
       const cookie = resolveCookie(), uin = getUin(cookie);
       if (!cookie || uin === '0') throw fail('请先登录 QQ 音乐', 401);
-      const { id, action, trackId, baseIds, ids, name, baseName, coverTrackId } = ctx.request.body || {};
+      const { id, action, trackId, baseIds, ids, name, baseName, coverTrackId, coverData } = ctx.request.body || {};
       const validMid = value => typeof value === 'string' && /^[a-zA-Z0-9]{1,32}$/.test(value);
       const validList = value => Array.isArray(value) && value.length <= 10000 && value.every(validMid) && new Set(value).size === value.length;
       if (typeof id !== 'string' || !/^[1-9]\d{0,19}$/.test(id) || !Number.isSafeInteger(Number(id)) || !['add', 'remove', 'reorder', 'metadata'].includes(action)
         || !validList(baseIds) || (action === 'reorder' ? !validList(ids) : action === 'metadata'
           ? typeof name !== 'string' || !name.trim() || name.trim().length > 20 || typeof baseName !== 'string' || coverTrackId !== undefined && !validMid(coverTrackId)
           : !validMid(trackId))) throw fail('无效的歌单编辑参数');
+      if (coverData !== undefined && (action !== 'metadata' || coverTrackId !== undefined)) throw fail('封面参数冲突');
+      const localImage = coverData === undefined ? null : require('../../util/coverImage').decodeCoverImage(coverData);
       const lock = `${uin}:${id}`;
       if (locks.has(lock)) throw fail('歌单正在保存，请稍后刷新重试', 409);
       locks.add(lock);
@@ -61,18 +63,25 @@ function createPlaylistEdit({ rpc = playlistRpc, get = axios.get } = {}) {
           const tags = Array.isArray(info.vec_tagid) ? info.vec_tagid : Array.isArray(info.tag) ? info.tag.map(tag => tag.id) : null;
           if (!tags || !tags.every(tag => Number.isSafeInteger(tag) && tag >= 0)) throw fail('歌单标签读取不完整', 502);
           let cover = info.picurl, cover2 = info.picurl2;
+          if (localImage) {
+            // QQ official playlist_edit: PutImage accepts a complete data URL.
+            const uploaded = await rpc(cookie, 'music.filesys.FileSystem', 'PutImage', { BusID: 'songlist', FileName: `${uin}_${Date.now()}.${localImage.mimetype === 'image/png' ? 'png' : 'jpg'}`, Data: coverData });
+            const url = new URL(uploaded?.URL || 'https://invalid.example/');
+            if (!['http:', 'https:'].includes(url.protocol) || !/(^|\.)(qq\.com|gtimg\.cn|qpic\.cn)$/.test(url.hostname) || url.username || url.password) throw fail('平台未返回有效的上传封面地址', 502);
+            cover = url.href.replace(/^http:/, 'https:'); cover2 = cover;
+          }
           if (coverTrackId) {
             const album = current.find(song => song.mid === coverTrackId)?.album;
             if (!album?.mid || !/^[a-zA-Z0-9]{1,32}$/.test(album.mid)) throw fail('请从歌单中选择有专辑封面的歌曲');
             cover = `https://y.qq.com/music/photo_new/T002R300x300M000${album.mid}.jpg`;
             cover2 = cover;
           }
-          if (name.trim() !== info.title || coverTrackId) await rpc(cookie, 'music.musicasset.PlaylistBaseWrite', 'EditPlaylist', {
+          if (name.trim() !== info.title || coverTrackId || localImage) await rpc(cookie, 'music.musicasset.PlaylistBaseWrite', 'EditPlaylist', {
             dirId, mask: 95, dirNewName: name.trim(), dirNewDesc: info.desc, dirNewPicUrl: cover, dirNewPicUrl2: cover2,
             dirNewtaglist: tags.join(','), dirShow: info.dir_show,
           });
           const actual = await readInfo();
-          const sameCover = !coverTrackId || actual.picurl?.split('?')[0] === cover.split('?')[0];
+          const sameCover = !(coverTrackId || localImage) || actual.picurl?.replace(/^http:/, 'https:').split('?')[0] === cover.split('?')[0];
           if (actual.title !== name.trim() || !sameCover) throw fail('平台读回的歌单资料不一致，请刷新检查', 409);
           ctx.body = { success: true, metadata: { title: actual.title, image: actual.picurl } };
           return;
