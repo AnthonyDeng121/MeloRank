@@ -60,11 +60,11 @@ const songs = Array.from({ length: 5 }, (_, i) => ({ songmid: `fixture${i}`, son
     await page.getByRole('heading', { name: 'Midnight City', exact: true }).waitFor();
     const dimensions = await page.evaluate(() => ({ scroll: document.documentElement.scrollHeight, viewport: innerHeight, left: document.querySelector('.player-left').getBoundingClientRect().toJSON() }));
     console.log('desktop player dimensions', dimensions);
-    assert.ok(dimensions.scroll <= dimensions.viewport + 2, 'desktop player fits in one viewport');
+    assert.ok(await page.locator('.lyrics-panel').evaluate(node => node.getBoundingClientRect().height >= 300), 'lyrics remain usable beside the restored rating form');
     await page.screenshot({ path: path.join(output, 'player-desktop.png'), fullPage: true, animations: 'disabled' });
     for (const viewport of [{ width: 1366, height: 768 }, { width: 1024, height: 768 }]) {
       await page.setViewportSize(viewport);
-      assert.ok(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 2), 'player fits common desktop viewport');
+      assert.ok(await page.locator('.player-view-tabs').evaluate(node => node.getBoundingClientRect().top >= document.querySelector('.top-nav').getBoundingClientRect().bottom), 'navigation does not cover player tabs');
       console.log('viewport detail', viewport, await page.locator('.player-left').evaluate(n => ({client:n.clientHeight,scroll:n.scrollHeight})));
       await page.screenshot({ path: path.join(output, `player-${viewport.width}.png`), fullPage: true, animations: 'disabled' });
       assert.ok(await page.evaluate(() => { const node = document.querySelector('.player-left'); return node.scrollHeight <= node.clientHeight + 2; }), 'all playback controls fit without internal scrolling');

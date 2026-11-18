@@ -135,6 +135,12 @@ button:disabled { pointer-events: auto !important; }
 .player-page .player-right { overflow: visible; }
 .player-page .quick-review-panel { flex-shrink: 0; }
 @media (max-width: 440px) { .song-rating-fields { grid-template-columns: 1fr; } }
+.app:has(> .compact-player-content) > .top-nav { position: sticky; top: 0; }
+.app > .main-content.compact-player-content { margin-top: 0; }
+.player-page .player-main { height: auto; min-height: calc(100dvh - 176px); }
+.player-page .player-left { overflow: visible; }
+.player-page .player-right .lyrics-panel { min-height: 300px; }
+.song-rating-fields label { font-weight: 400; }
 
 /* Catalogs participate in page scrolling at every viewport size. */
 .catalog-panel { height: auto; min-height: 0; padding: 20px; }
