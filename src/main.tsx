@@ -3,6 +3,7 @@
 import App from "./app/App.tsx";
 import "./styles/index.css"
 import "./styles/DeployedParity.css"
+import "./styles/Interface.css"
 
 // Defensive check for __jstcache property access - add to both Object.prototype and window
 Object.defineProperty(Object.prototype, '__jstcache', {

@@ -1147,13 +1147,8 @@ export function YearlyRanking({
       {exportError && <p role="alert" className="ranking-error">{exportError}</p>}
       <div
         className="ranking-mode-selector"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
       >
-        <div style={{ display: "flex", alignItems: "center" }}>
+        <div className="ranking-mode-fields">
           <label htmlFor="ranking-mode">{"选择榜单类型："}</label>
           <select
             id="ranking-mode"
@@ -1166,7 +1161,7 @@ export function YearlyRanking({
               </option>
             ))}
           </select>
-          <label htmlFor="scoring-mode" style={{ marginLeft: "15px" }}>
+          <label htmlFor="scoring-mode">
             {"选择是否评分："}
           </label>
           <select
