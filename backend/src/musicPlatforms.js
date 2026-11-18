@@ -42,7 +42,7 @@ function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicap
     return id;
   };
   router.post('/suggestions', wrap(async (req, res) => {
-    const cookie = auth(req), keywords = String(req.body.query || '').trim().slice(0, 200);
+    const cookie = req.get('X-Netease-Cookie') || '', keywords = String(req.body.query || '').trim().slice(0, 200);
     if (!keywords) return res.json({ suggestions: [] });
     const data = await call('search_suggest', { cookie, keywords, type: 'mobile' });
     const suggestions = [...new Set((data.result?.allMatch || [])
@@ -51,20 +51,20 @@ function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicap
     res.json({ suggestions });
   }));
   router.post('/search', wrap(async (req, res) => {
-    const cookie = auth(req), keywords = String(req.body.query || '').trim().slice(0, 200);
+    const cookie = req.get('X-Netease-Cookie') || '', keywords = String(req.body.query || '').trim().slice(0, 200);
     if (!keywords) return res.status(400).json({ error: '请输入搜索关键词' });
     const limit = Math.min(50, Math.max(1, Number(req.body.limit) || 10)), offset = Math.max(0, Number(req.body.offset) || 0);
     const data = await call('cloudsearch', { cookie, keywords, type: 1, limit, offset });
     res.json({ songs: data.result?.songs || [], total: data.result?.songCount || 0 });
   }));
   router.post('/album-search', wrap(async (req, res) => {
-    const cookie = auth(req), keywords = String(req.body.query || '').trim().slice(0, 200);
+    const cookie = req.get('X-Netease-Cookie') || '', keywords = String(req.body.query || '').trim().slice(0, 200);
     if (!keywords) return res.status(400).json({ error: '请输入专辑名称' });
     const data = await call('cloudsearch', { cookie, keywords, type: 10, limit: 20 });
     res.json({ albums: data.result?.albums || [] });
   }));
   router.post('/catalog/search', wrap(async (req, res) => {
-    const cookie = auth(req), { kind } = req.body;
+    const cookie = req.get('X-Netease-Cookie') || '', { kind } = req.body;
     if (!['albums', 'artists'].includes(kind)) return res.status(400).json({ error: '无效的搜索类型' });
     const keywords = String(req.body.query || '').trim().slice(0, 200);
     if (!keywords) return res.status(400).json({ error: '请输入搜索关键词' });

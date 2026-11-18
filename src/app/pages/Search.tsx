@@ -446,14 +446,7 @@ export function Search({ onOpenCatalog }: { onOpenCatalog: (item: CatalogItem) =
       </div>
 
       <div className="search-tabs">
-        <button className={`tab ${activeTab === 'albums' ? 'active' : ''}`} onClick={() => handleTabChange('albums')}>专辑</button>
-        <button className={`tab ${activeTab === 'artists' ? 'active' : ''}`} onClick={() => handleTabChange('artists')}>歌手</button>
-        <button
-          className={`tab ${activeTab === 'songs' ? 'active' : ''}`}
-          onClick={() => handleTabChange('songs')}
-        >
-          歌曲
-        </button>
+        {(['songs', 'albums', 'artists'] as const).map(tab => <button key={tab} className={`tab ${activeTab === tab ? 'active' : ''}`} onClick={() => handleTabChange(tab)}>{({ songs: '歌曲', albums: '专辑', artists: '歌手' })[tab]}</button>)}
       </div>
 
       <div className="search-results">

@@ -23,7 +23,10 @@ const server = app.listen(0, '127.0.0.1', async () => {
     const request = (path, body, cookie = 'MUSIC_U=fixture') => fetch(base + path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Netease-Cookie': cookie }, body: JSON.stringify(body) });
     assert.equal((await request('/library', { kind: 'liked' }, '')).status, 401);
     assert.equal(calls.length, 0);
-    assert.equal((await request('/suggestions', { query: '晴' }, '')).status, 401);
+    assert.equal((await request('/suggestions', { query: '晴' }, '')).status, 200);
+    assert.equal(calls.at(-1).params.cookie, '');
+    assert.equal((await request('/search', { query: 'fixture' }, '')).status, 200);
+    assert.equal(calls.at(-1).params.cookie, '');
     assert.deepEqual((await (await request('/suggestions', { query: '  晴  ' })).json()).suggestions, ['晴天', '晴天 周杰伦']);
     assert.equal(calls.at(-1).name, 'search_suggest');
     assert.equal(calls.at(-1).params.keywords, '晴');
@@ -50,13 +53,13 @@ const server = app.listen(0, '127.0.0.1', async () => {
     const album = await (await request('/collection', { kind: 'albums', id: '4' })).json();
     assert.equal(album.items[0].subtitle, 'Artist');
     assert.equal(collection.items[0].neteaseTrack.id, 5);
-    assert.equal((await request('/search', { query: 'test' }, '')).status, 401);
+    assert.equal((await request('/search', { query: 'test' }, '')).status, 200);
     assert.equal((await request('/playback', { id: '../bad' })).status, 400);
     const search = await (await request('/search', { query: 'test', limit: 10, offset: 20 })).json();
     assert.equal(search.songs[0].id, 5);
     assert.equal(calls.at(-1).params.cookie, 'MUSIC_U=fixture');
     assert.equal(calls.at(-1).params.offset, 20);
-    assert.equal((await request('/catalog/search', { kind: 'artists', query: 'test' }, '')).status, 401);
+    assert.equal((await request('/catalog/search', { kind: 'artists', query: 'test' }, '')).status, 200);
     assert.equal((await request('/catalog/search', { kind: 'unknown', query: 'test' })).status, 400);
     assert.equal((await request('/catalog/search', { kind: 'albums', query: ' ' })).status, 400);
     await request('/catalog/search', { kind: 'artists', query: 'Artist', limit: 10, offset: 20 });
