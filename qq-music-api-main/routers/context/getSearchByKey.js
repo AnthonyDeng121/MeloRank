@@ -3,7 +3,7 @@ const { getSearchByKey } = require('../../module');
 // w：搜索关键字
 // p：当前页
 // n：每页歌曲数量
-// catZhida: 0表示歌曲, 2表示歌手, 3表示专辑, 4, 5
+// Keep frontend category values; the API module maps them to musicu search_type.
 module.exports = async (ctx, next) => {
 	// 同时支持w和key参数，兼容前端修改
 	const { w: w1, key: w2, limit: n, page: p, catZhida, remoteplace = 'song' } = ctx.query;
@@ -15,7 +15,6 @@ module.exports = async (ctx, next) => {
 			n: +n || 10,
 			p: +p || 1,
 			catZhida: +catZhida || 0,
-            t: +catZhida === 3 ? 8 : +catZhida === 2 ? 9 : 0,
 			remoteplace: `txt.yqq.${remoteplace}`,
 		},
 		option: {},

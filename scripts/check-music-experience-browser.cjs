@@ -5,14 +5,14 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const output = path.join(process.env.TEMP, 'melorank-experience-qa'); fs.mkdirSync(output, { recursive: true });
-const image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jZp8AAAAASUVORK5CYII=';
+const image = fs.readFileSync('public/chart/T002R300x300M000004C3Wkx3RM1qL.webp').toString('base64');
 const songs = Array.from({ length: 5 }, (_, i) => ({ songmid: `fixture${i}`, songname: ['Midnight City', 'Intro', 'Wait', 'Reunion', 'Outro'][i], singer: [{ name: 'M83', mid: 'artist1' }], albummid: 'album1', albumname: 'Hurry Up, We’re Dreaming', interval: 240 }));
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.MELORANK_BROWSER_PATH || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', headless: true });
   try {
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, acceptDownloads: true });
     const page = await context.newPage(); const errors = []; page.on('pageerror', error => errors.push(error.message));
-    await page.route(/https:\/\/(y\.qq\.com|p1\.music\.126\.net)\//, route => route.fulfill({ contentType: 'image/png', body: Buffer.from(image, 'base64') }));
+    await page.route(/https:\/\/(y\.qq\.com|p1\.music\.126\.net)\//, route => route.fulfill({ contentType: 'image/webp', body: Buffer.from(image, 'base64') }));
     await page.route('http://localhost:3200/**', route => {
       const url = new URL(route.request().url()); let data = {};
       if (url.pathname === '/getSearchByKey') {
@@ -44,6 +44,7 @@ const songs = Array.from({ length: 5 }, (_, i) => ({ songmid: `fixture${i}`, son
     await page.getByRole('spinbutton', { name: 'Midnight City 评分', exact: true }).fill('9.2');
     await page.locator('.review-text-label textarea').fill('每一首歌都是一场新的梦。');
     await page.getByRole('button', { name: '保存评分', exact: true }).click();
+    await page.screenshot({ path: path.join(output, 'review-modal.png'), fullPage: true });
     const rankingBefore = await page.evaluate(() => localStorage.getItem('yearlyRankings'));
     const downloadPromise = page.waitForEvent('download');
     await page.getByRole('button', { name: '导出 PNG 图片', exact: true }).click();
@@ -95,6 +96,12 @@ const songs = Array.from({ length: 5 }, (_, i) => ({ songmid: `fixture${i}`, son
     await page.locator('.player-view-tabs').getByRole('button', { name: '歌曲', exact: true }).click();
     await page.screenshot({ path: path.join(output, 'player-mobile.png'), fullPage: true, animations: 'disabled' });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    assert.equal(await page.locator('.player-view-tabs button').first().evaluate(node => getComputedStyle(node).fontSize), '14px');
+    await page.getByRole('spinbutton', { name: '\u6b4c\u8bcd', exact: true }).fill('20');
+    await page.locator('.song-rating-form > button').click();
+    await page.getByRole('button', { name: '\u5e74\u5ea6\u699c\u5355', exact: true }).click();
+    await page.getByText('Midnight City', { exact: true }).first().waitFor();
+    console.log('PASS restored song rating submits to annual ranking');
     console.log('page errors', errors); assert.deepEqual(errors, []);
     console.log('PASS disabled reason, typed search, album/artist navigation, independent saved score, PNG download, export chooser, responsive layout');
     console.log('Artifacts:', output);

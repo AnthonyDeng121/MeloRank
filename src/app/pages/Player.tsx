@@ -1,3 +1,4 @@
+import { SongRating } from '../components/SongRating';
 import { CatalogPanel } from '../components/CatalogPanel';
 import { WorkReview } from '../components/WorkReview';
 import { songEntity, type CatalogItem } from '../services/catalog';
@@ -377,7 +378,7 @@ export function Player({ selection, onSelectionChange }: { selection: CatalogIte
           </div>
 
           {/* 互换位置：Quick Review面板放在下面 */}
-          <div className="quick-review-panel"><h3>个人乐评</h3>{currentSong ? <WorkReview key={currentSong.songmid} id={`${currentSong.provider || 'qq'}:song:${currentSong.songmid}`} title={currentSong.songname} artist={currentSong.singer.map(s => s.name).join(' / ')} image={songCover(currentSong)} /> : <p>选择歌曲后即可评分</p>}</div>
+          <div className="quick-review-panel">{currentSong && <><h3>歌曲评分</h3><SongRating key={currentSong.songmid} song={currentSong} /></>}<h3>个人乐评</h3>{currentSong ? <WorkReview key={currentSong.songmid} id={`${currentSong.provider || 'qq'}:song:${currentSong.songmid}`} title={currentSong.songname} artist={currentSong.singer.map(s => s.name).join(' / ')} image={songCover(currentSong)} /> : <p>选择歌曲后即可评分</p>}</div>
         </div>
       </div>
       </>}

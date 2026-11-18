@@ -15,8 +15,8 @@ const qqSong = (entry: any, album?: CatalogItem): PlatformSong => {
 export function catalogItem(provider: MusicProvider, kind: CatalogKind, a: any): CatalogItem {
   const album = kind === 'albums';
   const id = String(provider === 'qq' ? (album ? a.albummid || a.albumMID || a.mid : a.singermid || a.singerMID || a.mid) || '' : a.id || '');
-  return { provider, kind, id, title: a.albumname || a.singername || a.name || '',
-    artist: a.singername || (a.artists || a.singer || (a.artist ? [a.artist] : [])).map((s: any) => s.name).join(' / '),
+  return { provider, kind, id, title: a.albumname || a.albumName || a.singername || a.singerName || a.name || '',
+    artist: a.singername || a.singerName || (a.artists || a.singer || (a.artist ? [a.artist] : [])).map((s: any) => s.name).join(' / '),
     image: provider === 'qq' ? (id ? `https://y.qq.com/music/photo_new/${album ? 'T002' : 'T001'}R300x300M000${id}.jpg` : '') : a.picUrl || a.img1v1Url || a.images?.[0]?.url || '',
     date: a.release_date || a.publicTime || (a.publishTime ? new Date(a.publishTime).toLocaleDateString('zh-CN') : ''),
     total: a.total_tracks || a.size || a.song_count };
