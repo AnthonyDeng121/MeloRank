@@ -106,3 +106,17 @@ button, input, textarea, select { font-family: inherit; }
   .yearly-ranking-page .ranking-mode-fields select { width: 100%; }
   .yearly-ranking-page .ranking-mode-selector { align-items: stretch; }
 }
+
+.catalog-pagination { display:flex; justify-content:center; align-items:center; gap:16px; margin-top:16px; font-size:12px; }
+.audio-lab-page .lab-source-row { display:grid; grid-template-columns:minmax(0, 2fr) minmax(200px, 1fr); gap:16px; align-items:stretch; margin-bottom:20px; }
+.audio-lab-page .lab-song-picker { margin:0; padding:14px 16px; border-radius:10px; min-width:0; }
+.audio-lab-page .lab-song-picker h3 { font-size:14px; margin:0 0 10px; }
+.audio-lab-page .lab-song-picker form { display:flex; gap:8px; flex-wrap:wrap; }
+.audio-lab-page .lab-song-picker input { flex:1; min-width:120px; font:inherit; font-size:13px; padding:8px 10px; }
+.audio-lab-page .lab-song-picker button { font:inherit; font-size:13px; padding:7px 12px; }
+.audio-lab-page .lab-song-picker p { font-size:12px; margin:8px 0 0; }
+.audio-lab-page .upload-section { margin:0; }
+.audio-lab-page .upload-area { height:100%; min-height:110px; padding:16px; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; }
+.audio-lab-page .upload-icon { font-size:26px; margin:0; }
+.audio-lab-page .upload-area p { font-size:12px; margin:0; }
+@media(max-width:760px) { .audio-lab-page .lab-source-row { grid-template-columns:1fr; } }

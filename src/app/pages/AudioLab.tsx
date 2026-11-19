@@ -284,9 +284,9 @@ export function AudioLab() {
 
   return (
     <div className="audio-lab-page">
-      <h2>音频实验室</h2>
+      <div className="lab-source-row">
       <section className="lab-song-picker">
-        <h3>从歌曲开始制作</h3>
+        <h3>选择歌曲</h3>
         <form onSubmit={e => { e.preventDefault(); searchSongs(); }}>
           <input aria-label="搜索制作音源" placeholder="搜索歌曲或歌手" value={query} onChange={e => setQuery(e.target.value)} />
           <button disabled={busy || !query.trim()} data-disabled-reason={!query.trim() ? '请先输入搜索关键词' : '正在搜索或导入音频，请稍候'}>搜索</button>
@@ -318,6 +318,7 @@ export function AudioLab() {
         </div>
       </div>
 
+      </div>
       {trimOpen && original && <AudioTrimDialog buffer={original} selection={trim} tempo={playbackRate} pitch={pitchShift} volume={volume} lyrics={sourceLyrics} onClose={() => setTrimOpen(false)} onApply={range => { setTrim(range); setTrimOpen(false); }} />}
       {audioFile && (
         <>
