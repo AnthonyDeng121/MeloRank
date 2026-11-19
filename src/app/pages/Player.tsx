@@ -236,6 +236,7 @@ export function Player({ selection, onSelectionChange }: { selection: CatalogIte
             </div>
             
             <div className="player-content">
+              <div className="player-song-summary">
               <div className="album-cover-large">
                 <img 
                   src={displayTrack.album.coverUrl} 
@@ -249,6 +250,8 @@ export function Player({ selection, onSelectionChange }: { selection: CatalogIte
                 {currentSong && <p className="track-artist">{displayTrack.artists.map((artist: any) => artist.name).join(', ')}</p>}
               </div>
               
+              </div>
+              <div className="player-control-stack">
               <div className="player-controls-row">
                 <div className="player-controls">
                   <button className="control-btn" aria-label="上一首" disabled={!currentSong} data-disabled-reason="请先选择歌曲" onClick={previousSong}>
@@ -311,6 +314,7 @@ export function Player({ selection, onSelectionChange }: { selection: CatalogIte
                   />
                 </div>
                 <span className="volume-value">{volume}%</span>
+              </div>
               </div>
               <PitchPanel sourceKey={currentSong ? `${currentSong.provider || 'qq'}:${currentSong.songmid}` : ''} currentTime={currentTime} unavailable={!currentSong ? '请先选择歌曲' : currentSong.provider === 'spotify' ? 'Spotify 音源暂不支持音高分析' : undefined} getAudio={async () => {
                 if (!currentSong) throw new Error('请先选择歌曲');

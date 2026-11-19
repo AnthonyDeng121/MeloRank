@@ -9,6 +9,66 @@
 }
 
 body { font-family: var(--interface-font); }
+
+/* Compact player: metadata on the left, transport on the right. */
+.player-page .player-main { grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+.player-page .player-left { min-width: 0; min-height: 0; padding: 24px; }
+.player-page .player-header { width: 100%; margin-bottom: 20px; }
+.player-page .player-header h2 { font-size: 16px; text-align: left; }
+.player-page .player-content { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 24px; align-items: center; }
+.player-page .player-song-summary { min-width: 0; }
+.player-page .player-song-summary .album-cover-large { width: 160px; height: 160px; max-width: 100%; margin: 0 0 14px; }
+.player-page .player-song-summary .track-info { text-align: left; margin: 0; }
+.player-page .player-song-summary .track-title { font-size: 20px; line-height: 1.4; overflow-wrap: anywhere; margin: 0 0 6px; }
+.player-page .player-song-summary .track-artist { font-size: 13px; line-height: 1.6; margin: 0; overflow-wrap: anywhere; }
+.player-page .player-control-stack { min-width: 0; display: flex; flex-direction: column; gap: 24px; }
+.player-page .player-control-stack .player-controls-row { margin: 0; }
+.player-page .player-control-stack > .progress-bar { margin: 0; height: auto; background: transparent; }
+.player-page .player-control-stack > .volume-control { margin: 0; width: 100%; }
+.player-page .player-control-stack .control-btn { width: 36px; height: 36px; font-size: 15px; }
+.player-page .player-content > .pitch-panel { grid-column: 1 / -1; margin-top: 0; }
+.player-page .player-right { min-width: 0; gap: 16px; }
+.player-page .lyrics-panel { padding: 16px; }
+.player-page .lyrics-header { margin-bottom: 12px; gap: 8px; }
+.player-page .lyrics-header h3 { font-size: 16px; }
+.player-page .lyrics-actions { gap: 6px; }
+.player-page .lyrics-btn { padding: 5px 9px; font-size: 12px; }
+.player-page .lyrics-content { min-height: 0; height: 260px; max-height: 260px; }
+.player-page .dynamic-lyrics { gap: 6px; padding: 12px 0; }
+.player-page .lyric-line { font-size: 13px; line-height: 1.8; }
+.player-page .lyric-line.current-lyric { font-size: 15px; }
+@media (max-width: 1100px) {
+  .player-page .player-main { grid-template-columns: minmax(0, 1fr); }
+  .player-page .lyrics-content { height: 220px; max-height: 220px; }
+}
+@media (max-width: 600px) {
+  .player-page .player-left { padding: 16px; }
+  .player-page .player-content { grid-template-columns: 100px minmax(0, 1fr); gap: 16px; }
+  .player-page .player-song-summary .album-cover-large { width: 100px; height: 100px; }
+  .player-page .player-song-summary .track-title { font-size: 16px; }
+  .player-page .player-control-stack { gap: 16px; }
+}
+
+/* The lab is a workbench; keep analysis and editing controls compact. */
+.audio-lab-page .audio-player-section { padding: 20px; margin-bottom: 20px; }
+.audio-lab-page .audio-player-section > h3 { font-size: 15px; margin-bottom: 16px; }
+.audio-lab-page .pitch-panel { padding: 12px 14px; margin-top: 8px; }
+.audio-lab-page .pitch-panel svg { height: 150px; margin-top: 12px; }
+.audio-lab-page .pitch-panel .pitch-title { font-size: 13px; }
+.audio-lab-page .pitch-panel .pitch-reading strong { font-size: 23px; }
+.audio-lab-page .pitch-panel .pitch-status { font-size: 11px; }
+.audio-lab-page .controls-section { gap: 14px; margin-bottom: 20px; }
+.audio-lab-page .controls-section > .control-group { min-height: 140px; padding: 16px; }
+.audio-lab-page .controls-section h3 { font-size: 14px; line-height: 20px; margin-bottom: 14px; }
+.audio-lab-page .lab-selection-summary { font-size: 12px; margin-bottom: 12px; }
+.audio-lab-page .lab-control-heading output { font-size: 13px; }
+.audio-lab-page .controls-section .pitch-btn { padding: 7px 10px; font-size: 12px; }
+.audio-lab-page .controls-section .pitch-value { font-size: 12px; }
+.audio-lab-page .lab-trim-open { height: 32px; padding: 0 12px; font-size: 12px; }
+.audio-lab-page .lab-speed-marks button span { font-size: 10px; }
+.audio-lab-page .export-format { font-size: 12px; gap: 8px; }
+.audio-lab-page .export-format select { font-size: 12px; padding: 8px 10px; border-radius: 8px; }
+.audio-lab-page .save-project-btn { font-size: 13px; padding: 9px 22px; border-radius: 8px; }
 button, input, textarea, select { font-family: inherit; }
 
 /* Actions use the same size, weight, surface and focus treatment as the library. */
