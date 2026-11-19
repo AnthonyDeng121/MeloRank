@@ -15,6 +15,17 @@ export function PitchPanel({ sourceKey, getAudio, currentTime, unavailable }: { 
   const [busy, setBusy] = useState(false);
   const generation = useRef(0);
   const controller = useRef<AbortController | null>(null);
+  const chart = useRef<SVGSVGElement | null>(null);
+  const [chartSize, setChartSize] = useState({ width: 800, height: 240 });
+  useEffect(() => {
+    if (!chart.current) return;
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      if (width > 0 && height > 0) setChartSize({ width, height });
+    });
+    observer.observe(chart.current);
+    return () => observer.disconnect();
+  }, []);
   useEffect(() => {
     generation.current++; controller.current?.abort(); setBusy(false); setStatus(''); setTrack(memory.get(sourceKey) || null);
     return () => { generation.current++; controller.current?.abort(); };
@@ -47,6 +58,8 @@ export function PitchPanel({ sourceKey, getAudio, currentTime, unavailable }: { 
   const midi = hz ? 69 + 12 * Math.log2(hz / 440) : 0;
   const start = Math.max(0, currentTime - 10);
   const low = 36, high = 96;
+  const plotWidth = Math.max(1, chartSize.width - 58);
+  const plotHeight = Math.max(1, chartSize.height - 40);
   const paths: string[] = [];
   let path = '';
   if (track) for (let i = Math.floor(start / track.hop); i < Math.min(track.hz.length, Math.ceil((start + 15) / track.hop)); i += 3) {
@@ -54,7 +67,7 @@ export function PitchPanel({ sourceKey, getAudio, currentTime, unavailable }: { 
     if (!f) { if (path) paths.push(path); path = ''; continue; }
     const m = 69 + 12 * Math.log2(f / 440);
     if (m < low || m > high) { if (path) paths.push(path); path = ''; continue; }
-    path += `${path ? 'L' : 'M'}${48 + (i * track.hop - start) / 15 * 742},${12 + (high - m) / (high - low) * 260} `;
+    path += `${path ? 'L' : 'M'}${48 + (i * track.hop - start) / 15 * plotWidth},${12 + (high - m) / (high - low) * plotHeight} `;
   }
   if (path) paths.push(path);
   const message = unavailable || status || (track ? `${track.cached ? '已读取缓存' : '分析完成'} · 模型加载 ${track.loadSeconds.toFixed(1)} 秒 · 推理 ${track.analysisSeconds.toFixed(1)} 秒` : '点击分析后随播放显示音名和曲线；无人声时曲线留空。');
@@ -65,11 +78,11 @@ export function PitchPanel({ sourceKey, getAudio, currentTime, unavailable }: { 
       <p className="pitch-status" role="status">{message}</p>
       <button className="pitch-analyze-button" onClick={analyze} disabled={busy || !!unavailable || !sourceKey} aria-busy={busy} data-disabled-reason={busy ? '正在分析' : unavailable || '请先选择歌曲'}>{busy ? '正在分析' : track ? '重新分析' : '分析音高'}</button>
     </div>
-    <svg viewBox="0 0 800 306" preserveAspectRatio="none" role="img" aria-label="最近十五秒的人声音高曲线，横轴时间，纵轴音名">
-      {[36, 48, 60, 72, 84, 96].map(m => { const y = 12 + (high - m) / 60 * 260; return <g key={m}><text x="0" y={y + 4}>{note(440 * 2 ** ((m - 69) / 12))}</text><line x1="45" x2="790" y1={y} y2={y} className="pitch-grid" /></g>; })}
+    <svg ref={chart} viewBox={`0 0 ${chartSize.width} ${chartSize.height}`} role="img" aria-label="最近十五秒的人声音高曲线，横轴时间，纵轴音名">
+      {[36, 48, 60, 72, 84, 96].map(m => { const y = 12 + (high - m) / 60 * plotHeight; return <g key={m}><text x="0" y={y + 4}>{note(440 * 2 ** ((m - 69) / 12))}</text><line x1="45" x2={chartSize.width - 10} y1={y} y2={y} className="pitch-grid" /></g>; })}
       {paths.map((d, i) => <path key={i} d={d} className="pitch-curve" />)}
-      {track && <line x1={48 + (currentTime - start) / 15 * 742} x2={48 + (currentTime - start) / 15 * 742} y1="10" y2="274" className="pitch-cursor" />}
-      {[0, 5, 10, 15].map(t => <text key={t} x={48 + t / 15 * 730} y="299">{Math.floor(start + t)}s</text>)}
+      {track && <line x1={48 + (currentTime - start) / 15 * plotWidth} x2={48 + (currentTime - start) / 15 * plotWidth} y1="10" y2={12 + plotHeight} className="pitch-cursor" />}
+      {[0, 5, 10, 15].map(t => <text key={t} textAnchor={t === 15 ? "end" : t === 0 ? "start" : "middle"} x={48 + t / 15 * plotWidth} y={chartSize.height - 5}>{Math.floor(start + t)}s</text>)}
     </svg>
 
   </section>;
