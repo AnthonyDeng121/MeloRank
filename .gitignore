@@ -6,6 +6,7 @@ dist/
 backend/netease-go/*.exe
 backend/netease-go/cookie.json
 backend/netease-go/.ncmctl/
+backend/pitch/__pycache__/
 .env
 .env.*
 !.env.example

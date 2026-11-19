@@ -1,6 +1,7 @@
 import { usePlatformAccounts } from '../contexts/PlatformAccountsContext';
 import { searchPlatform, platformLyric, platformPlayableUrl, type PlatformSong } from '../services/platformSongs';
 import { AudioTrimDialog } from '../components/AudioTrimDialog';
+import { PitchPanel } from '../components/PitchPanel';
 import { processPcm } from '../services/audioProcessing';
 import React, { useState, useRef, useEffect } from 'react';
 import '../../styles/AudioLab.css';
@@ -367,6 +368,11 @@ export function AudioLab() {
                     <span className="volume-value">{volume}%</span>
                   </div>
                 </div>
+                <PitchPanel sourceKey={previewUrl} currentTime={currentTime} unavailable={processing ? '正在处理音频，请稍候' : !previewUrl ? '请先导入音频' : undefined} getAudio={async () => {
+                  const response = await fetch(previewUrl);
+                  if (!response.ok) throw new Error('音频读取失败');
+                  return response.arrayBuffer();
+                }} />
                 <div className="progress-container">
                   <div 
                     className="progress-bar"

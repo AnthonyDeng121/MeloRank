@@ -1,4 +1,5 @@
 import { SongRating } from '../components/SongRating';
+import { PitchPanel } from '../components/PitchPanel';
 import { CatalogPanel } from '../components/CatalogPanel';
 import { WorkReview } from '../components/WorkReview';
 import { songEntity, type CatalogItem } from '../services/catalog';
@@ -311,6 +312,13 @@ export function Player({ selection, onSelectionChange }: { selection: CatalogIte
                 </div>
                 <span className="volume-value">{volume}%</span>
               </div>
+              <PitchPanel sourceKey={currentSong ? `${currentSong.provider || 'qq'}:${currentSong.songmid}` : ''} currentTime={currentTime} unavailable={!currentSong ? '请先选择歌曲' : currentSong.provider === 'spotify' ? 'Spotify 音源暂不支持音高分析' : undefined} getAudio={async () => {
+                if (!currentSong) throw new Error('请先选择歌曲');
+                const url = currentSong.url || await platformPlayableUrl(currentSong);
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('音源读取失败，需允许跨域访问');
+                return response.arrayBuffer();
+              }} />
             </div>
           </div>
         </div>
