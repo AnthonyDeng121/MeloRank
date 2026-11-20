@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { pitchRange } from '../services/pitchRange';
 import '../../styles/PitchPanel.css';
 import { encodePitchWav, separatePitch } from '../services/pitchSeparation';
 
@@ -74,7 +75,9 @@ export function PitchPanel({ sourceKey, getAudio, currentTime, unavailable, mode
   const hz = track?.hz[Math.floor(currentTime / track.hop)] || 0;
   const midi = hz ? 69 + 12 * Math.log2(hz / 440) : 0;
   const start = Math.max(0, currentTime - 10);
-  const low = 36, high = 96;
+  const { low, high } = useMemo(() => pitchRange(track?.hz || []), [track]);
+  const tickStep = high - low > 36 ? 12 : 6;
+  const ticks = Array.from({ length: Math.floor((high - low) / tickStep) + 1 }, (_, index) => low + index * tickStep);
   const plotWidth = Math.max(1, chartSize.width - 58);
   const plotHeight = Math.max(1, chartSize.height - 40);
   const paths: string[] = [];
@@ -96,7 +99,7 @@ export function PitchPanel({ sourceKey, getAudio, currentTime, unavailable, mode
       <button className="pitch-analyze-button" onClick={analyze} disabled={busy || !!unavailable || !sourceKey} aria-busy={busy} data-disabled-reason={busy ? '正在分析' : unavailable || '请先选择歌曲'}>{busy ? '正在分析' : track ? '重新分析' : '分析音高'}</button>
     </div>
     <svg ref={chart} viewBox={`0 0 ${chartSize.width} ${chartSize.height}`} role="img" aria-label="最近十五秒的人声音高曲线，横轴时间，纵轴音名">
-      {[36, 48, 60, 72, 84, 96].map(m => { const y = 12 + (high - m) / 60 * plotHeight; return <g key={m}><text x="0" y={y + 4}>{note(440 * 2 ** ((m - 69) / 12))}</text><line x1="45" x2={chartSize.width - 10} y1={y} y2={y} className="pitch-grid" /></g>; })}
+      {ticks.map(m => { const y = 12 + (high - m) / (high - low) * plotHeight; return <g key={m}><text x="0" y={y + 4}>{note(440 * 2 ** ((m - 69) / 12))}</text><line x1="45" x2={chartSize.width - 10} y1={y} y2={y} className="pitch-grid" /></g>; })}
       {paths.map((d, i) => <path key={i} d={d} className="pitch-curve" />)}
       {track && <line x1={48 + (currentTime - start) / 15 * plotWidth} x2={48 + (currentTime - start) / 15 * plotWidth} y1="10" y2={12 + plotHeight} className="pitch-cursor" />}
       {[0, 5, 10, 15].map(t => <text key={t} textAnchor={t === 15 ? "end" : t === 0 ? "start" : "middle"} x={48 + t / 15 * plotWidth} y={chartSize.height - 5}>{Math.floor(start + t)}s</text>)}
