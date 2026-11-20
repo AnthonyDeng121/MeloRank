@@ -1,3 +1,4 @@
+import type { MVItem } from './components/MVBrowser';
 import { DisabledFeedback } from './components/DisabledFeedback';
 import type { CatalogItem } from './services/catalog';
 import '../styles/MusicExperience.css';
@@ -23,8 +24,9 @@ import '../styles/App.css';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState(() => /[?&](code|connectSpotify|error)=/.test(location.search) ? 'music-library' : 'home');
+  const [mvSelection, setMVSelection] = useState<MVItem | null>(null);
   const [catalogSelection, setCatalogSelection] = useState<CatalogItem | null>(null);
-  const openCatalog = (item: CatalogItem) => { setCatalogSelection(item); navigate('player'); };
+  const openCatalog = (item: CatalogItem) => { setMVSelection(null); setCatalogSelection(item); navigate('player'); };
   const [pageHistory, setPageHistory] = useState<string[]>([]);
   const navigate = (page: string) => {
     if (page === currentPage) return;
@@ -43,9 +45,9 @@ export default function App() {
       case 'home':
         return <Home onNavigate={navigate} />;
       case 'search':
-        return <Search onOpenCatalog={openCatalog} />;
+        return <Search onOpenCatalog={openCatalog} onOpenMV={item => { setMVSelection(item); setCatalogSelection(null); navigate('player'); }} />;
       case 'player':
-        return <Player selection={catalogSelection} onSelectionChange={setCatalogSelection} />;
+        return <Player mvSelection={mvSelection} selection={catalogSelection} onSelectionChange={setCatalogSelection} />;
       case 'yearly-ranking':
         return <YearlyRanking pageType="yearly-ranking" />;
       case 'yearly-songs':

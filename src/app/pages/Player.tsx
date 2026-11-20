@@ -1,3 +1,4 @@
+import { MVPlayer, type MVItem } from '../components/MVBrowser';
 import { SongRating } from '../components/SongRating';
 import { PitchComparison as PitchPanel } from '../components/PitchPanel';
 import { CatalogPanel } from '../components/CatalogPanel';
@@ -11,9 +12,10 @@ import '../../styles/Player.css';
 import { Repeat1, ListMusic, Shuffle } from 'lucide-react';
 import { parseLrc, matchLyric } from '../services/lyrics';
 
-export function Player({ selection, onSelectionChange }: { selection: CatalogItem | null; onSelectionChange: (value: CatalogItem | null) => void }) {
-  const [view, setView] = useState<'songs' | 'albums' | 'artists'>(selection?.kind || 'songs');
+export function Player({ selection, onSelectionChange, mvSelection }: { mvSelection?: MVItem | null; selection: CatalogItem | null; onSelectionChange: (value: CatalogItem | null) => void }) {
+  const [view, setView] = useState<'songs' | 'albums' | 'artists' | 'mvs'>(selection?.kind || 'songs');
   useEffect(() => { if (selection) setView(selection.kind); }, [selection]);
+  useEffect(() => { if (mvSelection) setView('mvs'); }, [mvSelection]);
   const [downloading, setDownloading] = useState(false);
   const setDownloadError = (message: string) => { if (message) toast.error(message, { duration: 3000 }); };
   const [translation, setTranslation] = useState('');
@@ -216,17 +218,17 @@ export function Player({ selection, onSelectionChange }: { selection: CatalogIte
       coverUrl: songCover(currentSong)
     }
   } : mockTrack;
-  const browsingItem = view === 'songs' ? null : selection?.kind === view ? selection : currentSong ? songEntity(currentSong, view) : null;
-  const changeView = (kind: 'songs' | 'albums' | 'artists') => {
+  const browsingItem = (view === 'songs' || view === 'mvs') ? null : selection?.kind === view ? selection : currentSong ? songEntity(currentSong, view) : null;
+  const changeView = (kind: 'songs' | 'albums' | 'artists' | 'mvs') => {
     setView(kind);
     if (kind === 'songs') onSelectionChange(null);
-    else if (selection?.kind !== kind && currentSong) onSelectionChange(songEntity(currentSong, kind));
+    else if (kind !== 'mvs' && selection?.kind !== kind && currentSong) onSelectionChange(songEntity(currentSong, kind));
   };
   
   return (
     <div className="player-page">
-      <nav className="player-view-tabs" aria-label="播放器内容">{([['songs', '歌曲'], ['albums', '专辑'], ['artists', '歌手']] as const).map(([kind, label]) => <button key={kind} aria-pressed={view === kind} disabled={kind !== 'songs' && !currentSong && selection?.kind !== kind} data-disabled-reason="请先选择歌曲，或从搜索结果打开专辑、歌手" onClick={() => changeView(kind)}>{label}</button>)}</nav>
-      {view !== 'songs' ? (browsingItem ? <CatalogPanel key={`${browsingItem.provider}:${browsingItem.id}:${view}`} item={browsingItem} /> : <p>请先选择歌曲或搜索作品</p>) : <>
+      <nav className="player-view-tabs" aria-label="播放器内容">{([['songs', '歌曲'], ['albums', '专辑'], ['artists', '歌手'], ['mvs', 'MV']] as const).map(([kind, label]) => <button key={kind} aria-pressed={view === kind} disabled={kind === 'mvs' ? !mvSelection : kind !== 'songs' && !currentSong && selection?.kind !== kind} data-disabled-reason="请先选择歌曲，或从搜索结果打开专辑、歌手" onClick={() => changeView(kind)}>{label}</button>)}</nav>
+      {view === 'mvs' ? (mvSelection && <MVPlayer key={`${mvSelection.provider}:${mvSelection.id}`} item={mvSelection} />) : view !== 'songs' ? (browsingItem ? <CatalogPanel key={`${browsingItem.provider}:${browsingItem.id}:${view}`} item={browsingItem} /> : <p>请先选择歌曲或搜索作品</p>) : <>
       <div className="player-main">
         <div className="player-left">
           {/* QQ音乐播放器 */}

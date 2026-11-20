@@ -1,4 +1,4 @@
-import { MVBrowser } from '../components/MVBrowser';
+import { searchMVs, type MVItem } from '../components/MVBrowser';
 import { searchCatalog, type CatalogItem } from '../services/catalog';
 import { usePlatformAccounts, platformNames } from '../contexts/PlatformAccountsContext';
 import { toast } from 'sonner';
@@ -11,8 +11,7 @@ import { useSearch } from '../contexts/SearchContext';
 import { useRankingContext } from '../contexts/RankingContext';
 import '../../styles/Search.css';
 
-export function Search({ onOpenCatalog }: { onOpenCatalog: (item: CatalogItem) => void }) {
-  const [mvMode, setMvMode] = useState(false);
+export function Search({ onOpenCatalog, onOpenMV }: { onOpenCatalog: (item: CatalogItem) => void; onOpenMV: (item: MVItem) => void }) {
   const { activeProvider } = usePlatformAccounts();
   const { setCurrentSong, addSongToQueue } = useMusic();
   const {
@@ -76,7 +75,7 @@ export function Search({ onOpenCatalog }: { onOpenCatalog: (item: CatalogItem) =
   const totalScore = ratings.lyrics + ratings.composition + ratings.arrangement + ratings.singing + ratings.innovation + ratings.preference;
 
   // 执行搜索 - 使用useCallback优化，避免无限循环
-  const handleSearch = useCallback(async (page: number = 1, query: string = searchQuery, kind: 'songs' | 'albums' | 'artists' = activeTab) => {
+  const handleSearch = useCallback(async (page: number = 1, query: string = searchQuery, kind: 'songs' | 'albums' | 'artists' | 'mvs' = activeTab) => {
     if (!query.trim()) return;
     const id = ++requestId.current;
     setSubmittedQuery(query.trim());
@@ -86,7 +85,7 @@ export function Search({ onOpenCatalog }: { onOpenCatalog: (item: CatalogItem) =
     try {
       console.log('开始搜索:', searchQuery, '页码:', page);
       // 使用本次请求的类型，避免切换标签时读取旧状态。
-      const searchResponse = kind === 'songs' ? await searchPlatform(activeProvider, query.trim(), pageSize, page) : await searchCatalog(activeProvider, kind, query.trim(), pageSize, page);
+      const searchResponse = kind === 'mvs' ? await searchMVs(activeProvider, query.trim(), page) : kind === 'songs' ? await searchPlatform(activeProvider, query.trim(), 10, page) : await searchCatalog(activeProvider, kind, query.trim(), 10, page);
       console.log('搜索响应:', searchResponse);
       
       // 处理API响应
@@ -94,6 +93,7 @@ export function Search({ onOpenCatalog }: { onOpenCatalog: (item: CatalogItem) =
       console.log('处理后的搜索结果数据:', searchResultsData);
       
       if (id !== requestId.current) return;
+      setPageSize(kind === 'mvs' ? 20 : 10);
       setSearchResults(searchResultsData);
       setCurrentPage(page);
       
@@ -136,7 +136,7 @@ export function Search({ onOpenCatalog }: { onOpenCatalog: (item: CatalogItem) =
   };
 
   // 处理标签页切换
-  const handleTabChange = (tab: 'songs' | 'albums' | 'artists') => {
+  const handleTabChange = (tab: 'songs' | 'albums' | 'artists' | 'mvs') => {
     requestId.current++;
     setActiveTab(tab);
     setSearchResults(null);
@@ -331,6 +331,7 @@ export function Search({ onOpenCatalog }: { onOpenCatalog: (item: CatalogItem) =
       return <div className="no-results">没有找到相关结果</div>;
     }
 
+    if (activeTab === 'mvs') return searchResults.items?.length ? searchResults.items.map((item: MVItem) => <button className="catalog-search-result mv-search-result" key={item.id} onClick={() => onOpenMV(item)}>{item.image && <img src={item.image} alt="" />}<span><strong>{item.title}</strong><small>{item.artist}</small></span><span>播放 MV →</span></button>) : <div className="no-results">没有找到相关结果</div>;
     if (activeTab !== 'songs') return searchResults.items?.length ? searchResults.items.map((item: CatalogItem) => <button key={`${item.provider}:${item.id}`} className="catalog-search-result" onClick={() => onOpenCatalog(item)}>{item.image && <img src={item.image} alt="" />}<span><strong>{item.title}</strong><small>{item.artist || (item.kind === 'artists' ? '歌手' : '专辑')}{item.date && ` · ${item.date}`}</small></span><span>查看{activeTab === 'albums' ? '专辑' : '歌手'} →</span></button>) : <div className="no-results">没有找到相关结果</div>;
 
     // 处理qq-music-api返回的搜索结果格式
@@ -411,7 +412,6 @@ export function Search({ onOpenCatalog }: { onOpenCatalog: (item: CatalogItem) =
     return <div className="no-results">没有找到相关结果</div>;
   };
 
-  if (mvMode) return <div className="search-page"><div className="search-tabs">{(['songs', 'albums', 'artists'] as const).map(tab => <button key={tab} className="tab" onClick={() => { setMvMode(false); handleTabChange(tab); }}>{({ songs: '歌曲', albums: '专辑', artists: '歌手' })[tab]}</button>)}<button className="tab active">MV</button></div><MVBrowser initialQuery={searchQuery} /></div>;
   return (
     <div className="search-page">
       <div className="search-header">
@@ -449,8 +449,7 @@ export function Search({ onOpenCatalog }: { onOpenCatalog: (item: CatalogItem) =
       </div>
 
       <div className="search-tabs">
-        {(['songs', 'albums', 'artists'] as const).map(tab => <button key={tab} className={`tab ${activeTab === tab ? 'active' : ''}`} onClick={() => handleTabChange(tab)}>{({ songs: '歌曲', albums: '专辑', artists: '歌手' })[tab]}</button>)}
-        <button className="tab" onClick={() => setMvMode(true)}>MV</button>
+        {(['songs', 'albums', 'artists', 'mvs'] as const).map(tab => <button key={tab} className={`tab ${activeTab === tab ? 'active' : ''}`} onClick={() => handleTabChange(tab)}>{({ songs: '歌曲', albums: '专辑', artists: '歌手', mvs: 'MV' })[tab]}</button>)}
       </div>
 
       <div className="search-results">
