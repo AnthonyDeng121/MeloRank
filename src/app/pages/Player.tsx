@@ -1,4 +1,6 @@
-import { MVPlayer, type MVItem } from '../components/MVBrowser';
+import { usePlatformAccounts } from '../contexts/PlatformAccountsContext';
+import { uniqueMVMatch } from '../services/mvMatching';
+import { MVPlayer, searchMVs, type MVItem } from '../components/MVBrowser';
 import { SongRating } from '../components/SongRating';
 import { PitchComparison as PitchPanel } from '../components/PitchPanel';
 import { CatalogPanel } from '../components/CatalogPanel';
@@ -12,7 +14,11 @@ import '../../styles/Player.css';
 import { Repeat1, ListMusic, Shuffle } from 'lucide-react';
 import { parseLrc, matchLyric } from '../services/lyrics';
 
-export function Player({ selection, onSelectionChange, mvSelection }: { mvSelection?: MVItem | null; selection: CatalogItem | null; onSelectionChange: (value: CatalogItem | null) => void }) {
+export function Player({ selection, onSelectionChange, mvSelection, onMVChange }: { onMVChange?: (item: MVItem | null) => void; mvSelection?: MVItem | null; selection: CatalogItem | null; onSelectionChange: (value: CatalogItem | null) => void }) {
+  const { activeProvider } = usePlatformAccounts();
+  const [mvMatches, setMVMatches] = useState<MVItem[]>([]);
+  const [linkBusy, setLinkBusy] = useState(false);
+  const linkVersion = useRef(0);
   const [view, setView] = useState<'songs' | 'albums' | 'artists' | 'mvs'>(selection?.kind || 'songs');
   useEffect(() => { if (selection) setView(selection.kind); }, [selection]);
   useEffect(() => { if (mvSelection) setView('mvs'); }, [mvSelection]);
@@ -48,6 +54,27 @@ export function Player({ selection, onSelectionChange, mvSelection }: { mvSelect
   // 使用音乐播放上下文
   const { currentSong, isPlaying, togglePlay, volume, setVolume, setLyrics, lyrics, currentTime, duration, seekTo, previousSong, nextSong, playMode, setPlayMode } = useMusic();
   
+  const previousSongId = useRef(currentSong?.songmid);
+  useEffect(() => {
+    const songChanged = previousSongId.current !== currentSong?.songmid;
+    previousSongId.current = currentSong?.songmid;
+    linkVersion.current++; setMVMatches([]); setLinkBusy(false);
+    if (mvSelection && (songChanged || mvSelection.provider !== activeProvider)) { setView('songs'); onMVChange?.(null); }
+  }, [activeProvider, currentSong?.songmid]);
+  const findMV = async () => {
+    if (!currentSong || linkBusy) return;
+    const version = ++linkVersion.current;
+    setLinkBusy(true); setMVMatches([]);
+    try {
+      const result = await searchMVs(currentSong.provider || 'qq', `${currentSong.songname} ${currentSong.singer[0]?.name || ''}`, 1);
+      if (version !== linkVersion.current) return;
+      const exact = uniqueMVMatch<MVItem>(result.items, currentSong.songname, currentSong.singer[0]?.name || '', item => item);
+      if (exact) { onMVChange?.(exact); setView('mvs'); }
+      else setMVMatches(result.items);
+      if (!result.items.length) toast.info('未找到对应 MV');
+    } catch (error) { if (version === linkVersion.current) toast.error(error instanceof Error ? error.message : 'MV 查找失败'); }
+    finally { if (version === linkVersion.current) setLinkBusy(false); }
+  };
   const [showCopySuccess, setShowCopySuccess] = useState(false);
 
   // 播放模式切换
@@ -227,8 +254,9 @@ export function Player({ selection, onSelectionChange, mvSelection }: { mvSelect
   
   return (
     <div className="player-page">
-      <nav className="player-view-tabs" aria-label="播放器内容">{([['songs', '歌曲'], ['albums', '专辑'], ['artists', '歌手'], ['mvs', 'MV']] as const).map(([kind, label]) => <button key={kind} aria-pressed={view === kind} disabled={kind === 'mvs' ? !mvSelection : kind !== 'songs' && !currentSong && selection?.kind !== kind} data-disabled-reason="请先选择歌曲，或从搜索结果打开专辑、歌手" onClick={() => changeView(kind)}>{label}</button>)}</nav>
-      {view === 'mvs' ? (mvSelection && <MVPlayer key={`${mvSelection.provider}:${mvSelection.id}`} item={mvSelection} />) : view !== 'songs' ? (browsingItem ? <CatalogPanel key={`${browsingItem.provider}:${browsingItem.id}:${view}`} item={browsingItem} /> : <p>请先选择歌曲或搜索作品</p>) : <>
+      <nav className="player-view-tabs" aria-label="播放器内容">{([['songs', '歌曲'], ['albums', '专辑'], ['artists', '歌手'], ['mvs', 'MV']] as const).map(([kind, label]) => <button key={kind} aria-pressed={view === kind} disabled={kind === 'mvs' ? !mvSelection && (!currentSong || activeProvider === 'spotify') : kind !== 'songs' && !currentSong && selection?.kind !== kind} data-disabled-reason="请先选择歌曲，或从搜索结果打开专辑、歌手" onClick={() => { if (kind === 'mvs' && !mvSelection) { void findMV(); return; } changeView(kind); }}>{label}</button>)}</nav>
+      {mvMatches.length > 0 && <section className="mv-link-results"><h3>选择对应 MV</h3>{mvMatches.map(item => <button key={item.id} onClick={() => { onMVChange?.(item); setMVMatches([]); setView('mvs'); }}>{item.title} · {item.artist}</button>)}<button onClick={() => setMVMatches([])}>收起</button></section>}
+      {view === 'mvs' ? (mvSelection?.provider === activeProvider ? <MVPlayer key={`${mvSelection.provider}:${mvSelection.id}`} item={mvSelection} onSong={() => { onMVChange?.(null); setView('songs'); }} /> : <p>请从搜索结果或当前歌曲选择 MV</p>) : view !== 'songs' ? (browsingItem ? <CatalogPanel key={`${browsingItem.provider}:${browsingItem.id}:${view}`} item={browsingItem} /> : <p>请先选择歌曲或搜索作品</p>) : <>
       <div className="player-main">
         <div className="player-left">
           {/* QQ音乐播放器 */}
@@ -252,6 +280,7 @@ export function Player({ selection, onSelectionChange, mvSelection }: { mvSelect
                 {currentSong && <p className="track-artist">{displayTrack.artists.map((artist: any) => artist.name).join(', ')}</p>}
               </div>
               <div className="player-controls-row">
+                <button className="player-action-button" onClick={() => void findMV()} disabled={!currentSong || linkBusy || activeProvider === 'spotify'} data-disabled-reason={linkBusy ? '正在查找 MV' : '请先选择支持 MV 的歌曲'}>{linkBusy ? '查找中…' : '对应 MV'}</button>
                 <div className="player-controls">
                   <button className="control-btn" aria-label="上一首" disabled={!currentSong} data-disabled-reason="请先选择歌曲" onClick={previousSong}>
                     ⏮

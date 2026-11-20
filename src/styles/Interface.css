@@ -9,6 +9,10 @@
 }
 
 body { font-family: var(--interface-font); }
+.mv-playback-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.mv-link-results { display: grid; gap: 8px; margin: 14px 0; padding: 14px; border: 1px solid #3a4051; border-radius: 12px; }
+.mv-link-results h3, .mv-link-results p { font-size: 13px; margin: 0; color: #a6b1cf; }
+.mv-link-results button { text-align: left; padding: 9px 12px; border: 1px solid #3a4051; border-radius: 8px; background: #272a34; color: #e8eaf2; font: inherit; font-size: 13px; cursor: pointer; }
 
 /* Compact player: metadata on the left, transport on the right. */
 .player-page .player-main { grid-template-columns: minmax(0, 1.65fr) minmax(320px, 1fr); gap: 20px; align-items: start; }

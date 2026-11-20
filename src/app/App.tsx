@@ -4,7 +4,7 @@ import type { CatalogItem } from './services/catalog';
 import '../styles/MusicExperience.css';
 import { PlatformAccountsProvider } from './contexts/PlatformAccountsContext';
 import { Toaster } from 'sonner';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { TopNav } from './components/TopNav';
 import { MiniPlayer } from './components/MiniPlayer';
 import { PlayQueue } from './components/PlayQueue';
@@ -25,6 +25,7 @@ import '../styles/App.css';
 export default function App() {
   const [currentPage, setCurrentPage] = useState(() => /[?&](code|connectSpotify|error)=/.test(location.search) ? 'music-library' : 'home');
   const [mvSelection, setMVSelection] = useState<MVItem | null>(null);
+  useEffect(() => { const clear = () => setMVSelection(null); window.addEventListener('music-platform-change', clear); return () => window.removeEventListener('music-platform-change', clear); }, []);
   const [catalogSelection, setCatalogSelection] = useState<CatalogItem | null>(null);
   const openCatalog = (item: CatalogItem) => { setMVSelection(null); setCatalogSelection(item); navigate('player'); };
   const [pageHistory, setPageHistory] = useState<string[]>([]);
@@ -47,7 +48,7 @@ export default function App() {
       case 'search':
         return <Search onOpenCatalog={openCatalog} onOpenMV={item => { setMVSelection(item); setCatalogSelection(null); navigate('player'); }} />;
       case 'player':
-        return <Player mvSelection={mvSelection} selection={catalogSelection} onSelectionChange={setCatalogSelection} />;
+        return <Player onMVChange={setMVSelection} mvSelection={mvSelection} selection={catalogSelection} onSelectionChange={setCatalogSelection} />;
       case 'yearly-ranking':
         return <YearlyRanking pageType="yearly-ranking" />;
       case 'yearly-songs':
