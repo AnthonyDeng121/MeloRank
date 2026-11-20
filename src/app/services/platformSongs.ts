@@ -30,11 +30,31 @@ export async function searchPlatform(provider: MusicProvider, query: string, lim
   }
   return { response: { data: { song: { list, totalnum: total } } } };
 }
-export async function platformSongUrl(song: PlatformSong): Promise<any> {
+async function originalPlatformSongUrl(song: PlatformSong): Promise<any> {
   if (!song.provider || song.provider === 'qq') return qqMusicService.getSongUrl(song.songmid);
   if (song.provider === 'spotify') throw new Error('Spotify 歌曲需要使用官方播放器');
   const result = await netease.request('playback', { id: song.providerId });
   return { data: { playUrl: { [song.songmid]: { url: result.url, isPreview: result.isPreview } } } };
+}
+export async function platformSongUrl(song: PlatformSong): Promise<any> {
+  if (song.provider === 'spotify') return originalPlatformSongUrl(song);
+  try {
+    const original = await originalPlatformSongUrl(song);
+    const root = original?.response || original;
+    const data = root.data || root;
+    const entry = data.playUrl?.[song.songmid];
+    if (entry?.url && !entry.isPreview) return original;
+    if ((typeof data.url === 'string' && data.url && !data.isPreview) || data[0]?.url || (typeof data.playUrl === 'string' && data.playUrl)) return original;
+    // Keep a platform preview available if alternative matching fails.
+    try { return await alternativeSongUrl(song); } catch { return original; }
+  } catch (error) {
+    try { return await alternativeSongUrl(song); }
+    catch { throw new Error(`${(error as Error).message || '原音源不可用'}；换源也未找到可播放资源`); }
+  }
+}
+async function alternativeSongUrl(song: PlatformSong) {
+  const result = await netease.alternative({ title: song.songname, artists: song.singer.map(artist => artist.name), album: song.albumname, duration: song.duration });
+  return { data: { playUrl: { [song.songmid]: { url: result.url, isPreview: false, source: result.source, isAlternative: true } } } };
 }
 export async function platformLyric(song: PlatformSong): Promise<any> {
   if (!song.provider || song.provider === 'qq') return qqMusicService.getLyric(song.songmid);

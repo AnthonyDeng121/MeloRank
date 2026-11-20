@@ -316,6 +316,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
             if (response.data.playUrl && response.data.playUrl[playbackSong.songmid]) {
               const songInfo = response.data.playUrl[playbackSong.songmid];
               if (songInfo) {
+                if (songInfo.isAlternative) toast.info(`当前使用替代音源：${songInfo.source}，请留意版本差异`, { duration: 6000 });
                 if (songInfo.isPreview) {
                   previewLimit.current = 30;
                 }

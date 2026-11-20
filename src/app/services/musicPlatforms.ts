@@ -5,6 +5,12 @@ export interface LibraryPage { items: LibraryItem[]; hasMore: boolean; nextOffse
 
 const backend = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:5000';
 export const netease = {
+  async alternative(body: Record<string, unknown>) {
+    const response = await fetch(`${backend}/api/music/alternative`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(30000) });
+    const result = await response.json();
+    if (!response.ok || !result.url) throw new Error(result.error || '换源失败');
+    return result;
+  },
   cookie: () => sessionStorage.getItem('neteaseCookie') || '',
   async request(path: string, body: Record<string, unknown> = {}, signal?: AbortSignal, cookieOverride?: string) {
     let response: Response;

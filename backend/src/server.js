@@ -14,6 +14,7 @@ app.use('/api/pitch/separation', require('./pitchSeparation'));
 app.use('/api/pitch', require('./pitch'));
 app.use(express.json({ limit: '4mb' }));
 app.use('/api/mv', require('./mv'));
+app.use('/api/music/alternative', require('./unblockPlayback'));
 app.use('/api/music/netease', require('./musicPlatforms').createMusicPlatformsRouter());
 
 // Root route

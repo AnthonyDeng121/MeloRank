@@ -1,0 +1,26 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const ts = require('typescript');
+let original, alternativeCalls = 0, failAlternative = false;
+const qqMusicService = { getSongUrl: async () => { if (original instanceof Error) throw original; return original; } };
+const netease = { alternative: async body => { alternativeCalls++; assert.equal(body.title, 'Track'); if (failAlternative) throw Error('unavailable'); return { url: 'https://example.com/alternative.mp3', source: 'bodian' }; } };
+const sandbox = { exports: {}, require: name => name === './musicPlatforms' ? { netease, spotify: {} } : { qqMusicService } };
+vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/app/services/platformSongs.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, sandbox);
+const song = { songmid: 'id', songname: 'Track', singer: [{ name: 'Artist' }], albumname: 'Album', duration: 240 };
+(async () => {
+  original = { data: { playUrl: { id: { url: 'original' } } } };
+  assert.equal(await sandbox.exports.platformSongUrl(song), original); assert.equal(alternativeCalls, 0);
+  original = { data: { playUrl: { id: { error: 'restricted' } } } };
+  let result = await sandbox.exports.platformSongUrl(song);
+  assert.equal(result.data.playUrl.id.isAlternative, true); assert.equal(result.data.playUrl.id.source, 'bodian');
+  original = Error('original unavailable');
+  assert.equal((await sandbox.exports.platformSongUrl(song)).data.playUrl.id.isAlternative, true);
+  original = { data: { playUrl: { id: { url: 'preview', isPreview: true } } } }; failAlternative = true;
+  assert.equal(await sandbox.exports.platformSongUrl(song), original);
+  original = Error('original unavailable');
+  await assert.rejects(() => sandbox.exports.platformSongUrl(song));
+  const before = alternativeCalls;
+  await assert.rejects(() => sandbox.exports.platformSongUrl({ ...song, provider: 'spotify' })); assert.equal(alternativeCalls, before);
+  console.log('PASS original priority, unavailable/preview fallback, source metadata, failure and Spotify isolation');
+})().catch(error => { console.error(error); process.exitCode = 1; });
