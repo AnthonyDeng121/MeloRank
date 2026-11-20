@@ -190,3 +190,19 @@ button, input, textarea, select { font-family: inherit; }
 .audio-lab-page .upload-icon { font-size:26px; margin:0; }
 .audio-lab-page .upload-area p { font-size:12px; margin:0; }
 @media(max-width:760px) { .audio-lab-page .lab-source-row { grid-template-columns:1fr; } }
+
+.mv-browser { font-size:13px; }
+.mv-browser form { display:flex; gap:10px; margin:20px 0; }
+.mv-browser input { flex:1; min-width:0; background:#1a1a1a; color:#eee; border:1px solid #3a4051; border-radius:8px; padding:10px; }
+.mv-browser button { font:inherit; color:#eee; background:#272a34; border:1px solid #3a4051; border-radius:8px; padding:8px 12px; }
+.mv-browser video { display:block; width:100%; max-height:65vh; background:#000; margin:12px 0; }
+
+.app:has(.mv-browser article) > .mini-player { display:none; }
+.mv-browser article { margin-bottom:16px; }
+.mv-browser audio { display:block; width:100%; margin:12px 0; }
+.mv-browser article > label { display:flex; align-items:center; gap:8px; font-size:12px; margin-top:8px; }
+.mv-browser article > label input { flex:0; }
+@media(max-width:760px) { .app > .main-content:has(.mv-browser) { padding:20px 12px 100px; } }
+
+.app:has(.mv-browser) > .top-nav { position:sticky; top:0; }
+.app > .main-content:has(.mv-browser) { margin-top:0; }

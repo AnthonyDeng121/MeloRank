@@ -1,0 +1,46 @@
+{
+  "package": "@unblockneteasemusic/server",
+  "version": "0.28.0",
+  "date": "2026-11-20",
+  "sources": [
+    "kugou",
+    "bodian",
+    "kuwo"
+  ],
+  "credentialsUsed": false,
+  "method": "match supplied song metadata; HTTP Range bytes=0-4095",
+  "limitations": [
+    "No full-track listening or version-identity validation",
+    "No verified unpurchased digital-album sample",
+    "No integration into production playback"
+  ],
+  "results": [
+    {
+      "name": "晴天",
+      "source": "bodian",
+      "status": 206,
+      "bytes": 4096,
+      "contentType": "audio/mpeg",
+      "bitrate": 320000,
+      "ms": 7147
+    },
+    {
+      "name": "七里香",
+      "source": "bodian",
+      "status": 206,
+      "bytes": 4096,
+      "contentType": "audio/mpeg",
+      "bitrate": 320000,
+      "ms": 7128
+    },
+    {
+      "name": "Shape of You",
+      "source": "kuwo",
+      "status": 206,
+      "bytes": 4096,
+      "contentType": "audio/mpeg",
+      "bitrate": 128000,
+      "ms": 7300
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import { MVBrowser } from '../components/MVBrowser';
 import { searchCatalog, type CatalogItem } from '../services/catalog';
 import { usePlatformAccounts, platformNames } from '../contexts/PlatformAccountsContext';
 import { toast } from 'sonner';
@@ -11,6 +12,7 @@ import { useRankingContext } from '../contexts/RankingContext';
 import '../../styles/Search.css';
 
 export function Search({ onOpenCatalog }: { onOpenCatalog: (item: CatalogItem) => void }) {
+  const [mvMode, setMvMode] = useState(false);
   const { activeProvider } = usePlatformAccounts();
   const { setCurrentSong, addSongToQueue } = useMusic();
   const {
@@ -409,6 +411,7 @@ export function Search({ onOpenCatalog }: { onOpenCatalog: (item: CatalogItem) =
     return <div className="no-results">没有找到相关结果</div>;
   };
 
+  if (mvMode) return <div className="search-page"><div className="search-tabs">{(['songs', 'albums', 'artists'] as const).map(tab => <button key={tab} className="tab" onClick={() => { setMvMode(false); handleTabChange(tab); }}>{({ songs: '歌曲', albums: '专辑', artists: '歌手' })[tab]}</button>)}<button className="tab active">MV</button></div><MVBrowser initialQuery={searchQuery} /></div>;
   return (
     <div className="search-page">
       <div className="search-header">
@@ -447,6 +450,7 @@ export function Search({ onOpenCatalog }: { onOpenCatalog: (item: CatalogItem) =
 
       <div className="search-tabs">
         {(['songs', 'albums', 'artists'] as const).map(tab => <button key={tab} className={`tab ${activeTab === tab ? 'active' : ''}`} onClick={() => handleTabChange(tab)}>{({ songs: '歌曲', albums: '专辑', artists: '歌手' })[tab]}</button>)}
+        <button className="tab" onClick={() => setMvMode(true)}>MV</button>
       </div>
 
       <div className="search-results">

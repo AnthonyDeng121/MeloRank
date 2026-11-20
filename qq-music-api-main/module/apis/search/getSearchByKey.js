@@ -1,8 +1,8 @@
 const { resolveCookie } = require('../../../util/requestAuth');
 module.exports = async ({ params = {} }) => {
   const moduleName = 'music.search.SearchCgiService';
-  const type = Number(params.catZhida) === 3 ? 2 : Number(params.catZhida) === 2 ? 1 : 0;
-  const group = ['song', 'singer', 'album'][type];
+  const type = Number(params.catZhida) === 4 ? 4 : Number(params.catZhida) === 3 ? 2 : Number(params.catZhida) === 2 ? 1 : 0;
+  const group = type === 4 ? 'mv' : ['song', 'singer', 'album'][type];
   const payload = { [moduleName]: { module: moduleName, method: 'DoSearchForQQMusicDesktop', param: {
     query: params.w, search_type: type, page_num: Math.max(1, Number(params.p) || 1), num_per_page: Math.min(50, Math.max(1, Number(params.n) || 10)),
   } } };
