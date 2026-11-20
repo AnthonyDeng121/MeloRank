@@ -1,5 +1,5 @@
 import { SongRating } from '../components/SongRating';
-import { PitchPanel } from '../components/PitchPanel';
+import { PitchComparison as PitchPanel } from '../components/PitchPanel';
 import { CatalogPanel } from '../components/CatalogPanel';
 import { WorkReview } from '../components/WorkReview';
 import { songEntity, type CatalogItem } from '../services/catalog';

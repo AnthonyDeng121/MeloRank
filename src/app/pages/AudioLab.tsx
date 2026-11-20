@@ -1,7 +1,7 @@
 import { usePlatformAccounts } from '../contexts/PlatformAccountsContext';
 import { searchPlatform, platformLyric, platformPlayableUrl, type PlatformSong } from '../services/platformSongs';
 import { AudioTrimDialog } from '../components/AudioTrimDialog';
-import { PitchPanel } from '../components/PitchPanel';
+import { PitchComparison as PitchPanel } from '../components/PitchPanel';
 import { processPcm } from '../services/audioProcessing';
 import React, { useState, useRef, useEffect } from 'react';
 import '../../styles/AudioLab.css';
