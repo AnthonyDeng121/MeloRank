@@ -233,10 +233,6 @@ export function Player({ selection, onSelectionChange, mvSelection }: { mvSelect
         <div className="player-left">
           {/* QQ音乐播放器 */}
           <div className="qq-music-player">
-            <div className="player-header">
-              <h2>播放器</h2>
-            </div>
-            
             <div className="player-content">
               <div className="player-song-summary">
               <div className="album-cover-large">
@@ -247,13 +243,14 @@ export function Player({ selection, onSelectionChange, mvSelection }: { mvSelect
                 />
               </div>
               
+
+
+              </div>
+              <div className="player-control-stack">
               <div className="track-info">
                 <h3 className="track-title">{currentSong ? displayTrack.name : '暂未选择歌曲'}</h3>
                 {currentSong && <p className="track-artist">{displayTrack.artists.map((artist: any) => artist.name).join(', ')}</p>}
               </div>
-              
-              </div>
-              <div className="player-control-stack">
               <div className="player-controls-row">
                 <div className="player-controls">
                   <button className="control-btn" aria-label="上一首" disabled={!currentSong} data-disabled-reason="请先选择歌曲" onClick={previousSong}>
@@ -334,6 +331,11 @@ export function Player({ selection, onSelectionChange, mvSelection }: { mvSelect
           <div className="lyrics-panel">
             <div className="lyrics-header">
               <h3>歌词</h3>
+            <div className="lyrics-display-options">
+              <button type="button" aria-pressed={showTranslation} onClick={() => { setShowTranslation(!showTranslation); localStorage.setItem('lyricsTranslation', String(!showTranslation)); }}>翻译</button>
+              <button type="button" aria-pressed={showRomanization} onClick={() => { setShowRomanization(!showRomanization); localStorage.setItem('lyricsRomanization', String(!showRomanization)); }}>音译 / 罗马音</button>
+              {(showTranslation && !translatedLines.some(line => line.text) || showRomanization && !romanizedLines.some(line => line.text)) && <span>该歌曲暂无{showTranslation && !translatedLines.some(line => line.text) ? '翻译' : ''}{showTranslation && !translatedLines.some(line => line.text) && showRomanization && !romanizedLines.some(line => line.text) ? '及' : ''}{showRomanization && !romanizedLines.some(line => line.text) ? '音译' : ''}</span>}
+            </div>
               <div className="lyrics-actions">
                 <button className="lyrics-btn" disabled={!parsedLyrics.length} data-disabled-reason="当前歌曲暂无歌词" onClick={async () => {
                   // 提取纯歌词文本，不包含时间戳
@@ -361,11 +363,6 @@ export function Player({ selection, onSelectionChange, mvSelection }: { mvSelect
                   复制成功！
                 </div>
               )}
-            </div>
-            <div className="lyrics-display-options">
-              <button type="button" aria-pressed={showTranslation} onClick={() => { setShowTranslation(!showTranslation); localStorage.setItem('lyricsTranslation', String(!showTranslation)); }}>翻译</button>
-              <button type="button" aria-pressed={showRomanization} onClick={() => { setShowRomanization(!showRomanization); localStorage.setItem('lyricsRomanization', String(!showRomanization)); }}>音译 / 罗马音</button>
-              {(showTranslation && !translatedLines.some(line => line.text) || showRomanization && !romanizedLines.some(line => line.text)) && <span>该歌曲暂无{showTranslation && !translatedLines.some(line => line.text) ? '翻译' : ''}{showTranslation && !translatedLines.some(line => line.text) && showRomanization && !romanizedLines.some(line => line.text) ? '及' : ''}{showRomanization && !romanizedLines.some(line => line.text) ? '音译' : ''}</span>}
             </div>
             <div className="lyrics-content" ref={lyricsViewport}>
               {parsedLyrics.length > 0 ? (

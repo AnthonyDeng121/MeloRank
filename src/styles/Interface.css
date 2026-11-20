@@ -15,18 +15,21 @@ body { font-family: var(--interface-font); }
 .player-page .player-left { min-width: 0; min-height: 0; padding: 24px; }
 .player-page .player-header { width: 100%; margin-bottom: 20px; }
 .player-page .player-header h2 { font-size: 16px; text-align: left; }
-.player-page .player-content { display: grid; grid-template-columns: minmax(180px, .95fr) minmax(200px, 1.05fr); gap: 24px; align-items: center; }
+.player-page .player-content { display: grid; grid-template-columns: clamp(200px, 20vw, 280px) minmax(0, 1fr); gap: 24px; align-items: center; }
 .player-page .player-song-summary { min-width: 0; }
-.player-page .player-song-summary .album-cover-large { width: min(100%, 220px); height: auto; aspect-ratio: 1; max-width: 100%; margin: 0 0 14px; }
+.player-page .player-song-summary .album-cover-large { width: 100%; height: auto; aspect-ratio: 1; max-width: 100%; margin: 0; }
 .player-page .player-song-summary .track-info { text-align: left; margin: 0; }
 .player-page .player-song-summary .track-title { font-size: 22px; line-height: 1.4; overflow-wrap: break-word; margin: 0 0 6px; }
 .player-page .player-song-summary .track-artist { font-size: 13px; line-height: 1.6; margin: 0; overflow-wrap: anywhere; }
 .player-page .player-control-stack { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.player-page .player-control-stack .track-info { text-align: left; margin: 0 0 4px; }
+.player-page .player-control-stack .track-title { font-size: 25px; line-height: 1.35; margin: 0 0 8px; overflow-wrap: anywhere; }
+.player-page .player-control-stack .track-artist { font-size: 14px; line-height: 1.6; margin: 0; }
 .player-page .player-control-stack .player-controls-row { margin: 0; }
 .player-page .player-control-stack > .progress-bar { margin: 0; height: auto; background: transparent; }
 .player-page .player-control-stack > .volume-control { margin: 0; width: 100%; }
-.player-page .player-control-stack .control-btn { width: 32px; height: 32px; font-size: 14px; }
-.player-page .player-control-stack .player-action-button { height: 30px; min-width: 0; padding: 0 10px; font-size: 12px; }
+.player-page .player-control-stack .control-btn { width: 40px; height: 40px; font-size: 17px; }
+.player-page .player-control-stack .player-action-button { height: 34px; min-width: 0; padding: 0 12px; font-size: 13px; }
 .player-page .player-control-stack .time-display, .player-page .player-control-stack .volume-value { font-size: 12px; }
 .player-page .player-control-stack .volume-icon { font-size: 15px; }
 .player-page .player-content > .pitch-comparison { grid-column: 1 / -1; }
@@ -39,7 +42,10 @@ body { font-family: var(--interface-font); }
 @media (max-width: 700px) { .pitch-stems { grid-template-columns: 1fr; } }
 .player-page .player-right { min-width: 0; gap: 16px; }
 .player-page .lyrics-panel { padding: 16px; }
-.player-page .lyrics-header { margin-bottom: 12px; gap: 8px; }
+.player-page .lyrics-header { margin-bottom: 12px; gap: 8px; flex-wrap: wrap; justify-content: flex-start; }
+.player-page .lyrics-header .lyrics-display-options { margin: 0 auto 0 0; gap: 6px; }
+.player-page .lyrics-header .lyrics-display-options button { font-size: 11px; padding: 4px 8px; }
+.player-page .lyrics-header .lyrics-actions { margin-left: auto; }
 .player-page .lyrics-header h3 { font-size: 16px; }
 .player-page .lyrics-actions { gap: 6px; }
 .player-page .lyrics-btn { padding: 5px 9px; font-size: 12px; }
@@ -57,6 +63,7 @@ body { font-family: var(--interface-font); }
   .player-page .player-song-summary .album-cover-large { width: 100px; height: 100px; }
   .player-page .player-song-summary .track-title { font-size: 16px; }
   .player-page .player-control-stack { gap: 16px; }
+  .player-page .player-control-stack .track-title { font-size: 20px; }
 }
 
 /* The lab is a workbench; keep analysis and editing controls compact. */
