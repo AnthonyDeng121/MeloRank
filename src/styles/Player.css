@@ -587,6 +587,12 @@
   justify-content: center;
   overflow-y: auto;
   overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.lyrics-content::-webkit-scrollbar {
+  display: none;
 }
 
 .dynamic-lyrics {
