@@ -99,6 +99,23 @@ module.exports = async (ctx, next) => {
 		await UCommon(props)
 			.then(async res => {
 				const response = res.data;
+                // songmid identifies the catalog entry; filenames must use file.media_mid.
+                // Retry full audio with the real media ID before considering previews.
+                for (const track of get(response, 'req_0.data.midurlinfo', []).filter(item => !item.purl)) {
+                    try {
+                        const detail = await UCommon({ ...props, params: { format: 'json', data: JSON.stringify({ songinfo: { module: 'music.pf_song_detail_svr', method: 'get_song_detail_yqq', param: { song_mid: track.songmid, song_type: 0 } } }) } });
+                        const media = get(detail.data, 'songinfo.data.track_info.file.media_mid');
+                        if (!media || !/^[a-zA-Z0-9]+$/.test(media)) continue;
+                        for (const filename of [...new Set([`${fileInfo.s}${media}${fileInfo.e}`, `M500${media}.mp3`, `C400${media}.m4a`])]) {
+                            const query = { req_0: { module: 'music.vkey.GetVkey', method: 'UrlGetVkey', param: { filename: [filename], songmid: [track.songmid], songtype: [0], guid, uin, ctx: 0 } }, comm: data.comm };
+                            const result = await UCommon({ ...props, params: { format: 'json', data: JSON.stringify(query) } });
+                            const candidate = get(result.data, 'req_0.data.midurlinfo[0]');
+                            if (!candidate?.purl || candidate.result || /RS02/.test(candidate.purl)) continue;
+                            const url = await validPreview(get(result.data, 'req_0.data.sip', []), candidate.purl);
+                            if (url) { Object.assign(track, candidate, { songmid: track.songmid, fullUrl: url }); break; }
+                        }
+                    } catch { /* Preserve platform permission failures and continue to preview. */ }
+                }
 				const missing = get(response, 'req_0.data.midurlinfo', []).filter(item => !item.purl);
 				const previews = {};
 				if (missing.length && ctx.query.preview !== '0') {
@@ -143,7 +160,7 @@ module.exports = async (ctx, next) => {
 					const preview = previews[item.songmid];
 					const hasUrl = !!item.purl || !!preview;
 					playUrl[item.songmid] = {
-						url: preview ? preview.url : hasUrl ? `${domain}${item.purl}`.replace(/^http:/, 'https:') : '',
+						url: item.fullUrl || (preview ? preview.url : hasUrl ? `${domain}${item.purl}`.replace(/^http:/, 'https:') : ''),
 						isPreview: !!preview || /RS02/.test(item.purl || ''),
 						previewLimit: preview ? 30 : undefined,
 						result: item.result,

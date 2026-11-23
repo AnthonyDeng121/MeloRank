@@ -38,19 +38,15 @@ async function originalPlatformSongUrl(song: PlatformSong): Promise<any> {
 }
 export async function platformSongUrl(song: PlatformSong): Promise<any> {
   if (song.provider === 'spotify') return originalPlatformSongUrl(song);
-  try {
-    const original = await originalPlatformSongUrl(song);
-    const root = original?.response || original;
-    const data = root.data || root;
-    const entry = data.playUrl?.[song.songmid];
-    if (entry?.url && !entry.isPreview) return original;
-    if ((typeof data.url === 'string' && data.url && !data.isPreview) || data[0]?.url || (typeof data.playUrl === 'string' && data.playUrl)) return original;
-    // Keep a platform preview available if alternative matching fails.
-    try { return await alternativeSongUrl(song); } catch { return original; }
-  } catch (error) {
-    try { return await alternativeSongUrl(song); }
-    catch { throw new Error(`${(error as Error).message || '原音源不可用'}；换源也未找到可播放资源`); }
-  }
+  // A request failure is not evidence that the platform lacks this recording.
+  const original = await originalPlatformSongUrl(song);
+  const root = original?.response || original;
+  const data = root.data || root;
+  const entry = data.playUrl?.[song.songmid];
+  // Prefer platform-issued audio, including an explicitly labelled preview.
+  if (entry?.url || data.url || data[0]?.url || (typeof data.playUrl === 'string' && data.playUrl)) return original;
+  try { return await alternativeSongUrl(song); }
+  catch { return original; }
 }
 async function alternativeSongUrl(song: PlatformSong) {
   const result = await netease.alternative({ title: song.songname, artists: song.singer.map(artist => artist.name), album: song.albumname, duration: song.duration });
@@ -101,7 +97,7 @@ const playbackMatches = new Map<string, Promise<PlatformSong>>();
 export const playbackTitle = (value: string) => value.normalize('NFKC')
   .replace(/(?:\s*[([]\s*(?:explicit|clean|edited)(?:\s+(?:edit|version))?\s*[)\]])+\s*$/gi, '').trim();
 export function resolvePlaybackSong(song: PlatformSong, target: MusicProvider): Promise<PlatformSong> {
-  if ((song.provider || 'qq') === target) return Promise.resolve(song);
+  if (!song.songmid.startsWith('editor:') && (song.provider || 'qq') === target) return Promise.resolve(song);
   const key = JSON.stringify([target, song.provider || 'qq', song.songmid, song.songname, song.singer, song.albumname]);
   const cached = playbackMatches.get(key);
   if (cached) return cached;

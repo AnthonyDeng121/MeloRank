@@ -1,5 +1,5 @@
 import { usePlatformAccounts } from '../contexts/PlatformAccountsContext';
-import { searchPlatform, platformAlbumTracks } from '../services/platformSongs';
+import { platformAlbumTracks } from '../services/platformSongs';
 import { useEffect, useRef, useState } from 'react';
 import { useMusic } from '../contexts/MusicContext';
 import '../../styles/YearlyRanking.css';
@@ -63,13 +63,14 @@ export function EditorRanking({ kind }: { kind: 'songs' | 'albums' }) {
         setCurrentSong(tracks[0], tracks);
         return;
       }
-      const result = await searchPlatform(activeProvider, `${item.title} ${item.artist}`, 1, 1);
-      if (ticket !== playbackRequest.current) return;
-      const response = result.response || result;
-      const data = response.data || response;
-      const song = data.song?.list?.[0];
-      if (song) setCurrentSong(song, [song]);
-      else alert('未搜索到歌曲，请稍后重试');
+      // Keep every chart entry in the queue; resolve its platform ID when played.
+      const queue = items.map(entry => ({
+        songmid: `editor:${entry.id}`, provider: activeProvider,
+        songname: entry.title, singer: entry.artist.split('/').map(name => ({ name: name.trim(), mid: '' })),
+        albumname: '', albummid: '', coverUrl: entry.coverUrl,
+      }));
+      setPlayMode('sequence');
+      setCurrentSong(queue.find(song => song.songmid === `editor:${item.id}`)!, queue);
     } catch (error) {
       alert(error instanceof Error ? error.message : '播放失败，请稍后重试');
     } finally {

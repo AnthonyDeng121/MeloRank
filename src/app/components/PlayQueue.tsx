@@ -117,7 +117,7 @@ export const PlayQueue: React.FC<PlayQueueProps> = ({ isVisible, onClose }) => {
                       )}
                     </div>
                     <div className="queue-item-cover">
-                      {song.albummid && (
+                      {(song.coverUrl || song.albummid) && (
                         <img 
                           src={songCover(song)}
                           alt={song.songname} 

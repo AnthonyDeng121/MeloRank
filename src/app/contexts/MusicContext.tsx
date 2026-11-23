@@ -85,7 +85,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
   useEffect(() => {
     let cancelled = false;
     playbackGeneration.current++;
-    const samePlatform = !!currentSong && (currentSong.provider || 'qq') === activeProvider;
+    const samePlatform = !!currentSong && !currentSong.songmid.startsWith('editor:') && (currentSong.provider || 'qq') === activeProvider;
     setPlaybackSong(samePlatform ? currentSong : null);
     setLyrics(''); setCurrentTime(0); setDuration(0); setIsPlaying(false);
     audioRef.current?.pause();
