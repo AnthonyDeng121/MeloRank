@@ -5,6 +5,7 @@ async function run(mode) {
   let handler, carCalls = 0;
   const sandbox = { module: { exports: {} }, setTimeout, clearTimeout, AbortSignal,
     require(name) {
+      if (name === './alternativeAudio') return { registerAudio: () => '/api/music/alternative-audio/test' };
       if (name === 'express') return { Router: () => ({ post: (_, fn) => { handler = fn; } }) };
       if (name === './verifyAlternative') return { verifyAlternative: async () => { if (mode === 'short') throw new Error('short clip'); return 211; } };
       if (name === './kuwoCarPlayback') return { kuwoCarPlayback: async () => { carCalls++; return { url: 'https://audio.test/full', source: 'kuwo-car', verifiedDuration: 211 }; } };

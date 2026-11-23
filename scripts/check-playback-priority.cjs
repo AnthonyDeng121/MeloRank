@@ -18,6 +18,9 @@ vm.runInContext(ts.transpile(source, { target: ts.ScriptTarget.ES2022, module: t
   original.data.playUrl['qq-id'].isPreview = true;
   assert.notEqual(await sandbox.platformSongUrl(song), original);
   assert.equal(calls, 1, 'previews must try full alternative audio');
+  const download = await sandbox.platformPlayableUrl(song);
+  assert.equal(download, 'https://alternative.test/audio', 'downloads use the full alternative source');
+  calls--;
   original = new Error('network timeout');
   await sandbox.platformSongUrl(song);
   assert.equal(calls, 2, 'restore fallback after native request failures');

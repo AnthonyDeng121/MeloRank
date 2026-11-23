@@ -63,11 +63,16 @@ export async function platformLyric(song: PlatformSong): Promise<any> {
   return { response: { lyric: result.lyric, trans: result.translation, roma: result.romanization } };
 }
 export async function platformPlayableUrl(song: PlatformSong) {
-  if (!song.provider || song.provider === 'qq') return qqMusicService.getPlayableUrl(song.songmid);
   if (song.provider === 'spotify') throw new Error('Spotify 不提供音频文件下载');
-  const result = await netease.request('playback', { id: song.providerId });
-  if (result.isPreview) throw new Error('平台仅提供试听片段，不能作为完整歌曲下载');
-  return result.url as string;
+  const resolved = await resolvePlaybackSong(song, song.provider || 'qq');
+  const response = await platformSongUrl(resolved);
+  const root = response?.response || response;
+  const data = root.data || root;
+  const entry = data.playUrl?.[resolved.songmid];
+  if (entry?.isPreview || data.isPreview) throw new Error('当前仅有试听片段，无法下载完整歌曲');
+  const url = entry?.url || data.url || data[0]?.url || (typeof data.playUrl === 'string' ? data.playUrl : '');
+  if (!url) throw new Error('该歌曲暂无可供下载的完整音源');
+  return url as string;
 }
 
 export async function platformAlbumTracks(provider: MusicProvider, title: string, artist: string, cover: string): Promise<PlatformSong[]> {

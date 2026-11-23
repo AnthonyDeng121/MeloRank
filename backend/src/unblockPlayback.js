@@ -1,3 +1,4 @@
+const { registerAudio } = require('./alternativeAudio');
 const { kuwoCarPlayback } = require('./kuwoCarPlayback');
 const { verifyAlternative } = require('./verifyAlternative');
 const express = require('express');
@@ -30,7 +31,7 @@ router.post('/', async (req, res) => {
     }
     if (!result.url || !/^https?:\/\//.test(result.url)) throw new Error('没有找到可用的替代音源');
     res.set('Cache-Control', 'no-store');
-    res.json({ url: result.url, source: result.source, bitrate: result.br, verifiedDuration: result.verifiedDuration, isAlternative: true });
+    res.json({ url: result.url, audioPath: result.source === 'kuwo-car' ? registerAudio(result.url) : undefined, source: result.source, bitrate: result.br, verifiedDuration: result.verifiedDuration, isAlternative: true });
   } catch (error) { res.status(502).json({ error: error.message || '没有找到可用的替代音源' }); }
   finally { clearTimeout(timer); }
 });
