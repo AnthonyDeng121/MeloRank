@@ -66,7 +66,7 @@ export function Player({ selection, onSelectionChange, mvSelection, onMVChange }
     const version = ++linkVersion.current;
     setLinkBusy(true); setMVMatches([]);
     try {
-      const result = await searchMVs(currentSong.provider || 'qq', `${currentSong.songname} ${currentSong.singer[0]?.name || ''}`, 1);
+      const result = await searchMVs(currentSong.provider || 'qq', `${currentSong.songname.split(/\s*[?(]/)[0]} ${currentSong.singer[0]?.name || ''}`, 1);
       if (version !== linkVersion.current) return;
       const exact = uniqueMVMatch<MVItem>(result.items, currentSong.songname, currentSong.singer[0]?.name || '', item => item);
       if (exact) { onMVChange?.(exact); setView('mvs'); }
