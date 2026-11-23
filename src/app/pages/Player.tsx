@@ -213,13 +213,13 @@ export function Player({ selection, onSelectionChange, mvSelection, onMVChange }
 
   // 获取当前要显示的5句歌词
   const getDisplayLyrics = () => {
-    const startIndex = Math.max(0, currentLyricIndex - 2);
-    const endIndex = Math.min(parsedLyrics.length - 1, currentLyricIndex + 2);
+    const startIndex = Math.max(0, currentLyricIndex - 1);
+    const endIndex = Math.min(parsedLyrics.length - 1, currentLyricIndex + 1);
     return parsedLyrics.slice(startIndex, endIndex + 1);
   };
 
   // 计算当前显示歌词的起始索引
-  const displayStartIndex = Math.max(0, currentLyricIndex - 2);
+  const displayStartIndex = Math.max(0, currentLyricIndex - 1);
   
   // 模拟数据，当没有当前播放歌曲时使用
   const mockTrack = {
@@ -416,8 +416,13 @@ export function Player({ selection, onSelectionChange, mvSelection, onMVChange }
             <div className="full-lyrics-surface">
               <div className="lyrics-header">
                 <div><h3>完整歌词</h3><p className="full-lyrics-title">{currentSong?.songname}</p></div>
-                <button type="button" className="lyrics-btn lyrics-expand" aria-label="关闭完整歌词" onClick={() => fullLyricsDialog.current?.close()}><X size={20} /></button>
+                <button type="button" className="lyrics-btn lyrics-expand full-lyrics-close" aria-label="关闭完整歌词" onClick={() => fullLyricsDialog.current?.close()}><X size={20} /></button>
               </div>
+            <div className="lyrics-display-options">
+              <button type="button" aria-pressed={showTranslation} onClick={() => { setShowTranslation(!showTranslation); localStorage.setItem('lyricsTranslation', String(!showTranslation)); }}>翻译</button>
+              <button type="button" aria-pressed={showRomanization} onClick={() => { setShowRomanization(!showRomanization); localStorage.setItem('lyricsRomanization', String(!showRomanization)); }}>音译 / 罗马音</button>
+              {(showTranslation && !translatedLines.some(line => line.text) || showRomanization && !romanizedLines.some(line => line.text)) && <span>该歌曲暂无{showTranslation && !translatedLines.some(line => line.text) ? '翻译' : ''}{showTranslation && !translatedLines.some(line => line.text) && showRomanization && !romanizedLines.some(line => line.text) ? '及' : ''}{showRomanization && !romanizedLines.some(line => line.text) ? '音译' : ''}</span>}
+            </div>
               <div className="full-lyrics-content" ref={fullLyricsViewport} tabIndex={0} aria-label="完整歌词，可滚动查看">
                 <div className="dynamic-lyrics">
                   {parsedLyrics.map((lyric, index) => <p key={index} className={`lyric-line ${index === currentLyricIndex ? 'current-lyric' : ''}`} aria-current={index === currentLyricIndex ? 'true' : undefined}>
