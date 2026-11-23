@@ -70,11 +70,37 @@ async function alternativeSongUrl(song: PlatformSong) {
   const result = await netease.alternative({ title: song.songname, artists: song.singer.map(artist => artist.name), album: song.albumname, duration: song.duration || (song as PlatformSong & { interval?: number }).interval });
   return { data: { playUrl: { [song.songmid]: { url: result.url, isPreview: false, source: result.source, isAlternative: true } } } };
 }
+// Normalize provider envelopes before deciding whether another catalog is needed.
+function lyricData(result: any) {
+  const data = result?.response || result?.data?.response || result?.data || {};
+  return { lyric: typeof data.lyric === 'string' ? data.lyric : '', trans: typeof data.trans === 'string' ? data.trans : '', roma: typeof data.roma === 'string' ? data.roma : '' };
+}
+function usableLyric(value: string) {
+  return value.split(/\r?\n/).some(line => {
+    const text = line.replace(/\[[^\]]*\]/g, '').trim();
+    return text && !/^(no lyrics.*)$/i.test(text);
+  });
+}
+async function catalogLyric(song: PlatformSong) {
+  if (song.provider === 'netease') {
+    const data = await netease.request('lyric', { id: song.providerId });
+    return { lyric: data.lyric || '', trans: data.translation || '', roma: data.romanization || '' };
+  }
+  return lyricData(await qqMusicService.getLyric(song.songmid));
+}
 export async function platformLyric(song: PlatformSong): Promise<any> {
-  if (!song.provider || song.provider === 'qq') return qqMusicService.getLyric(song.songmid);
-  if (song.provider === 'spotify') return { response: { lyric: '' } };
-  const result = await netease.request('lyric', { id: song.providerId });
-  return { response: { lyric: result.lyric, trans: result.translation, roma: result.romanization } };
+  const providers: Array<'qq' | 'netease'> = song.provider === 'netease' ? ['netease', 'qq'] : ['qq', 'netease'];
+  let plain: ReturnType<typeof lyricData> | undefined;
+  for (const provider of providers) {
+    try {
+      const matched = await resolvePlaybackSong(song, provider);
+      const data = await catalogLyric(matched);
+      if (!usableLyric(data.lyric)) continue;
+      if (/\[\d+:\d{2}(?:\.\d{1,3})?\]/.test(data.lyric)) return { response: data };
+      plain ||= data;
+    } catch { /* Missing catalog match, timeout or unavailable lyrics: try the other provider. */ }
+  }
+  return { response: plain || { lyric: '', trans: '', roma: '' } };
 }
 export async function platformPlayableUrl(song: PlatformSong) {
   if (song.provider === 'spotify') throw new Error('Spotify 不提供音频文件下载');

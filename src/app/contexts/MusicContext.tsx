@@ -20,6 +20,8 @@ interface MusicContextType {
   currentTime: number;
   duration: number;
   lyrics: string;
+  translation: string;
+  romanization: string;
   playMode: PlayMode;
   playQueue: Song[];
   currentIndex: number;
@@ -54,6 +56,8 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
   const [currentTime, setCurrentTime] = useState(0); // 当前播放时间（秒）
   const [duration, setDuration] = useState(0); // 歌曲总时长（秒）
   const [lyrics, setLyrics] = useState('');
+  const [translation, setTranslation] = useState('');
+  const [romanization, setRomanization] = useState('');
   const [playMode, setPlayMode] = useState<PlayMode>('single'); // 默认单曲循环
   const [playQueue, setPlayQueue] = useState<Song[]>([]); // 播放队列
   const [currentIndex, setCurrentIndex] = useState(-1); // 当前歌曲在队列中的索引
@@ -382,44 +386,13 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
   // 当playbackSong变化时，获取歌词
   useEffect(() => {
     let cancelled = false;
-    setLyrics('');
-    const fetchLyrics = async () => {
-      if (playbackSong) {
-        try {
-          console.log('获取歌词，songmid:', playbackSong.songmid);
-          const response = await platformLyric(playbackSong);
-          if (cancelled) return;
-          console.log('获取歌词响应:', response);
-          
-          // 适配不同的API返回格式
-          let lyricText = '';
-          
-          // 情况1: { response: { lyric: string } } 格式
-          if (response.response?.lyric) {
-            lyricText = response.response.lyric;
-          }
-          // 情况2: { data: { response: { lyric: string } } } 格式
-          else if (response.data?.response?.lyric) {
-            lyricText = response.data.response.lyric;
-          }
-          // 情况3: { data: { lyric: string } } 格式
-          else if (response.data?.lyric) {
-            lyricText = response.data.lyric;
-          }
-          
-          console.log('获取到歌词:', lyricText);
-          setLyrics(lyricText);
-        } catch (error) {
-          if (cancelled) return;
-          console.error('获取歌词失败:', error);
-          setLyrics('');
-        }
-      } else {
-        setLyrics('');
-      }
-    };
-    
-    fetchLyrics();
+    setLyrics(''); setTranslation(''); setRomanization('');
+    if (playbackSong) void platformLyric(playbackSong).then(result => {
+      if (cancelled) return;
+      setLyrics(result.response.lyric);
+      setTranslation(result.response.trans || '');
+      setRomanization(result.response.roma || '');
+    }).catch(() => {});
     return () => { cancelled = true; };
   }, [playbackSong]);
 
@@ -543,6 +516,8 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     currentTime,
     duration,
     lyrics,
+    translation,
+    romanization,
     playMode,
     playQueue,
     currentIndex,

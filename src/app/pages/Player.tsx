@@ -6,7 +6,7 @@ import { PitchComparison as PitchPanel } from '../components/PitchPanel';
 import { CatalogPanel } from '../components/CatalogPanel';
 import { WorkReview } from '../components/WorkReview';
 import { songEntity, type CatalogItem } from '../services/catalog';
-import { songCover, platformLyric, platformPlayableUrl } from '../services/platformSongs';
+import { songCover, platformPlayableUrl } from '../services/platformSongs';
 import { toast } from 'sonner';
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useMusic } from '../contexts/MusicContext';
@@ -24,12 +24,8 @@ export function Player({ selection, onSelectionChange, mvSelection, onMVChange }
   useEffect(() => { if (mvSelection) setView('mvs'); }, [mvSelection]);
   const [downloading, setDownloading] = useState(false);
   const setDownloadError = (message: string) => { if (message) toast.error(message, { duration: 3000 }); };
-  const [translation, setTranslation] = useState('');
-  const [romanization, setRomanization] = useState('');
   const [showTranslation, setShowTranslation] = useState(() => localStorage.getItem('lyricsTranslation') === 'true');
   const [showRomanization, setShowRomanization] = useState(() => localStorage.getItem('lyricsRomanization') === 'true');
-  const translatedLines = useMemo(() => parseLrc(translation), [translation]);
-  const romanizedLines = useMemo(() => parseLrc(romanization), [romanization]);
   const downloadSong = async () => {
     if (!currentSong || downloading) return;
     const song = currentSong;
@@ -52,7 +48,9 @@ export function Player({ selection, onSelectionChange, mvSelection, onMVChange }
     } finally { setDownloading(false); }
   };
   // 使用音乐播放上下文
-  const { currentSong, isPlaying, togglePlay, volume, setVolume, setLyrics, lyrics, currentTime, duration, seekTo, previousSong, nextSong, playMode, setPlayMode } = useMusic();
+  const { currentSong, isPlaying, togglePlay, volume, setVolume, lyrics, translation, romanization, currentTime, duration, seekTo, previousSong, nextSong, playMode, setPlayMode } = useMusic();
+  const translatedLines = useMemo(() => parseLrc(translation), [translation]);
+  const romanizedLines = useMemo(() => parseLrc(romanization), [romanization]);
   
   const previousSongId = useRef(currentSong?.songmid);
   useEffect(() => {
@@ -114,35 +112,7 @@ export function Player({ selection, onSelectionChange, mvSelection, onMVChange }
   };
   
   // 获取歌词
-  useEffect(() => {
-    let cancelled = false;
-    setTranslation(''); setRomanization('');
-    const fetchLyrics = async () => {
-      if (currentSong) {
-        try {
-          const response = await platformLyric(currentSong);
-          if (cancelled) return;
-          const data = response?.response || response?.data?.response || response?.data || {};
-          setTranslation(typeof data.trans === 'string' ? data.trans : '');
-          setRomanization(typeof data.roma === 'string' ? data.roma : '');
-          console.log('获取歌词响应:', response);
-          // 适配后端 API 返回的歌词数据结构
-          if (response?.response?.lyric) {
-            setLyrics(response.response.lyric);
-          } else if (response?.data?.response?.lyric) {
-            setLyrics(response.data.response.lyric);
-          } else if (response?.data?.lyric) {
-            setLyrics(response.data.lyric);
-          }
-        } catch (error) {
-          console.error('获取歌词失败:', error);
-        }
-      }
-    };
-    
-    fetchLyrics();
-    return () => { cancelled = true; };
-  }, [currentSong, setLyrics]);
+
   
   // 格式化时间函数：将秒转换为分:秒格式
   const formatTime = (seconds: number): string => {
