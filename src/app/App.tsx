@@ -87,7 +87,7 @@ export default function App() {
             )}
             {renderPage()}
           </main>
-          {currentPage !== 'player' && <MiniPlayer />}
+          {currentPage !== 'player' && <MiniPlayer hideWhenIdle={currentPage === 'yearly-awards'} />}
           <PlayQueue 
             isVisible={isPlayQueueVisible} 
             onClose={() => setIsPlayQueueVisible(false)} 

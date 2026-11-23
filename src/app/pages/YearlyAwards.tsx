@@ -1,37 +1,52 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Award as AwardIcon, Download } from 'lucide-react';
+import { grammyCategories, grammySource, grammyYear } from '../services/grammyNominees';
 import { toast } from 'sonner';
 import '../../styles/YearlyAwards.css';
 
 const modes = { custom: '自定义奖项', grammy: '格莱美获奖预测' } as const;
 type Mode = keyof typeof modes;
-const categories = { lyrics: ['歌词', '作词'], melody: ['旋律', '作曲'], production: ['制作', '制作人'], song: ['歌曲', ''], album: ['专辑', ''] } as const;
+const categories = { lyrics: ['歌词', '作词'], melody: ['旋律', '作曲'], production: ['制作', '制作人'], song: ['歌曲', ''], album: ['专辑', ''], collaboration: ['合作', ''], cover: ['封面', '封面设计'] } as const;
 type Category = keyof typeof categories;
 const themes = { gold: '赤金', silver: '午夜银', green: '松石绿', violet: '暮紫' } as const;
 type Theme = keyof typeof themes;
 type Work = { id: string; title: string; artist: string; credits: Partial<Record<Category, string>>; cover: string };
 type Award = { id: string; title: string; category: Category; works: Work[]; winner: string; reason: string };
-type Edition = { name: string; year: string; theme: Theme; awards: Award[]; selected: string };
+type Edition = { name: string; year: string; theme: Theme; awards: Award[]; selected: string; extraPresetsAdded?: boolean };
 const storageKey = 'melorank-yearly-awards-v1';
 const categoryKeys = Object.keys(categories) as Category[];
 const newAward = (title: string, category: Category): Award => ({
   id: crypto.randomUUID(), title, category, works: [], winner: '', reason: '',
 });
-function defaults(mode: Mode): Edition {
-  const awards = mode === 'custom'
-    ? ['K-pop', '华语', '欧美', '通类'].flatMap(group => categoryKeys.map(category => newAward(group + '年度' + categories[category][0] + '奖', category)))
-    : [
-      newAward('年度专辑 · Album of the Year', 'album'),
-      newAward('年度制作 · Record of the Year', 'production'),
-      newAward('年度歌曲 · Song of the Year', 'song'),
-    ];
-  return { name: mode === 'custom' ? 'MeloRank 音乐奖' : '格莱美获奖预测', year: String(new Date().getFullYear()), theme: 'gold', awards, selected: awards[0].id };
+function officialEdition(previous?: Edition): Edition {
+  const awards: Award[] = grammyCategories.map(({ id, title, category, nominees }) => {
+    const saved = previous?.year === grammyYear ? previous.awards.find(item => item.id === id) : undefined;
+    const works: Work[] = nominees.map(([title, artist]) => ({ id: title, title, artist, credits: {}, cover: '' }));
+    return { id, title, category, works, reason: saved?.reason ?? '',
+      winner: works.some(work => work.id === saved?.winner) ? saved!.winner : '' };
+  });
+  return { name: '格莱美获奖预测', year: grammyYear, theme: previous?.theme ?? 'gold', awards,
+    selected: awards.find(item => item.id === previous?.selected)?.id ?? awards[0].id };
+}
+function customEdition(previous?: Edition): Edition {
+  if (previous?.extraPresetsAdded) return previous;
+  const base = previous?.awards ?? ['K-pop', '华语', '欧美', '通类'].flatMap(group =>
+    categoryKeys.slice(0, 5).map(category => newAward(group + '年度' + categories[category][0] + '奖', category)));
+  const awards = [...base];
+  if (!awards.some(item => item.title === '最佳合作')) awards.push(newAward('最佳合作', 'collaboration'));
+  if (!awards.some(item => item.title === '最佳封面')) awards.push(newAward('最佳封面', 'cover'));
+  return { name: 'MeloRank 音乐奖', year: String(new Date().getFullYear()), theme: 'gold',
+    selected: awards[0].id, ...previous, awards, extraPresetsAdded: true };
 }
 function readEditions(): Record<Mode, Edition> {
   try {
     const saved = localStorage.getItem(storageKey);
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      const previous = JSON.parse(saved);
+      return { custom: customEdition(previous.custom), grammy: officialEdition(previous.grammy) };
+    }
   } catch { /* A missing or unreadable draft starts a fresh edition. */ }
-  return { custom: defaults('custom'), grammy: defaults('grammy') };
+  return { custom: customEdition(), grammy: officialEdition() };
 }
 async function coverData(file: File) {
   const bitmap = await createImageBitmap(file);
@@ -52,7 +67,22 @@ export function YearlyAwards() {
   const [editions, setEditions] = useState(readEditions);
   const [savingFailed, setSavingFailed] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [frame, setFrame] = useState<HTMLDivElement | null>(null);
   const poster = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const element = poster.current;
+    if (!frame || !element) return;
+    const resize = () => {
+      const scale = frame.clientWidth / 1024;
+      frame.style.setProperty('--poster-scale', String(scale));
+      frame.style.height = Math.ceil(element.offsetHeight * scale) + 'px';
+    };
+    const observer = new ResizeObserver(resize);
+    observer.observe(frame);
+    observer.observe(element);
+    resize();
+    return () => observer.disconnect();
+  }, [frame]);
   const edition = editions[mode];
   const award = edition.awards.find(item => item.id === edition.selected) ?? edition.awards[0];
   const winner = award?.works.find(work => work.id === award.winner);
@@ -89,9 +119,9 @@ export function YearlyAwards() {
         scale: 1, width: 1024,
         windowWidth: 1600, backgroundColor: null,
         onclone: (_, cloned) => {
-          cloned.style.setProperty('zoom', '1');
+          cloned.style.cssText = 'position:static;transform:none';
           const frame = cloned.parentElement!;
-          frame.style.cssText = 'width:1024px;height:auto;overflow:visible;container-type:normal';
+          frame.style.cssText = 'width:1024px;height:auto;overflow:visible;';
         },
       });
       const link = document.createElement('a');
@@ -105,35 +135,45 @@ export function YearlyAwards() {
 
   return <div className="yearly-awards">
     <header className="awards-header">
-      <div><h2>年度奖项</h2><p>编辑奖项、提名与获奖作品，生成可分享的海报。</p></div>
+      <div className="awards-title"><AwardIcon aria-hidden="true" /><div><h2>年度奖项</h2><p>管理提名、预测结果与海报。</p></div></div>
       <div className="awards-modes" role="group" aria-label="奖项模式">
         {(Object.keys(modes) as Mode[]).map(key => <button key={key} aria-pressed={mode === key} onClick={() => setMode(key)}>{modes[key]}</button>)}
       </div>
     </header>
     <div className="awards-layout">
       <section className="awards-editor" aria-label="奖项编辑">
-        <div className="awards-fields">
+        {mode === 'custom' ? <div className="awards-fields">
           <label>奖项总名称<input value={edition.name} onChange={event => editEdition(value => ({ ...value, name: event.target.value }))} /></label>
           <label>届次年份<input inputMode="numeric" maxLength={4} value={edition.year} onChange={event => editEdition(value => ({ ...value, year: event.target.value.replace(/\D/g, '') }))} /></label>
-        </div>
+        </div> : <div className="awards-source"><strong>2027 · 第 69 届格莱美</strong><a href={grammySource} target="_blank" rel="noreferrer">查看官方提名 ↗</a></div>}
         <div className="awards-actions">
           <label>选择奖项<select value={award?.id ?? ''} onChange={event => editEdition(value => ({ ...value, selected: event.target.value }))}>
             {!award && <option value="">暂无奖项</option>}
             {edition.awards.map(item => <option value={item.id} key={item.id}>{item.title || '未命名奖项'}</option>)}
           </select></label>
-          <button onClick={() => {
+          {mode === 'custom' && <button onClick={() => {
             const item = newAward('新奖项', 'song');
             editEdition(value => ({ ...value, awards: [...value.awards, item], selected: item.id }));
-          }}>新增奖项</button>
+          }}>新增奖项</button>}
         </div>
         {award && <>
-          <div className="awards-fields">
+          {mode === 'custom' && <div className="awards-fields">
             <label>奖项名称<input value={award.title} onChange={event => editAward(value => ({ ...value, title: event.target.value }))} /></label>
             <label>奖项类型<select value={award.category} onChange={event => editAward(value => ({ ...value, category: event.target.value as Category }))}>
               {categoryKeys.map(key => <option key={key} value={key}>{categories[key][0]}</option>)}
             </select></label>
-          </div>
+          </div>}
           <label>{resultLabel}理由<textarea rows={2} value={award.reason} onChange={event => editAward(value => ({ ...value, reason: event.target.value }))} /></label>
+          <label>{resultLabel}作品<select value={award.winner} onChange={event => editAward(value => ({ ...value, winner: event.target.value }))}>
+            <option value="">待定</option>
+            {award.works.map(work => <option key={work.id} value={work.id}>{workName(work)}{work.artist && ' · ' + work.artist}</option>)}
+          </select></label>
+          {mode === 'grammy' ? <div className="awards-official">
+            <h3>官方提名 <small>{award.works.length}</small></h3>
+            <ul>{award.works.map(work => <li key={work.id} data-picked={work.id === award.winner}>
+              <strong>{work.title}</strong><span>{work.artist}</span>
+            </li>)}</ul>
+          </div> : <>
           <div className="awards-actions">
             <h3>提名作品 <small>{award.works.length}</small></h3>
             <button onClick={() => {
@@ -141,10 +181,6 @@ export function YearlyAwards() {
               editAward(value => ({ ...value, works: [...value.works, work] }));
             }}>添加提名</button>
           </div>
-          <label>{resultLabel}作品<select value={award.winner} onChange={event => editAward(value => ({ ...value, winner: event.target.value }))}>
-            <option value="">待定</option>
-            {award.works.map(work => <option key={work.id} value={work.id}>{workName(work)}{work.artist && ' · ' + work.artist}</option>)}
-          </select></label>
           {award.works.map((work, index) => <fieldset key={work.id} className="awards-nomination">
             <legend>提名 {index + 1}</legend>
             <div className="awards-fields">
@@ -168,6 +204,7 @@ export function YearlyAwards() {
             if (!window.confirm('删除这个奖项及其提名？')) return;
             editEdition(value => ({ ...value, awards: value.awards.filter(item => item.id !== award.id), selected: '' }));
           }}>删除当前奖项</button>
+          </>}
         </>}
         <p role="status" className={savingFailed ? 'award-delete' : 'award-saved'}>
           {savingFailed ? '浏览器存储写入失败，请减少封面数量或检查存储权限。' : '草稿自动保存在当前浏览器'}
@@ -178,9 +215,9 @@ export function YearlyAwards() {
           <label>海报色调<select value={edition.theme} onChange={event => editEdition(value => ({ ...value, theme: event.target.value as Theme }))}>
             {(Object.keys(themes) as Theme[]).map(key => <option key={key} value={key}>{themes[key]}</option>)}
           </select></label>
-          <button disabled={!award || exporting} onClick={() => void download()}>{exporting ? '正在导出…' : '下载 PNG'}</button>
+          <button className="awards-download" disabled={!award || exporting} onClick={() => void download()}><Download size={16} aria-hidden="true" />{exporting ? '正在导出…' : '下载 PNG'}</button>
         </div>
-        {award && <div className="award-poster-frame"><article ref={poster} className="award-poster" data-theme={edition.theme}>
+        {award && <div ref={setFrame} className="award-poster-frame"><article ref={poster} className="award-poster" data-theme={edition.theme}>
           <div className="award-poster-heading"><span>{edition.year} {edition.name || modes[mode]}</span></div>
           <div className="award-feature">
             <div className="award-feature-cover"><Cover work={winner} /></div>

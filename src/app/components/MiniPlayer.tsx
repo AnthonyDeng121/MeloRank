@@ -14,9 +14,10 @@ const formatTime = (seconds: number): string => {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
-export function MiniPlayer() {
+export function MiniPlayer({ hideWhenIdle = false }: { hideWhenIdle?: boolean }) {
   // 使用音乐播放上下文
   const { currentSong, isPlaying, togglePlay, currentTime, duration, seekTo, previousSong, nextSong, playMode, setPlayMode } = useMusic();
+  if (hideWhenIdle && !currentSong) return null;
 
   // 播放模式切换
   const togglePlayMode = () => {

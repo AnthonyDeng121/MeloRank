@@ -1,8 +1,9 @@
 .yearly-awards {
   max-width: 1320px;
   margin: 0 auto;
-  padding: clamp(16px, 3vw, 40px) clamp(12px, 3vw, 32px) 100px;
-  color: var(--foreground, #f5f5f5);
+  padding: 12px 0 40px;
+  color: #f0f1f8;
+  color-scheme: dark;
 }
 .awards-header, .awards-actions, .awards-nomination-actions {
   display: flex;
@@ -14,12 +15,12 @@
 .awards-header { margin-bottom: 24px; align-items: center; }
 .awards-header h2 { font-size: 2rem; font-weight: 700; }
 .awards-header p, .award-saved { opacity: .7; }
-.awards-modes { display: flex; gap: 6px; }
+.awards-modes { display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: #17191f; border: 1px solid #303441; }
 .awards-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr); gap: 24px; align-items: start; }
 .awards-editor, .awards-preview {
-  border: 1px solid var(--border, #39363c);
+  border: 1px solid #303441;
   border-radius: 16px;
-  background: var(--card, #1b1a1f);
+  background: #17191f;
   padding: clamp(12px, 2vw, 22px);
   display: grid;
   gap: 14px;
@@ -32,21 +33,21 @@
   font: inherit;
   color: inherit;
   padding: 8px 10px;
-  border: 1px solid var(--border, #494550);
+  border: 1px solid #393e50;
   border-radius: 8px;
-  background: var(--background, #201f24);
+  background: #232632;
 }
 .yearly-awards :is(input, select, textarea) { width: 100%; min-width: 0; }
 .yearly-awards textarea { resize: vertical; }
 .yearly-awards button { cursor: pointer; }
 .yearly-awards button:disabled { cursor: wait; opacity: .55; }
-.yearly-awards button:hover:not(:disabled) { border-color: #ad8050; }
-.yearly-awards button[aria-pressed="true"] { background: #613a26; border-color: #bd8d56; color: #fff0d5; }
-.awards-nomination { min-width: 0; display: grid; gap: 10px; border: 1px solid var(--border, #494550); border-radius: 10px; padding: 12px; }
+.yearly-awards button:hover:not(:disabled) { border-color: #8999ff; }
+.yearly-awards button[aria-pressed="true"] { background: #414e91; border-color: #697bde; color: #fff; }
+.awards-nomination { min-width: 0; display: grid; gap: 10px; border: 1px solid #393e50; border-radius: 10px; padding: 12px; }
 .awards-nomination legend { padding: 0 6px; }
 .awards-nomination-actions > label { flex: 1 1 160px; }
 .yearly-awards .award-delete { color: #e67e78; justify-self: start; }
-.award-poster-frame { container-type: inline-size; overflow: hidden; border-radius: 8px; }
+.award-poster-frame { position: relative; overflow: hidden; border-radius: 8px; }
 .award-poster {
   --ink: #fff1db;
   --accent: #f4c677;
@@ -55,7 +56,11 @@
   box-sizing: border-box;
   width: 1024px;
   max-width: none;
-  zoom: calc(100cqw / 1024px);
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: scale(var(--poster-scale, 0));
+  transform-origin: top left;
   padding: 34px 64px 64px;
   color: var(--ink);
   background: radial-gradient(ellipse at 96% 0%, var(--glow), transparent 54%), linear-gradient(160deg, var(--base) 75%, var(--glow));
@@ -88,6 +93,19 @@
 .award-poster-list :is(img, .award-cover-empty) { width: 98px; height: 98px; }
 .award-winner-mark { color: var(--accent); font-weight: bold; }
 .award-empty { text-align: center; font-size: 26px; opacity: .7; }
+.awards-title { display: flex; gap: 14px; align-items: center; }
+.awards-title > svg { width: 42px; height: 42px; padding: 9px; color: #b8c3ff; background: #272f54; border-radius: 12px; }
+.awards-source { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.awards-source a { color: #bac5ff; }
+.awards-download { display: inline-flex; gap: 8px; align-items: center; }
+.yearly-awards .awards-download { background: #4659b4; border-color: #7183ea; }
+.awards-official h3, .awards-editor h3 { font-size: 16px; font-weight: 650; }
+.awards-editor h3 small { color: #aab2cb; margin-left: 6px; }
+.awards-official ul { list-style: none; padding: 0; margin: 8px 0 0; }
+.awards-official li { display: grid; gap: 2px; padding: 9px 12px; border-bottom: 1px solid #303441; overflow-wrap: anywhere; }
+.awards-official li[data-picked="true"] { background: #2b345d; border-radius: 8px; }
+.awards-official li span, .award-saved { color: #b8bed0; font-size: 13px; }
+.yearly-awards :focus-visible { outline: 2px solid #a6b4ff; outline-offset: 2px; }
 @media (max-width: 800px) {
   .awards-layout { grid-template-columns: minmax(0, 1fr); }
 }
