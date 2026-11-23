@@ -12,6 +12,7 @@ import { Home } from './pages/Home';
 import { Search } from './pages/Search';
 import { Player } from './pages/Player';
 import { YearlyRanking } from './pages/YearlyRanking';
+import { YearlyAwards } from './pages/YearlyAwards';
 import { EditorRanking } from './pages/EditorRanking';
 
 import { LyricsTool } from './pages/LyricsTool';
@@ -51,6 +52,8 @@ export default function App() {
         return <Player onMVChange={setMVSelection} mvSelection={mvSelection} selection={catalogSelection} onSelectionChange={setCatalogSelection} />;
       case 'yearly-ranking':
         return <YearlyRanking pageType="yearly-ranking" />;
+      case 'yearly-awards':
+        return <YearlyAwards />;
       case 'yearly-songs':
         return <EditorRanking key="songs" kind="songs" />;
       case 'yearly-albums':

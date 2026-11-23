@@ -1,0 +1,93 @@
+.yearly-awards {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: clamp(16px, 3vw, 40px) clamp(12px, 3vw, 32px) 100px;
+  color: var(--foreground, #f5f5f5);
+}
+.awards-header, .awards-actions, .awards-nomination-actions {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.awards-header { margin-bottom: 24px; align-items: center; }
+.awards-header h2 { font-size: 2rem; font-weight: 700; }
+.awards-header p, .award-saved { opacity: .7; }
+.awards-modes { display: flex; gap: 6px; }
+.awards-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr); gap: 24px; align-items: start; }
+.awards-editor, .awards-preview {
+  border: 1px solid var(--border, #39363c);
+  border-radius: 16px;
+  background: var(--card, #1b1a1f);
+  padding: clamp(12px, 2vw, 22px);
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.awards-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.yearly-awards label { display: grid; gap: 5px; font-size: 14px; min-width: 0; }
+.awards-actions > label { flex: 1 1 135px; }
+.yearly-awards :is(input, select, textarea, button) {
+  font: inherit;
+  color: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--border, #494550);
+  border-radius: 8px;
+  background: var(--background, #201f24);
+}
+.yearly-awards :is(input, select, textarea) { width: 100%; min-width: 0; }
+.yearly-awards textarea { resize: vertical; }
+.yearly-awards button { cursor: pointer; }
+.yearly-awards button:disabled { cursor: wait; opacity: .55; }
+.yearly-awards button:hover:not(:disabled) { border-color: #ad8050; }
+.yearly-awards button[aria-pressed="true"] { background: #613a26; border-color: #bd8d56; color: #fff0d5; }
+.awards-nomination { min-width: 0; display: grid; gap: 10px; border: 1px solid var(--border, #494550); border-radius: 10px; padding: 12px; }
+.awards-nomination legend { padding: 0 6px; }
+.awards-nomination-actions > label { flex: 1 1 160px; }
+.yearly-awards .award-delete { color: #e67e78; justify-self: start; }
+.award-poster-frame { container-type: inline-size; overflow: hidden; border-radius: 8px; }
+.award-poster {
+  --ink: #fff1db;
+  --accent: #f4c677;
+  --base: #280c0d;
+  --glow: #743b20;
+  box-sizing: border-box;
+  width: 1024px;
+  max-width: none;
+  zoom: calc(100cqw / 1024px);
+  padding: 34px 64px 64px;
+  color: var(--ink);
+  background: radial-gradient(ellipse at 96% 0%, var(--glow), transparent 54%), linear-gradient(160deg, var(--base) 75%, var(--glow));
+  font-family: Georgia, "Songti SC", "Noto Serif CJK SC", SimSun, serif;
+  line-height: 1.32;
+  overflow-wrap: anywhere;
+}
+.award-poster[data-theme="silver"] { --ink: #eef3ff; --accent: #c0d5f4; --base: #131b2d; --glow: #3e526d; }
+.award-poster[data-theme="green"] { --ink: #e8f9ef; --accent: #a5dec6; --base: #092721; --glow: #28675b; }
+.award-poster[data-theme="violet"] { --ink: #faf0ff; --accent: #e2b9f5; --base: #261230; --glow: #663b75; }
+.award-poster-heading { margin: 0 0 30px; display: flex; align-items: center; gap: 26px; text-align: center; font-size: 38px; color: var(--accent); }
+.award-poster-heading::before, .award-poster-heading::after { content: ""; flex: 1; height: 1px; background: currentColor; }
+.award-poster-heading span { max-width: 80%; }
+.award-feature { display: grid; grid-template-columns: 332px minmax(0, 1fr); gap: 40px; align-items: start; margin: 0 20px 26px; }
+.award-feature-cover { width: 332px; height: 332px; border: 1px solid var(--accent); }
+.award-feature-copy { min-height: 332px; padding-left: 36px; border-left: 1px solid var(--accent); }
+.award-feature h3 { margin: 0 0 12px; font-size: 40px; color: var(--accent); font-weight: bold; }
+.award-result-label { font-size: 23px; letter-spacing: .12em; }
+.award-feature h4 { margin: 6px 0; font-size: 55px; font-weight: bold; }
+.award-feature p { font-size: 32px; }
+.award-credit { font-size: 23px; white-space: pre-wrap; }
+.award-feature .award-credit { margin-top: 10px; font-size: 27px; }
+.award-poster img, .award-cover-empty { width: 100%; height: 100%; display: block; object-fit: cover; }
+.award-cover-empty { display: grid; place-items: center; background: var(--base); color: var(--accent); font-size: 42px; }
+.award-reason { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 22px; padding: 14px 4px; border-block: 1px solid var(--accent); margin-bottom: 24px; font-size: 27px; white-space: pre-wrap; }
+.award-reason strong { color: var(--accent); border-right: 1px solid var(--accent); padding-right: 20px; }
+.award-poster-list { margin: 0 20px; padding: 0; list-style: none; }
+.award-poster-list li { display: grid; grid-template-columns: 98px minmax(0, 1fr) auto; align-items: center; gap: 25px; padding: 9px 0; border-bottom: 1px solid var(--accent); font-size: 29px; }
+.award-poster-list li:last-child { border-bottom: 0; }
+.award-poster-list :is(img, .award-cover-empty) { width: 98px; height: 98px; }
+.award-winner-mark { color: var(--accent); font-weight: bold; }
+.award-empty { text-align: center; font-size: 26px; opacity: .7; }
+@media (max-width: 800px) {
+  .awards-layout { grid-template-columns: minmax(0, 1fr); }
+}
