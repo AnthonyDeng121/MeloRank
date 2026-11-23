@@ -38,15 +38,19 @@ async function originalPlatformSongUrl(song: PlatformSong): Promise<any> {
 }
 export async function platformSongUrl(song: PlatformSong): Promise<any> {
   if (song.provider === 'spotify') return originalPlatformSongUrl(song);
-  // A request failure is not evidence that the platform lacks this recording.
-  const original = await originalPlatformSongUrl(song);
-  const root = original?.response || original;
-  const data = root.data || root;
-  const entry = data.playUrl?.[song.songmid];
-  // Prefer platform-issued audio, including an explicitly labelled preview.
-  if (entry?.url || data.url || data[0]?.url || (typeof data.playUrl === 'string' && data.playUrl)) return original;
-  try { return await alternativeSongUrl(song); }
-  catch { return original; }
+  try {
+    const original = await originalPlatformSongUrl(song);
+    const root = original?.response || original;
+    const data = root.data || root;
+    const entry = data.playUrl?.[song.songmid];
+    if (entry?.url && !entry.isPreview) return original;
+    if ((typeof data.url === 'string' && data.url && !data.isPreview) || data[0]?.url || (typeof data.playUrl === 'string' && data.playUrl)) return original;
+    // Keep a platform preview available if alternative matching fails.
+    try { return await alternativeSongUrl(song); } catch { return original; }
+  } catch (error) {
+    try { return await alternativeSongUrl(song); }
+    catch { throw new Error(`${(error as Error).message || '原音源不可用'}；换源也未找到可播放资源`); }
+  }
 }
 async function alternativeSongUrl(song: PlatformSong) {
   const result = await netease.alternative({ title: song.songname, artists: song.singer.map(artist => artist.name), album: song.albumname, duration: song.duration });

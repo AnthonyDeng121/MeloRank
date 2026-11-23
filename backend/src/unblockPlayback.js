@@ -1,3 +1,5 @@
+const { kuwoCarPlayback } = require('./kuwoCarPlayback');
+const { verifyAlternative } = require('./verifyAlternative');
 const express = require('express');
 const router = express.Router();
 router.post('/', async (req, res) => {
@@ -8,19 +10,27 @@ router.post('/', async (req, res) => {
     const match = require('@unblockneteasemusic/server');
     const data = { id: 0, name: title, artists: artists.map(name => ({ name })), album: { name: typeof album === 'string' ? album.slice(0, 300) : '' }, duration: Math.max(0, Number(duration) || 0) * 1000 };
     const select = async () => {
-      let sources = ['kugou', 'bodian', 'kuwo'];
+      let sources = ['kugou', 'bodian'];
+      let lastError;
       while (sources.length) {
-        const candidate = await match(0, sources, data);
-        const estimate = candidate.br > 1000 && candidate.br < 1000000 && candidate.size ? candidate.size * 8 / candidate.br : null;
-        if (!duration || !estimate || estimate >= Number(duration) * 0.75) return candidate;
+        let candidate;
+        try { candidate = await match(0, sources, data); } catch (error) { lastError = error; break; }
+        try { const verifiedDuration = await verifyAlternative(candidate.url, duration); return { ...candidate, verifiedDuration }; }
+        catch (error) { lastError = error; }
         sources = sources.filter(source => source !== candidate.source);
       }
-      throw new Error('替代音源仅有短片段，未找到完整音源');
+      throw lastError || new Error('未找到可验证的完整替代音源');
     };
-    const result = await Promise.race([select(), new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('换源匹配超时')), 25000); })]);
+    let result;
+    try {
+      result = await Promise.race([select(), new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Original sources timed out')), 18000); })]);
+    } catch {
+      clearTimeout(timer);
+      result = await kuwoCarPlayback({ title, artists, album, duration }, AbortSignal.timeout(20000));
+    }
     if (!result.url || !/^https?:\/\//.test(result.url)) throw new Error('没有找到可用的替代音源');
     res.set('Cache-Control', 'no-store');
-    res.json({ url: result.url, source: result.source, bitrate: result.br, isAlternative: true });
+    res.json({ url: result.url, source: result.source, bitrate: result.br, verifiedDuration: result.verifiedDuration, isAlternative: true });
   } catch (error) { res.status(502).json({ error: error.message || '没有找到可用的替代音源' }); }
   finally { clearTimeout(timer); }
 });
