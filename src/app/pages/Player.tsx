@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useMusic } from '../contexts/MusicContext';
 import '../../styles/Player.css';
-import { Repeat1, ListMusic, Shuffle } from 'lucide-react';
+import { Repeat1, ListMusic, Shuffle, Maximize2, X } from 'lucide-react';
 import { parseLrc, matchLyric } from '../services/lyrics';
 
 export function Player({ selection, onSelectionChange, mvSelection, onMVChange }: { onMVChange?: (item: MVItem | null) => void; mvSelection?: MVItem | null; selection: CatalogItem | null; onSelectionChange: (value: CatalogItem | null) => void }) {
@@ -186,19 +186,14 @@ export function Player({ selection, onSelectionChange, mvSelection, onMVChange }
 
   // 当前歌词索引
   const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
-  const lyricsViewport = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const viewport = lyricsViewport.current;
-    if (!viewport) return;
-    const centerCurrent = () => {
-      const line = viewport.querySelector<HTMLElement>('.current-lyric');
-      if (line) viewport.scrollTop += line.getBoundingClientRect().top - viewport.getBoundingClientRect().top - (viewport.clientHeight - line.clientHeight) / 2;
-    };
-    centerCurrent();
-    const observer = new ResizeObserver(centerCurrent);
-    observer.observe(viewport);
-    return () => observer.disconnect();
-  }, [currentLyricIndex, parsedLyrics, showTranslation, showRomanization, translation, romanization]);
+  const fullLyricsDialog = useRef<HTMLDialogElement>(null);
+  const fullLyricsViewport = useRef<HTMLDivElement>(null);
+  const openFullLyrics = () => {
+    fullLyricsDialog.current?.showModal();
+    const viewport = fullLyricsViewport.current;
+    const line = viewport?.querySelector<HTMLElement>('.current-lyric');
+    if (viewport && line) viewport.scrollTop += line.getBoundingClientRect().top - viewport.getBoundingClientRect().top - (viewport.clientHeight - line.clientHeight) / 2;
+  };
 
   // 根据当前播放时间更新歌词索引
   useEffect(() => {
@@ -366,6 +361,7 @@ export function Player({ selection, onSelectionChange, mvSelection, onMVChange }
               {(showTranslation && !translatedLines.some(line => line.text) || showRomanization && !romanizedLines.some(line => line.text)) && <span>该歌曲暂无{showTranslation && !translatedLines.some(line => line.text) ? '翻译' : ''}{showTranslation && !translatedLines.some(line => line.text) && showRomanization && !romanizedLines.some(line => line.text) ? '及' : ''}{showRomanization && !romanizedLines.some(line => line.text) ? '音译' : ''}</span>}
             </div>
               <div className="lyrics-actions">
+                <button type="button" className="lyrics-btn lyrics-expand" aria-label="展开完整歌词" title="展开完整歌词" onClick={openFullLyrics}><Maximize2 size={18} /></button>
                 <button className="lyrics-btn" disabled={!parsedLyrics.length} data-disabled-reason="当前歌曲暂无歌词" onClick={async () => {
                   // 提取纯歌词文本，不包含时间戳
                   const pureLyrics = parsedLyrics.map(lyric => lyric.text).join('\n');
@@ -393,7 +389,7 @@ export function Player({ selection, onSelectionChange, mvSelection, onMVChange }
                 </div>
               )}
             </div>
-            <div className="lyrics-content" ref={lyricsViewport}>
+            <div className="lyrics-content">
               {parsedLyrics.length > 0 ? (
                 <div className="dynamic-lyrics">
                   {getDisplayLyrics().map((lyric, index) => {
@@ -416,6 +412,24 @@ export function Player({ selection, onSelectionChange, mvSelection, onMVChange }
               )}
             </div>
           </div>
+          <dialog aria-label="完整歌词" className="full-lyrics-dialog" ref={fullLyricsDialog} onClick={event => { if (event.target === event.currentTarget) event.currentTarget.close(); }}>
+            <div className="full-lyrics-surface">
+              <div className="lyrics-header">
+                <div><h3>完整歌词</h3><p className="full-lyrics-title">{currentSong?.songname}</p></div>
+                <button type="button" className="lyrics-btn lyrics-expand" aria-label="关闭完整歌词" onClick={() => fullLyricsDialog.current?.close()}><X size={20} /></button>
+              </div>
+              <div className="full-lyrics-content" ref={fullLyricsViewport} tabIndex={0} aria-label="完整歌词，可滚动查看">
+                <div className="dynamic-lyrics">
+                  {parsedLyrics.map((lyric, index) => <p key={index} className={`lyric-line ${index === currentLyricIndex ? 'current-lyric' : ''}`} aria-current={index === currentLyricIndex ? 'true' : undefined}>
+                    <span className="lyric-original">{lyric.text}</span>
+                    {showTranslation && matchLyric(translatedLines, lyric.time) && <span className="lyric-translation">{matchLyric(translatedLines, lyric.time)}</span>}
+                    {showRomanization && matchLyric(romanizedLines, lyric.time) && <span className="lyric-romanization">{matchLyric(romanizedLines, lyric.time)}</span>}
+                  </p>)}
+                  {!parsedLyrics.length && <p className="no-lyrics">暂无歌词</p>}
+                </div>
+              </div>
+            </div>
+          </dialog>
 
           {/* 互换位置：Quick Review面板放在下面 */}
           <div className="quick-review-panel">{currentSong && <><h3>歌曲评分</h3><SongRating key={currentSong.songmid} song={currentSong} /></>}<h3>个人乐评</h3>{currentSong ? <WorkReview key={currentSong.songmid} id={`${currentSong.provider || 'qq'}:song:${currentSong.songmid}`} title={currentSong.songname} artist={currentSong.singer.map(s => s.name).join(' / ')} image={songCover(currentSong)} /> : <p>选择歌曲后即可评分</p>}</div>
