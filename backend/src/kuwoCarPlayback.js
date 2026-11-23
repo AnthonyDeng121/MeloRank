@@ -1,7 +1,7 @@
 const { verifyAlternative } = require('./verifyAlternative');
 
 const normalize = value => String(value || '').replace(/&nbsp;/g, ' ').replace(/\\+u0026/g, '&').normalize('NFKC').toLowerCase().replace(/[\s\p{P}\p{S}]/gu, '');
-const baseTitle = value => String(value || '').split(/\s*[?(]/)[0].trim();
+const baseTitle = value => String(value || '').split(/\s*[\uFF08(]/)[0].trim();
 async function kuwoCarPlayback({ title, artists, album, duration }, signal) {
   const search = new URL('https://search.kuwo.cn/r.s');
   search.search = new URLSearchParams({ all: baseTitle(title), ft: 'music', rformat: 'json', encoding: 'utf8', pn: '0', rn: '30', vipver: '1', show_copyright_off: '1', prod: 'kwplayer_mc_1.7.0' });

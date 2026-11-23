@@ -36,7 +36,21 @@ async function originalPlatformSongUrl(song: PlatformSong): Promise<any> {
   const result = await netease.request('playback', { id: song.providerId });
   return { data: { playUrl: { [song.songmid]: { url: result.url, isPreview: result.isPreview } } } };
 }
+const fullAudioCache = new Map<string, { result: any; expires: number }>();
 export async function platformSongUrl(song: PlatformSong): Promise<any> {
+  const key = `${song.provider || 'qq'}:${song.songmid}`;
+  const cached = fullAudioCache.get(key);
+  if (cached && cached.expires > Date.now()) return cached.result;
+  const result = await fetchPlatformSongUrl(song);
+  const data = (result?.response || result)?.data || result;
+  const entry = data?.playUrl?.[song.songmid];
+  if (entry?.url && !entry.isPreview) {
+    if (fullAudioCache.size >= 100) fullAudioCache.delete(fullAudioCache.keys().next().value!);
+    fullAudioCache.set(key, { result, expires: Date.now() + 120000 });
+  }
+  return result;
+}
+async function fetchPlatformSongUrl(song: PlatformSong): Promise<any> {
   if (song.provider === 'spotify') return originalPlatformSongUrl(song);
   try {
     const original = await originalPlatformSongUrl(song);
@@ -53,7 +67,7 @@ export async function platformSongUrl(song: PlatformSong): Promise<any> {
   }
 }
 async function alternativeSongUrl(song: PlatformSong) {
-  const result = await netease.alternative({ title: song.songname, artists: song.singer.map(artist => artist.name), album: song.albumname, duration: song.duration });
+  const result = await netease.alternative({ title: song.songname, artists: song.singer.map(artist => artist.name), album: song.albumname, duration: song.duration || (song as PlatformSong & { interval?: number }).interval });
   return { data: { playUrl: { [song.songmid]: { url: result.url, isPreview: false, source: result.source, isAlternative: true } } } };
 }
 export async function platformLyric(song: PlatformSong): Promise<any> {
