@@ -1131,18 +1131,6 @@ export function YearlyRanking({
 
   return (
     <div className="yearly-ranking-page">
-      <h2>
-        {"MeloRank · "}
-        {currentYear}
-        {" 年度榜单"}
-      </h2>
-      <p className="platform-position">
-        {
-          "导出使用 A4 窄页边距，PDF 与图片由同一份 DOCX 渲染。每页图片会打包为 ZIP。"
-        }
-        <br />
-        {"历史榜单保存于浏览器中，各个浏览器之间看不到彼此的数据"}
-      </p>
       {isExporting && <p role="status">正在生成文档与分页，请稍候…</p>}
       {exportError && <p role="alert" className="ranking-error">{exportError}</p>}
       <div
