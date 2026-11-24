@@ -68,7 +68,8 @@ async function run(provider) {
   assert.equal(saved[0].id, 'keep-existing'); assert.equal(saved.length, 2); assert.equal(saved[1].scoringMode, 'non-scoring');
   assert.equal(saved[1].type, '年度专辑榜'); assert.equal(saved[1].rankingList.length, 2);
   assert.ok(saved[1].rankingList.every(item => item.originalScore === 0 && item.finalScore === 0));
-  assert.equal(ui.getOpened(), undefined, 'saving does not replace the active draft');
+  assert.equal(ui.getOpened().id, saved[1].id, 'saving opens the newly saved ranking');
+  assert.equal(ui.getNavigation(), 'yearly-ranking', 'saving navigates to the ranking page');
   ui.textButton('打开榜单').props.onClick(); assert.equal(ui.getOpened().id, saved[1].id); assert.equal(ui.getNavigation(), 'yearly-ranking');
   ui.textButton('编辑歌单').props.onClick(); ui.render();
   const covers = ui.find(node => node.type === 'fieldset' && node.props.className === 'playlist-album-covers');

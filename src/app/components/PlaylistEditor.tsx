@@ -151,6 +151,7 @@ export function PlaylistEditor({ provider, playlist, tracks, ready, saving, setS
       const now = new Date().toISOString();
       const record: SavedRanking = { id: `ranking_${crypto.randomUUID()}`, name: rankingName.trim(), year, type: rankingKind === 'songs' ? '年度单曲榜' : '年度专辑榜', scoringMode, rankingList, createdAt: now, updatedAt: now };
       localStorage.setItem('yearlyRankings', JSON.stringify([...existing, record]));
+      if (onNavigate) { setPendingRanking(record); onNavigate('yearly-ranking'); }
       setSavedRanking(record); setDialog(null); setMessage(`已保存新榜单「${record.name}」，共 ${rankingList.length} 项`); setError('');
     } catch (reason) { setError((reason as Error).message); }
   };

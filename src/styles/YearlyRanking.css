@@ -1533,3 +1533,14 @@
 .ranking-cover-status .ranking-import-status { margin:0; }
 .export-buttons { flex-wrap:wrap; }
 .export-btn:disabled { opacity:.5; cursor:not-allowed; }
+
+.ranking-form { padding: 20px; }
+.ranking-form h3 { margin-bottom: 16px; }
+.ranking-form .form-group { margin-bottom: 12px; }
+.ranking-form .form-group label { margin-bottom: 6px; }
+.ranking-form .form-group input,
+.ranking-form .form-group select { padding: 9px 10px; }
+.ranking-form .form-group textarea { min-height: 64px; height: 64px; padding: 9px 10px; }
+.ranking-bonus-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ranking-bonus-fields .score-input-with-arrows { width: 100%; max-width: 100%; }
+.ranking-bonus-fields .score-adjuster { min-width: 0; }

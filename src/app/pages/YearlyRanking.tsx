@@ -1350,6 +1350,7 @@ export function YearlyRanking({
                 disabled={scoringMode === "non-scoring"} data-disabled-reason="当前模式下无法评分，请切换到评分模式"
               />
             </div>
+            <div className="ranking-bonus-fields">
             <div className="form-group">
               <label>{"整体性"}</label>
               <div className="score-adjuster">
@@ -1421,6 +1422,7 @@ export function YearlyRanking({
                   </div>
                 </div>
               </div>
+            </div>
             </div>
             <div className="form-group">
               <label>{"评价"}</label>
