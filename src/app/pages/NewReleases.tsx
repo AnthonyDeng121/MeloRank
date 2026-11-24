@@ -190,6 +190,14 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
           {(['', ...regions] as const).map(value => <button key={value}
             aria-pressed={region === value} onClick={() => { setPage(1); setRegion(value); }}>{value || '全部地区'}</button>)}
         </div></div>
+        <div className="release-control-row"><span>筛选</span><div className="release-direct-filters">
+          <label>来源<select value={source} onChange={event => setSource(event.target.value)}><option value="">全部来源</option>
+            {Object.entries(sourceNames).map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></label>
+          <label>风格<select value={genre} onChange={event => setGenre(event.target.value)}><option value="">不限</option>{genres.map(value => <option key={value}>{value}</option>)}</select></label>
+          <label>排除风格<select value={excludedGenre} onChange={event => setExcludedGenre(event.target.value)}><option value="">不排除</option>{genres.map(value => <option key={value}>{value}</option>)}</select></label>
+          <label>浏览状态<select value={visibility} onChange={event => setVisibility(event.target.value)}><option value="active">待筛选／想听</option><option value="all">含已处理</option></select></label>
+          <label className="release-check"><input type="checkbox" checked={hideAI} onChange={event => setHideAI(event.target.checked)} /> 隐藏来源明确标注的 AI 发行</label>
+        </div></div>
         <div className="release-controls-footer">
           <div className="release-chips">
             <label>时间<select value={days} onChange={event => { setPage(1); setDays(event.target.value); }}><option value="7">近七天</option><option value="30">近三十天</option></select></label>
@@ -202,17 +210,6 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
         </div>
       </section>
       <div className="release-utilities">
-      <details className="release-tools">
-        <summary><SlidersHorizontal size={14} aria-hidden="true" /> 更多筛选</summary>
-        <div className="release-toolbar">
-          <label>来源<select value={source} onChange={event => setSource(event.target.value)}><option value="">全部来源</option>
-            {Object.entries(sourceNames).map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></label>
-          <label>风格<select value={genre} onChange={event => setGenre(event.target.value)}><option value="">不限</option>{genres.map(value => <option key={value}>{value}</option>)}</select></label>
-          <label>排除风格<select value={excludedGenre} onChange={event => setExcludedGenre(event.target.value)}><option value="">不排除</option>{genres.map(value => <option key={value}>{value}</option>)}</select></label>
-          <label>浏览状态<select value={visibility} onChange={event => setVisibility(event.target.value)}><option value="active">待筛选／想听</option><option value="all">含已处理</option></select></label>
-          <label className="release-check"><input type="checkbox" checked={hideAI} onChange={event => setHideAI(event.target.checked)} /> 隐藏来源明确标注的 AI 发行</label>
-        </div>
-      </details>
       <details className="release-tools"><summary><SlidersHorizontal size={14} aria-hidden="true" /> 补录与屏蔽设置</summary>
         <form className="release-toolbar" onSubmit={event => {
           event.preventDefault();
@@ -254,14 +251,13 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
           {item.image && <img key={item.image} src={item.image} alt="" loading="lazy" onError={event => { event.currentTarget.hidden = true; }} />}
         </div>
         <div className="release-meta">
-          <small>{item.manual ? '手动补录' : sourceNames[item.provider]} · {item.date || (item.dateHint ? item.dateHint + ' · 日期待确认' : '日期待确认')}</small>
+          <small className="release-origin">{item.manual ? '手动补录' : sourceNames[item.provider]} · {item.date || (item.dateHint ? item.dateHint + ' · 日期待确认' : '日期待确认')}</small>
           <h3 title={item.title}>{item.title}</h3><p title={item.artist}>{item.artist}</p>
           <div className="release-badges">
             {item.format !== '未分类' && <span className="release-tag">{item.format}</span>}
             {item.region && <span className="release-tag release-region">{item.region}</span>}
-            {item.genre !== '未分类' && <span className="release-tag">{item.genre}</span>}
             {item.review ? <a className="release-tag" href={item.review.url} target="_blank" rel="noreferrer">Pitchfork 评论 ↗</a>
-              : item.chartRank && <span className="release-tag">Apple 地区榜</span>}
+              : null}
             {item.ai && <span className="release-tag">来源标注 AI</span>}
           </div>
         </div>
@@ -269,20 +265,24 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
           <button className="release-play" disabled={!!pending} onClick={() => void loadTracks(item)}>
             <Play size={13} /> {pending === id ? '读取中' : item.provider !== 'qq' ? '找试听' : '试听'}
           </button>
-          {item.provider !== 'qq'
-            ? <a href={item.externalUrl} target="_blank" rel="noreferrer"><ArrowUpRight size={15} /> 发行资料</a>
-            : <button className="release-quiet" onClick={() => onOpen({ ...item, provider: 'qq' })}><ListMusic size={15} /> 详情</button>}
           {!saved && !decision && <><button className="release-quiet" onClick={() => decide(item, '想听')}><Bookmark size={15} /> 想听</button><button className="release-quiet" onClick={() => decide(item, '跳过')}>跳过</button></>}
+          {saved && (item.provider !== 'qq'
+            ? <a href={item.externalUrl} target="_blank" rel="noreferrer"><ArrowUpRight size={15} /> 发行资料</a>
+            : <button className="release-quiet" onClick={() => onOpen({ ...item, provider: 'qq' })}><ListMusic size={15} /> 详情</button>)}
           {decision && <button className="release-quiet" onClick={() => decide(item)}>{decision} · 撤销</button>}
         </div>
         {!saved && <details className="release-classify"><summary>分类与来源</summary>
           <div className="release-toolbar">
+          {item.provider !== 'qq'
+            ? <a href={item.externalUrl} target="_blank" rel="noreferrer"><ArrowUpRight size={15} /> 发行资料</a>
+            : <button className="release-quiet" onClick={() => onOpen({ ...item, provider: 'qq' })}><ListMusic size={15} /> 详情</button>}
             <label>类型<select value={item.format} onChange={e => { const value = e.target.value as Format; setLibrary(previous => ({ ...previous, tags: { ...previous.tags, [id]: { format: value, genre: item.genre, region: item.region } } })); }}>{formats.map(value => <option key={value}>{value}</option>)}</select></label>
             <label>风格<input value={item.genre === '未分类' ? '' : item.genre} placeholder="未分类" onChange={e => { const value = e.target.value; setLibrary(previous => ({ ...previous, tags: { ...previous.tags, [id]: { format: item.format, genre: value || '未分类', region: item.region } } })); }} /></label>
             <label>地区<select value={item.region ?? '其他／待确认'} onChange={event => {
               const value = event.target.value as Region;
               setLibrary(previous => ({ ...previous, tags: { ...previous.tags, [id]: { format: item.format, genre: item.genre, region: value } } }));
             }}>{regions.map(value => <option key={value}>{value}</option>)}</select></label>
+            {item.chartRank && <small>Apple 地区榜收录</small>}
             {item.quality === '按曲目推断' && <small>类型按曲目数和时长推断</small>}
             {item.sourceCount > 1 && <small>多个来源收录</small>}
             {item.artist && <button onClick={() => setLibrary(previous => ({ ...previous, hidden: [...previous.hidden, item.artist] }))}>屏蔽艺人栏</button>}
