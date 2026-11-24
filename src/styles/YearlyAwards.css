@@ -134,3 +134,25 @@
 .grammy-grid .grammy-art { width: 206px; height: 206px; margin-bottom: 5px; }
 .grammy-grid strong { display: block; font-weight: 500; }
 .grammy-grid p { font-size: 16px; opacity: .8; }
+.yearly-awards { max-width: 1060px; padding-top: 0; }
+.awards-header { margin-bottom: 14px; }
+.awards-header h2 { font-size: 1.5rem; }
+.awards-header p { font-size: 12px; }
+.awards-title > svg { width: 34px; height: 34px; padding: 7px; }
+.awards-layout { gap: 16px; }
+.awards-editor, .awards-preview { padding: 12px; gap: 8px; }
+.yearly-awards label { font-size: 12px; gap: 4px; }
+.yearly-awards :is(input, select, textarea, button) { padding: 6px 8px; }
+.yearly-awards button { font-size: 13px; }
+.awards-modes { gap: 0; padding: 0; border-radius: 9px; overflow: hidden; }
+.yearly-awards .awards-modes button { border: 0; border-radius: 0; padding: 8px 12px; }
+.yearly-awards .awards-modes button + button { border-left: 1px solid #4a5478; }
+.yearly-awards .awards-modes button:focus-visible { outline-offset: -3px; }
+.awards-nomination { padding: 8px; gap: 8px; }
+.awards-official li { padding: 5px 8px; font-size: 13px; }
+.awards-official li span { font-size: 11px; }
+.award-poster-frame { border-radius: 4px; }
+.award-poster { left: calc((100% - var(--poster-width, 100%)) / 2); }
+@media (min-width: 801px) {
+  .awards-editor { max-height: max(360px, calc(100dvh - 212px)); overflow-y: auto; }
+}

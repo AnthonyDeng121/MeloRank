@@ -21,7 +21,7 @@ type Scope = typeof scopes[number];
 const presetTitle = (scope: Scope, category: Category) =>
   scope === '通类' && (category === 'collaboration' || category === 'cover')
     ? '最佳' + categories[category][0]
-    : scope + '年度' + categories[category][0] + '奖';
+    : (scope === '通类' ? '' : scope) + '年度' + categories[category][0] + '奖';
 const newAward = (title: string, category: Category): Award => ({
   id: crypto.randomUUID(), title, category, works: [], winner: '', reason: '',
 });
@@ -37,12 +37,13 @@ function officialEdition(previous?: Edition): Edition {
     selected: awards.find(item => item.id === previous?.selected)?.id ?? awards[0].id };
 }
 function customEdition(previous?: Edition): Edition {
-  if (previous?.presetScopesAdded) return previous;
+  if (previous?.presetScopesAdded) return { ...previous, awards: previous.awards.map(item =>
+    item.scope ? { ...item, title: presetTitle(item.scope, item.category) } : item) };
   const saved = previous?.awards ?? [];
   const adopted = new Set<string>();
   const presets = scopes.flatMap(scope => categoryKeys.map(category => {
     const title = presetTitle(scope, category);
-    const existing = saved.find(item => item.title === title && !adopted.has(item.id));
+    const existing = saved.find(item => (item.title === title || (scope === '通类' && item.title === '通类' + title)) && !adopted.has(item.id));
     if (existing) adopted.add(existing.id);
     return { ...(existing ?? newAward(title, category)), title, category, scope };
   }));
@@ -85,15 +86,21 @@ export function YearlyAwards() {
     const element = poster.current;
     if (!frame || !element) return;
     const resize = () => {
-      const scale = frame.clientWidth / 1024;
+      const availableHeight = Math.max(250, window.innerHeight - 265);
+      const scale = Math.min(frame.clientWidth / 1024, availableHeight / element.offsetHeight);
+      frame.style.setProperty('--poster-width', Math.round(1024 * scale) + 'px');
       frame.style.setProperty('--poster-scale', String(scale));
       frame.style.height = Math.ceil(element.offsetHeight * scale) + 'px';
     };
     const observer = new ResizeObserver(resize);
     observer.observe(frame);
     observer.observe(element);
+    window.addEventListener('resize', resize);
     resize();
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', resize);
+    };
   }, [frame]);
   const edition = editions[mode];
   const award = edition.awards.find(item => item.id === edition.selected) ?? edition.awards[0];
@@ -223,7 +230,7 @@ export function YearlyAwards() {
           {award.works.map((work, index) => <fieldset key={work.id} className="awards-nomination">
             <legend>提名 {index + 1}</legend>
             <AwardWorkSearch key={award.category} album={award.category === 'album'}
-              onSelect={({ title, artist, cover }) => editWork(work.id, { title, artist, cover, credits: {} })} />
+              onSelect={({ title, artist, cover, credits }) => editWork(work.id, { title, artist, cover, credits: credits ?? {} })} />
             <div className="awards-fields">
               <label>作品名称<input value={work.title} onChange={event => editWork(work.id, { title: event.target.value })} /></label>
               <label>艺人<input value={work.artist} onChange={event => editWork(work.id, { artist: event.target.value })} /></label>

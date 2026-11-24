@@ -65,6 +65,8 @@ export const grammyEnglishTitles: Record<string, string> = {
 };
 
 const artwork: Record<string, string> = {
+  'Lost Weekend': 'lost-weekend', Dandelion: 'dandelion', petal: 'petal',
+  'you seem pretty sad for a girl so in love': 'olivia-album',
   Berghain: 'berghain', 'LUX (Complete Works)': 'berghain',
   "Choosin' Texas": 'texas',
   'the cure': 'cure',
@@ -74,7 +76,7 @@ const artwork: Record<string, string> = {
   'Risk It All': 'risk', 'I Just Might': 'risk', 'The Romantic': 'risk',
   'WHERE IS MY HUSBAND!': 'husband', RUNWAY: 'runway', 'Bring Your Love': 'bring',
   'Click Clack Symphony.': 'click', 'THIS MUSIC MAY CONTAIN HOPE.': 'click',
-  'The Life of a Showgirl': 'showgirl', 'The Fate of Ophelia': 'showgirl',
+  'The Life of a Showgirl': 'showgirl', 'The Fate of Ophelia': 'ophelia',
   Dracula: 'dracula', 'Sauvignon Blanc': 'sauvignon',
 };
 
