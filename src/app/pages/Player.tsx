@@ -48,7 +48,7 @@ export function Player({ selection, onSelectionChange, mvSelection, onMVChange }
     } finally { setDownloading(false); }
   };
   // 使用音乐播放上下文
-  const { currentSong, isPlaying, togglePlay, volume, setVolume, lyrics, translation, romanization, currentTime, duration, seekTo, previousSong, nextSong, playMode, setPlayMode } = useMusic();
+  const { currentSong, isPlaying, togglePlay, volume, setVolume, lyrics, lyricSource, translation, romanization, currentTime, duration, seekTo, previousSong, nextSong, playMode, setPlayMode } = useMusic();
   const translatedLines = useMemo(() => parseLrc(translation), [translation]);
   const romanizedLines = useMemo(() => parseLrc(romanization), [romanization]);
   
@@ -324,7 +324,7 @@ export function Player({ selection, onSelectionChange, mvSelection, onMVChange }
           {/* 互换位置：Lyrics面板放在上面 */}
           <div className="lyrics-panel">
             <div className="lyrics-header">
-              <h3>歌词</h3>
+              <h3>歌词{lyricSource === "LRCLIB" && <a className="lyric-source" href="https://lrclib.net" target="_blank" rel="noreferrer">LRCLIB</a>}</h3>
             <div className="lyrics-display-options">
               <button type="button" aria-pressed={showTranslation} onClick={() => { setShowTranslation(!showTranslation); localStorage.setItem('lyricsTranslation', String(!showTranslation)); }}>翻译</button>
               <button type="button" aria-pressed={showRomanization} onClick={() => { setShowRomanization(!showRomanization); localStorage.setItem('lyricsRomanization', String(!showRomanization)); }}>音译 / 罗马音</button>
@@ -332,16 +332,16 @@ export function Player({ selection, onSelectionChange, mvSelection, onMVChange }
             </div>
               <div className="lyrics-actions">
                 <button type="button" className="lyrics-btn lyrics-expand" aria-label="展开完整歌词" title="展开完整歌词" onClick={openFullLyrics}><Maximize2 size={18} /></button>
-                <button className="lyrics-btn" disabled={!parsedLyrics.length} data-disabled-reason="当前歌曲暂无歌词" onClick={async () => {
+                <button className="lyrics-btn" disabled={!lyrics.trim()} data-disabled-reason="当前歌曲暂无歌词" onClick={async () => {
                   // 提取纯歌词文本，不包含时间戳
-                  const pureLyrics = parsedLyrics.map(lyric => lyric.text).join('\n');
+                  const pureLyrics = parsedLyrics.length ? parsedLyrics.map(lyric => lyric.text).join('\n') : lyrics;
                   await navigator.clipboard.writeText(pureLyrics);
                   setShowCopySuccess(true);
                   setTimeout(() => setShowCopySuccess(false), 1500);
                 }}>复制</button>
-                <button className="lyrics-btn" disabled={!parsedLyrics.length} data-disabled-reason="当前歌曲暂无歌词" onClick={() => {
+                <button className="lyrics-btn" disabled={!lyrics.trim()} data-disabled-reason="当前歌曲暂无歌词" onClick={() => {
                   // 提取纯歌词文本，不包含时间戳
-                  const pureLyrics = parsedLyrics.map(lyric => lyric.text).join('\n');
+                  const pureLyrics = parsedLyrics.length ? parsedLyrics.map(lyric => lyric.text).join('\n') : lyrics;
                   const blob = new Blob([pureLyrics], { type: 'text/plain;charset=utf-8' });
                   const url = URL.createObjectURL(blob);
                   const link = document.createElement('a');
@@ -378,7 +378,7 @@ export function Player({ selection, onSelectionChange, mvSelection, onMVChange }
                   })}
                 </div>
               ) : (
-                <p className="no-lyrics">暂无歌词</p>
+                <p className={lyrics.trim() ? "plain-lyrics" : "no-lyrics"}>{lyrics.trim() || "暂无歌词"}</p>
               )}
             </div>
           </div>
@@ -400,14 +400,14 @@ export function Player({ selection, onSelectionChange, mvSelection, onMVChange }
                     {showTranslation && matchLyric(translatedLines, lyric.time) && <span className="lyric-translation">{matchLyric(translatedLines, lyric.time)}</span>}
                     {showRomanization && matchLyric(romanizedLines, lyric.time) && <span className="lyric-romanization">{matchLyric(romanizedLines, lyric.time)}</span>}
                   </p>)}
-                  {!parsedLyrics.length && <p className="no-lyrics">暂无歌词</p>}
+                  {!parsedLyrics.length && <p className={lyrics.trim() ? "plain-lyrics" : "no-lyrics"}>{lyrics.trim() || "暂无歌词"}</p>}
                 </div>
               </div>
             </div>
           </dialog>
 
           {/* 互换位置：Quick Review面板放在下面 */}
-          <div className="quick-review-panel">{currentSong && <><h3>歌曲评分</h3><SongRating key={currentSong.songmid} song={currentSong} /></>}<h3>个人乐评</h3>{currentSong ? <WorkReview key={currentSong.songmid} id={`${currentSong.provider || 'qq'}:song:${currentSong.songmid}`} title={currentSong.songname} artist={currentSong.singer.map(s => s.name).join(' / ')} image={songCover(currentSong)} /> : <p>选择歌曲后即可评分</p>}</div>
+          <div className="quick-review-panel annual-song-rating">{currentSong && <><h3>年度单曲榜评分</h3><SongRating key={currentSong.songmid} song={currentSong} /></>}</div><div className="quick-review-panel personal-work-review"><h3>个人乐评</h3>{currentSong ? <WorkReview inline key={currentSong.songmid} id={`${currentSong.provider || 'qq'}:song:${currentSong.songmid}`} title={currentSong.songname} artist={currentSong.singer.map(s => s.name).join(' / ')} image={songCover(currentSong)} /> : <p>选择歌曲后即可评分</p>}</div>
         </div>
       </div>
       </>}

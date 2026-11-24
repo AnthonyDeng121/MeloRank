@@ -20,6 +20,7 @@ interface MusicContextType {
   currentTime: number;
   duration: number;
   lyrics: string;
+  lyricSource: string;
   translation: string;
   romanization: string;
   playMode: PlayMode;
@@ -56,6 +57,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
   const [currentTime, setCurrentTime] = useState(0); // 当前播放时间（秒）
   const [duration, setDuration] = useState(0); // 歌曲总时长（秒）
   const [lyrics, setLyrics] = useState('');
+  const [lyricSource, setLyricSource] = useState('');
   const [translation, setTranslation] = useState('');
   const [romanization, setRomanization] = useState('');
   const [playMode, setPlayMode] = useState<PlayMode>('single'); // 默认单曲循环
@@ -386,10 +388,11 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
   // 当playbackSong变化时，获取歌词
   useEffect(() => {
     let cancelled = false;
-    setLyrics(''); setTranslation(''); setRomanization('');
+    setLyrics(''); setLyricSource(''); setTranslation(''); setRomanization('');
     if (playbackSong) void platformLyric(playbackSong).then(result => {
       if (cancelled) return;
       setLyrics(result.response.lyric);
+      setLyricSource(result.response.source || '');
       setTranslation(result.response.trans || '');
       setRomanization(result.response.roma || '');
     }).catch(() => {});
@@ -516,6 +519,7 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     currentTime,
     duration,
     lyrics,
+    lyricSource,
     translation,
     romanization,
     playMode,

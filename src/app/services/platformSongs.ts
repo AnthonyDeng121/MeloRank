@@ -1,3 +1,4 @@
+import { externalLyrics } from './externalLyrics';
 import { netease, spotify, type MusicProvider } from './musicPlatforms';
 import { qqMusicService } from './qqMusicService';
 
@@ -73,7 +74,7 @@ async function alternativeSongUrl(song: PlatformSong) {
 // Normalize provider envelopes before deciding whether another catalog is needed.
 function lyricData(result: any) {
   const data = result?.response || result?.data?.response || result?.data || {};
-  return { lyric: typeof data.lyric === 'string' ? data.lyric : '', trans: typeof data.trans === 'string' ? data.trans : '', roma: typeof data.roma === 'string' ? data.roma : '' };
+  return { lyric: typeof data.lyric === 'string' ? data.lyric : '', trans: typeof data.trans === 'string' ? data.trans : '', roma: typeof data.roma === 'string' ? data.roma : '', source: data.source === 'LRCLIB' ? 'LRCLIB' : '' };
 }
 function usableLyric(value: string) {
   return value.split(/\r?\n/).some(line => {
@@ -84,7 +85,7 @@ function usableLyric(value: string) {
 async function catalogLyric(song: PlatformSong) {
   if (song.provider === 'netease') {
     const data = await netease.request('lyric', { id: song.providerId });
-    return { lyric: data.lyric || '', trans: data.translation || '', roma: data.romanization || '' };
+    return { lyric: data.lyric || '', trans: data.translation || '', roma: data.romanization || '', source: '' };
   }
   return lyricData(await qqMusicService.getLyric(song.songmid));
 }
@@ -100,6 +101,10 @@ export async function platformLyric(song: PlatformSong): Promise<any> {
       plain ||= data;
     } catch { /* Missing catalog match, timeout or unavailable lyrics: try the other provider. */ }
   }
+  try {
+    const data = lyricData({ response: await externalLyrics(song) });
+    if (usableLyric(data.lyric) && (!plain || /\[\d+:\d{2}(?:\.\d{1,3})?\]/.test(data.lyric))) return { response: data };
+  } catch { /* Overseas source failure must not interrupt playback or discard domestic lyrics. */ }
   return { response: plain || { lyric: '', trans: '', roma: '' } };
 }
 export async function platformPlayableUrl(song: PlatformSong) {

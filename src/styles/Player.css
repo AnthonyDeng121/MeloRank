@@ -896,3 +896,18 @@
 }
 .player-page .quick-review-panel :is(.song-rating-form > button, .work-review-entry):hover { background: #7b80e6; }
 .player-page .quick-review-panel :is(.song-rating-form > button, .work-review-entry):focus-visible { outline: 2px solid #c2c6ff; outline-offset: 3px; }
+
+.player-page .annual-song-rating .song-rating-form { display: flow-root; }
+.player-page .annual-song-rating .song-rating-form > button { float: right; }
+.player-page .inline-work-review { font-size: 13px; }
+.player-page .inline-work-review .muted { margin: 0 0 12px; color: #999; font-size: 12px; }
+.player-page .inline-work-review .review-work-heading { display: none; }
+.player-page .inline-work-review input,
+.player-page .inline-work-review textarea { box-sizing: border-box; color: #eee; background: #222; border: 1px solid #38383e; border-radius: 6px; padding: 6px 8px; font: inherit; }
+.player-page .inline-work-review input { width: 64px; height: 30px; }
+.player-page .inline-work-review .review-text-label { margin: 12px 0 0; gap: 6px; }
+.player-page .inline-work-review textarea { width: 100%; min-height: 64px; resize: vertical; }
+.player-page .review-inline-actions { display: flex; justify-content: flex-end; margin-top: 4px; }
+.player-page .plain-lyrics { width: 100%; margin: 0; white-space: pre-wrap; text-align: center; line-height: 1.8; }
+
+.player-page .lyric-source { color: #999; font-size: 11px; text-decoration: none; margin-left: 8px; }
