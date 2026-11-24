@@ -16,3 +16,52 @@
 .new-releases label { display: grid; gap: 3px; font-size: 12px; }
 .new-releases details .release-toolbar { margin-top: 8px; }
 .new-releases > button { justify-self: start; }
+.new-releases { max-width: 1200px; gap: 16px; }
+.new-releases .release-hero {
+  padding: clamp(20px, 4vw, 38px);
+  background: radial-gradient(ellipse at 87% 0%, #303a63, transparent 68%), #171923;
+  border: 1px solid #383e56;
+  border-radius: 18px;
+}
+.release-hero-caption { display: flex; align-items: center; gap: 6px; color: #b7c3ff; font-size: 12px; margin-bottom: 6px; }
+.release-hero h2 { font-size: clamp(24px, 4vw, 38px); letter-spacing: -.03em; }
+.release-hero p { font-size: 13px; margin-top: 4px; }
+.release-filters { align-items: end; padding: 12px; border-bottom: 1px solid #303441; }
+.release-filters select { min-height: 33px; }
+.release-results { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline; }
+.release-results h3 { font-size: 18px; font-weight: 650; }
+.release-results h3 small { font-size: 12px; margin-left: 5px; }
+.release-results p { font-size: 12px; }
+.release-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 14px; align-items: start; }
+.release-card { padding: 0; gap: 0; overflow: hidden; }
+.release-art { aspect-ratio: 1; display: grid; place-items: center; position: relative; color: #929ec6; background: linear-gradient(140deg,#282f47,#171923); }
+.release-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.release-meta { display: block; padding: 11px 12px 8px; }
+.release-meta h3, .release-meta p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.release-meta h3 { margin-top: 3px; font-size: 16px; }
+.release-meta p { font-size: 13px; }
+.release-meta small { font-size: 10px; }
+.release-tag { display: inline-block; margin-top: 6px; color: #c5d0ff; background: #272f50; padding: 1px 6px; border-radius: 4px; font-size: 11px; }
+.release-card-actions { padding: 4px 10px 8px; gap: 4px; }
+.release-card-actions :is(button,a) { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; }
+.release-card-actions a { padding: 5px; color: #b7c3ff; }
+.new-releases :is(.release-primary,.release-play) { background: #4556a8; border-color: #6777ce; color: white; }
+.new-releases .release-quiet { background: transparent; border-color: transparent; color: #c3cbe3; }
+.new-releases .release-quiet:hover { background: #262e46; }
+.release-classify { border-top: 1px solid #292d3d; padding: 7px 12px; color: #b1b9d0; font-size: 12px; }
+.release-tools { padding: 6px 12px; background: transparent; border-color: transparent; font-size: 13px; }
+.release-tools[open] { background: #17191f; border-color: #303441; }
+.release-tools summary svg { display: inline-block; vertical-align: middle; }
+@media (max-width: 560px) {
+  .release-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .release-card-actions { padding-inline: 6px; }
+  .release-meta { padding-inline: 8px; }
+}
+.release-art { display: block; height: 0; aspect-ratio: auto; padding-top: 100%; }
+.release-art > svg { position: absolute; inset: 0; margin: auto; }
+.release-art img { height: 100%; border-radius: 0; }
+.release-art img[hidden] { display: none; }
+@media (max-width: 560px) {
+  .new-releases .release-hero { padding: 14px; }
+  .release-hero-caption { display: none; }
+}

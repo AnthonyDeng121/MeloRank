@@ -1,7 +1,7 @@
 import { AwardWorkSearch } from '../components/AwardWorkSearch';
 import React, { useEffect, useRef, useState } from 'react';
 import { Award as AwardIcon, Download } from 'lucide-react';
-import { grammyCategories, grammySource, grammyYear, grammyCover, grammyEnglishTitles } from '../services/grammyNominees';
+import { grammyEditions, grammyYear, grammyCover, loadGrammyCategories, type GrammyCategory } from '../services/grammyNominees';
 import { toast } from 'sonner';
 import '../../styles/YearlyAwards.css';
 
@@ -12,7 +12,7 @@ type Category = keyof typeof categories;
 const themes = { gold: '赤金', silver: '午夜银', green: '松石绿', violet: '暮紫' } as const;
 type Theme = keyof typeof themes;
 type Work = { id: string; title: string; artist: string; credits: Partial<Record<Category, string>>; cover: string };
-type Award = { id: string; title: string; category: Category; works: Work[]; winner: string; reason: string; preference?: string; scope?: Scope };
+type Award = { id: string; title: string; category: Category; works: Work[]; winner: string; reason: string; preference?: string; scope?: Scope; official?: GrammyCategory };
 type Edition = { name: string; year: string; theme: Theme; awards: Award[]; selected: string; presetScopesAdded?: boolean };
 const storageKey = 'melorank-yearly-awards-v1';
 const categoryKeys = Object.keys(categories) as Category[];
@@ -25,16 +25,19 @@ const presetTitle = (scope: Scope, category: Category) =>
 const newAward = (title: string, category: Category): Award => ({
   id: crypto.randomUUID(), title, category, works: [], winner: '', reason: '',
 });
-function officialEdition(previous?: Edition): Edition {
-  const awards: Award[] = grammyCategories.map(({ id, title, category, nominees }) => {
-    const saved = previous?.year === grammyYear ? previous.awards.find(item => item.id === id) : undefined;
-    const works: Work[] = nominees.map(([title, artist]) => ({ id: title, title, artist, credits: {}, cover: grammyCover(title) }));
-    return { id, title, category, works, reason: saved?.reason ?? '',
-      winner: works.some(work => work.id === saved?.winner) ? saved!.winner : '',
-      preference: works.some(work => work.id === saved?.preference) ? saved!.preference : '' };
+function officialEdition(categories: GrammyCategory[], year: string, previous?: Edition): Edition {
+  const awards: Award[] = categories.map(official => {
+    const saved = previous?.year === year ? previous.awards.find(item => item.id === official.id) : undefined;
+    const works: Work[] = official.nominees.map(([id, title, artist]) => ({
+      id, title, artist, credits: {}, cover: year === grammyYear ? grammyCover(title) : '',
+    }));
+    const restore = (value?: string) => works.find(work => work.id === value ||
+      work.title.toLowerCase() === value?.toLowerCase())?.id ?? '';
+    return { id: official.id, title: official.title, category: 'song', works, official,
+      reason: saved?.reason ?? '', winner: restore(saved?.winner), preference: restore(saved?.preference) };
   });
-  return { name: '格莱美获奖预测', year: grammyYear, theme: previous?.theme ?? 'gold', awards,
-    selected: awards.find(item => item.id === previous?.selected)?.id ?? awards[0].id };
+  return { name: '格莱美获奖预测', year, theme: previous?.theme ?? 'gold', awards,
+    selected: awards.find(item => item.id === previous?.selected)?.id ?? awards[0]?.id ?? '' };
 }
 function customEdition(previous?: Edition): Edition {
   if (previous?.presetScopesAdded) return { ...previous, awards: previous.awards.map(item =>
@@ -56,15 +59,14 @@ function editionYears(saved: string) {
   const years = Array.from({ length: latest - 1899 }, (_, index) => String(latest - index));
   return saved && !years.includes(saved) ? [saved, ...years] : years;
 }
-function readEditions(): Record<Mode, Edition> {
+type SavedAwards = { custom: Edition; grammyByYear: Record<string, Edition> };
+function readEditions(): SavedAwards {
   try {
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
-      const previous = JSON.parse(saved);
-      return { custom: customEdition(previous.custom), grammy: officialEdition(previous.grammy) };
-    }
+    const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
+    if (saved) return { custom: customEdition(saved.custom),
+      grammyByYear: saved.grammyByYear ?? (saved.grammy ? { [saved.grammy.year]: saved.grammy } : {}) };
   } catch { /* A missing or unreadable draft starts a fresh edition. */ }
-  return { custom: customEdition(), grammy: officialEdition() };
+  return { custom: customEdition(), grammyByYear: {} };
 }
 async function coverData(file: File) {
   const bitmap = await createImageBitmap(file);
@@ -83,6 +85,21 @@ function Cover({ work }: { work?: Work }) {
 export function YearlyAwards() {
   const [mode, setMode] = useState<Mode>('custom');
   const [editions, setEditions] = useState(readEditions);
+  const [editionYear, setEditionYear] = useState(grammyYear as string);
+  const [loaded, setLoaded] = useState<{ year: string; categories: GrammyCategory[] }>();
+  const [grammyError, setGrammyError] = useState(false);
+  const [grammyRetry, setGrammyRetry] = useState(0);
+  const [awardKind, setAwardKind] = useState('');
+  const activeGrammy = grammyEditions.find(item => item.year === editionYear) ?? grammyEditions[0];
+  useEffect(() => {
+    if (mode !== 'grammy' || loaded?.year === editionYear) return;
+    const controller = new AbortController();
+    setGrammyError(false);
+    void loadGrammyCategories(editionYear, controller.signal).then(categories => {
+      if (!controller.signal.aborted) setLoaded({ year: editionYear, categories });
+    }).catch(() => { if (!controller.signal.aborted) setGrammyError(true); });
+    return () => controller.abort();
+  }, [mode, editionYear, loaded, grammyRetry]);
   const [savingFailed, setSavingFailed] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [frame, setFrame] = useState<HTMLDivElement | null>(null);
@@ -107,8 +124,13 @@ export function YearlyAwards() {
       window.removeEventListener('resize', resize);
     };
   }, [frame]);
-  const edition = editions[mode];
+  const edition = mode === 'custom' ? editions.custom : officialEdition(
+    loaded?.year === editionYear ? loaded.categories : [], editionYear, editions.grammyByYear[editionYear]);
+
   const award = edition.awards.find(item => item.id === edition.selected) ?? edition.awards[0];
+  const awardField = award?.official?.field ?? '';
+  const fieldAwards = edition.awards.filter(item => item.official?.field === awardField);
+  const kinds = [...new Set(fieldAwards.map(item => item.official?.kind ?? ''))].filter(Boolean);
   const winner = award?.works.find(work => work.id === award.winner);
   const preference = award?.works.find(work => work.id === award.preference);
   const customAwards = editions.custom.awards.filter(item => !item.scope);
@@ -124,7 +146,15 @@ export function YearlyAwards() {
   }, [editions]);
 
   const editEdition = (update: (current: Edition) => Edition) =>
-    setEditions(current => ({ ...current, [mode]: update(current[mode]) }));
+    setEditions(current => {
+      if (mode === 'custom') return { ...current, custom: update(current.custom) };
+      const currentEdition = officialEdition(loaded?.year === editionYear ? loaded.categories : [], editionYear, current.grammyByYear[editionYear]);
+      const next = update(currentEdition);
+      return { ...current, grammyByYear: { ...current.grammyByYear, [editionYear]: {
+        ...next, awards: next.awards.filter(item => item.winner || item.preference || item.reason)
+          .map(({ official, ...item }) => ({ ...item, works: [] })),
+      } } };
+    });
   const editAward = (update: (current: Award) => Award) => {
     if (!award) return;
     editEdition(current => ({
@@ -174,10 +204,31 @@ export function YearlyAwards() {
             {edition.year === '' && <option value="" disabled>选择年份</option>}
             {editionYears(edition.year).map(year => <option key={year}>{year}</option>)}
           </select></label>
-        </div> : <div className="awards-source"><strong>2027 · 第 69 届格莱美</strong><a href={grammySource} target="_blank" rel="noreferrer">查看官方提名 ↗</a></div>}
-        {mode === 'grammy' ? <label>选择奖项<select value={award?.id ?? ''} onChange={event => editEdition(value => ({ ...value, selected: event.target.value }))}>
-          {edition.awards.map(item => <option value={item.id} key={item.id}>{item.title}</option>)}
-        </select></label> : <>
+        </div> : <div className="awards-source">
+          <label>格莱美届次<select value={editionYear} onChange={event => { setEditionYear(event.target.value); setAwardKind(''); }}>
+            {grammyEditions.map(item => <option key={item.year} value={item.year}>{item.year} · 第 {item.number} 届</option>)}
+          </select></label>
+          <a href={activeGrammy.source} target="_blank" rel="noreferrer">查看官方提名 ↗</a>
+        </div>}
+        {mode === 'grammy' ? (award ? <>
+          <div className="awards-fields">
+            <label>奖项分组<select value={awardField} onChange={event => {
+              const field = event.target.value;
+              setAwardKind('');
+              editEdition(value => ({ ...value, selected: value.awards.find(item => item.official?.field === field)!.id }));
+            }}>{[...new Set(edition.awards.map(item => item.official?.field))].map(field => <option key={field}>{field}</option>)}</select></label>
+            <label>作品形式<select value={awardKind} onChange={event => {
+              const kind = event.target.value;
+              setAwardKind(kind);
+              if (kind && award.official?.kind !== kind) {
+                editEdition(value => ({ ...value, selected: fieldAwards.find(item => item.official?.kind === kind)!.id }));
+              }
+            }}><option value="">全部</option>{kinds.map(kind => <option key={kind}>{kind}</option>)}</select></label>
+          </div>
+          <label>选择奖项<select value={award.id} onChange={event => editEdition(value => ({ ...value, selected: event.target.value }))}>
+            {fieldAwards.filter(item => !awardKind || item.official?.kind === awardKind).map(item => <option value={item.id} key={item.id}>{item.title}</option>)}
+          </select></label>
+        </> : grammyError ? <button onClick={() => setGrammyRetry(value => value + 1)}>名单加载失败，重试</button> : <p role="status">正在加载官方提名…</p>) : <>
           <div className="awards-fields">
             <label>音乐范围<select value={award?.scope ?? ''} onChange={event => {
               const scope = event.target.value;
@@ -275,9 +326,9 @@ export function YearlyAwards() {
         </div>
         {award && <div ref={setFrame} className="award-poster-frame"><article ref={poster} className="award-poster" data-theme={edition.theme}>
           {mode === 'grammy' ? <div className="grammy-poster">
-            <div className="grammy-rule">69TH GRAMMY AWARDS / {edition.year}</div>
+            <div className="grammy-rule">GRAMMY AWARDS · 第 {activeGrammy.number} 届 / {edition.year}</div>
             <h3>BITCHFUCK 格莱美预测</h3>
-            <div className="grammy-category">{award.title} <i>{grammyEnglishTitles[award.id]}</i></div>
+            <div className="grammy-category">{award.title} {award.official?.english !== award.title && <i>{award.official?.english}</i>}</div>
             <div className="grammy-picks">
               {([['will win', winner], ['should win', preference]] as const).map(([label, work]) => <div key={label}>
                 <h4>{label}</h4><div className="grammy-art"><Cover work={work} /></div>
