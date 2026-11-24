@@ -5,12 +5,13 @@ module.exports = async (ctx, next) => {
 	const page = +ctx.query.page || 1;
 	const num = +ctx.query.limit || 20;
 	const start = (page - 1) * num;
+	const area = [1, 2, 3, 4, 5].includes(Number(ctx.query.area)) ? Number(ctx.query.area) : 1;
 	const data = {
 		new_album: {
 			module: 'newalbum.NewAlbumServer',
 			method: 'get_new_album_info',
 			param: {
-				area: 1,
+				area,
 				start,
 				num,
 			},
@@ -46,6 +47,7 @@ module.exports = async (ctx, next) => {
 			};
 		})
 		.catch(error => {
-			console.log('error', error);
+			ctx.status = 502;
+			ctx.body = { error: 'QQ new releases unavailable' };
 		});
 };

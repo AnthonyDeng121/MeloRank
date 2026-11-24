@@ -65,3 +65,36 @@
   .new-releases .release-hero { padding: 14px; }
   .release-hero-caption { display: none; }
 }
+.new-releases { --release-accent: #aebaff; gap: 18px; }
+.new-releases .release-hero { padding: clamp(18px, 3vw, 32px); border-radius: 14px; }
+.release-hero h2 { font-size: clamp(25px, 4vw, 34px); }
+.release-controls { border: 1px solid #343a4f; border-radius: 14px; background: #171a24; padding: 12px 16px; display: grid; gap: 8px; }
+.release-control-row { display: grid; grid-template-columns: 42px minmax(0, 1fr); align-items: baseline; gap: 8px; }
+.release-control-row > span { font-size: 12px; color: #b1bbd6; }
+.release-chips, .release-controls-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.release-controls-footer { justify-content: space-between; padding-top: 8px; border-top: 1px solid #2d3246; }
+.release-controls-footer label { display: flex; align-items: center; gap: 6px; color: #b1bbd6; }
+.release-controls-footer > button { display: inline-flex; align-items: center; gap: 5px; }
+.release-chips button[aria-pressed="false"] { background: transparent; border-color: transparent; color: #c1cae4; }
+.release-chips button[aria-pressed="false"]:hover { background: #272e44; }
+.release-chips button[aria-pressed="true"] { font-weight: 650; background: #3b487b; border-color: #5969ac; }
+.new-releases .release-check { display: flex; align-items: center; gap: 5px; }
+.release-badges { min-height: 25px; display: flex; flex-wrap: wrap; gap: 4px; }
+.release-region { color: #b8e0d5; background: #233b3b; }
+.release-footer { display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+.release-footer details { color: #aebad4; font-size: 12px; }
+.release-footer a { color: var(--release-accent); }
+@media(max-width: 560px) {
+  .new-releases { gap: 12px; }
+  .release-controls { padding: 10px; gap: 7px; }
+  .release-control-row { grid-template-columns: 30px minmax(0, 1fr); gap: 4px; }
+  .release-chips button, .release-chips select { padding: 4px 6px; }
+}
+.release-utilities { display: flex; flex-wrap: wrap; align-items: start; gap: 4px 10px; }
+.release-utilities .release-tools { display: block; width: auto; padding: 4px 8px; }
+.release-utilities .release-tools[open] { width: 100%; padding: 8px 12px; }
+@media(max-width: 560px) {
+  .new-releases .release-hero { padding: 12px; }
+  .release-hero p { font-size: 12px; }
+  .release-utilities .release-tools { font-size: 12px; }
+}
