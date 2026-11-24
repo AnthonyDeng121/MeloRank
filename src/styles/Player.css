@@ -851,8 +851,8 @@
 }
 
 
-/* Compact lyric panel follows the visible lines instead of reserving empty space. */
-.player-page .player-right .lyrics-panel { box-sizing: border-box; height: auto; min-height: 0; flex: none; }
+/* Fixed compact viewport; longer lyric groups scroll inside the panel. */
+.player-page .player-right .lyrics-panel { box-sizing: border-box; height: 340px; min-height: 340px; flex: none; }
 .player-page .lyrics-panel .lyrics-content { height: auto; min-height: 0; max-height: none; overflow: clip; flex: 1; }
 .player-page .lyrics-panel .dynamic-lyrics { gap: 20px; padding: 12px 0; }
 .player-page .lyrics-panel .lyric-line { margin: 0; font-size: 15px; line-height: 1.6; }
@@ -874,18 +874,17 @@
 .full-lyrics-dialog button:focus-visible, .full-lyrics-content:focus-visible { outline: 2px solid #667eea; outline-offset: 3px; }
 @media (max-width: 600px) { .full-lyrics-surface { padding: 20px; } .full-lyrics-close { top: 16px; right: 16px; } }
 
-.player-page .lyrics-panel .lyrics-content { flex: none; align-items: flex-start; }
+.player-page .lyrics-panel .lyrics-content { flex: 1; min-height: 0; overflow-y: auto; align-items: flex-start; }
 .player-page .lyrics-panel .dynamic-lyrics { padding: 4px 0; gap: 16px; }
-.player-page .lyrics-panel .lyrics-header { margin-bottom: 16px; }
-.player-page .quick-review-panel { padding: 24px; }
-.player-page .quick-review-panel h3 { margin: 0 0 16px; }
-.player-page .song-rating-fields { gap: 10px 20px; }
-.player-page .song-rating-fields label { padding: 8px 10px; background: #222; border: 1px solid #303036; border-radius: 8px; }
-.player-page .song-rating-fields input { box-sizing: border-box; width: 64px; text-align: center; background: #1a1a1a; }
-.player-page .song-rating-total { padding: 12px 0; margin: 8px 0; border-bottom: 1px solid #333; }
+.player-page .lyrics-panel .lyrics-header { margin-bottom: 16px; flex: none; }
+.player-page .quick-review-panel { padding: 18px; }
+.player-page .quick-review-panel h3 { margin: 0 0 10px; font-size: 14px; }
+.player-page .song-rating-fields { gap: 6px 20px; }
+.player-page .song-rating-fields label { padding: 0; background: transparent; border: 0; gap: 8px; }
+.player-page .song-rating-fields input { box-sizing: border-box; width: 52px; height: 28px; padding: 3px 6px; text-align: center; background: #222; }
+.player-page .song-rating-total { padding: 6px 0; margin: 6px 0; }
 .player-page .song-rating-total strong { color: #aebcff; }
-.player-page .song-rating-form textarea { box-sizing: border-box; background: #222; border-color: #38383e; border-radius: 8px; padding: 12px; }
-.player-page .song-rating-form > button { width: 100%; margin-top: 12px; background: #667eea; border-color: #788bf0; color: #fff; }
-.player-page .song-rating-form > button:hover { background: #7489f0; }
-.player-page .song-rating-form + h3 { margin: 24px 0 12px; padding-top: 20px; border-top: 1px solid #333; }
-.player-page .work-review-entry { width: 100%; text-align: center; }
+.player-page .song-rating-form textarea { box-sizing: border-box; min-height: 52px; height: 52px; background: #222; border-color: #38383e; border-radius: 6px; padding: 8px 10px; }
+.player-page .song-rating-form > button { width: auto; min-height: 30px; padding: 4px 12px; margin-top: 8px; font-size: 12px; }
+.player-page .song-rating-form + h3 { margin: 14px 0 8px; padding-top: 12px; border-top: 1px solid #333; }
+.player-page .work-review-entry { width: auto; min-height: 30px; padding: 4px 12px; font-size: 12px; }
