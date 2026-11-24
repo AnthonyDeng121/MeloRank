@@ -888,3 +888,11 @@
 .player-page .song-rating-form > button { width: auto; min-height: 30px; padding: 4px 12px; margin-top: 8px; font-size: 12px; }
 .player-page .song-rating-form + h3 { margin: 14px 0 8px; padding-top: 12px; border-top: 1px solid #333; }
 .player-page .work-review-entry { width: auto; min-height: 30px; padding: 4px 12px; font-size: 12px; }
+
+.player-page .quick-review-panel :is(.song-rating-form > button, .work-review-entry) {
+  width: auto; height: 32px; min-height: 32px; margin-top: 8px; padding: 0 12px;
+  border: 1px solid #777de8; border-radius: 16px; background: #696fdb; color: white;
+  font-family: inherit; font-size: 13px; font-weight: 500; line-height: 20px; cursor: pointer;
+}
+.player-page .quick-review-panel :is(.song-rating-form > button, .work-review-entry):hover { background: #7b80e6; }
+.player-page .quick-review-panel :is(.song-rating-form > button, .work-review-entry):focus-visible { outline: 2px solid #c2c6ff; outline-offset: 3px; }

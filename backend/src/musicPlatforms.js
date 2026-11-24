@@ -93,7 +93,7 @@ function createMusicPlatformsRouter(getApi = () => require('@neteasecloudmusicap
     res.json({ url: url.href.replace(/^http:/, 'https:'), isPreview: !!track.freeTrialInfo });
   }));
   router.post('/lyric', wrap(async (req, res) => {
-    const data = await call('lyric', { cookie: auth(req), id: songId(req) });
+    const data = await call('lyric', { cookie: req.get('X-Netease-Cookie') || '', id: songId(req) });
     res.json({ lyric: data.lrc?.lyric || '', translation: data.tlyric?.lyric || '', romanization: data.romalrc?.lyric || '' });
   }));
   router.post('/account', wrap(async (req, res) => res.json(await profile(auth(req)))));

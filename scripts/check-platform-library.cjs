@@ -75,6 +75,9 @@ const server = app.listen(0, '127.0.0.1', async () => {
     api.song_url = async () => ({ body: { data: [{ id: 5, url: null }] } });
     assert.equal((await request('/playback', { id: '5' })).status, 502);
     assert.equal((await (await request('/lyric', { id: '5' })).json()).lyric, '[00:01]fixture');
+    assert.equal((await (await request('/lyric', { id: '5' }, '')).json()).lyric, '[00:01]fixture');
+    assert.equal(calls.at(-1).params.cookie, '', 'public lyric fallback works without a NetEase account');
+    assert.equal((await request('/lyric', { id: 'invalid' }, '')).status, 400);
     const qr = await (await request('/go/qr', {})).json();
     const login = await (await request('/go/qr/check', { key: qr.key })).json();
     assert.equal(login.profile.userId, 7);
