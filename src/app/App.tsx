@@ -6,6 +6,7 @@ import { PlatformAccountsProvider } from './contexts/PlatformAccountsContext';
 import { Toaster } from 'sonner';
 import React, { useEffect, useState } from 'react';
 import { TopNav } from './components/TopNav';
+import { NewReleases } from './pages/NewReleases';
 import { MiniPlayer } from './components/MiniPlayer';
 import { PlayQueue } from './components/PlayQueue';
 import { Home } from './pages/Home';
@@ -46,6 +47,8 @@ export default function App() {
     switch (currentPage) {
       case 'home':
         return <Home onNavigate={navigate} />;
+      case 'new-releases':
+        return <NewReleases onOpen={openCatalog} />;
       case 'search':
         return <Search onOpenCatalog={openCatalog} onOpenMV={item => { setMVSelection(item); setCatalogSelection(null); navigate('player'); }} />;
       case 'player':
@@ -87,7 +90,7 @@ export default function App() {
             )}
             {renderPage()}
           </main>
-          {currentPage !== 'player' && <MiniPlayer hideWhenIdle={currentPage === 'yearly-awards'} />}
+          {currentPage !== 'player' && <MiniPlayer hideWhenIdle={['yearly-awards', 'new-releases'].includes(currentPage)} />}
           <PlayQueue 
             isVisible={isPlayQueueVisible} 
             onClose={() => setIsPlayQueueVisible(false)} 

@@ -527,10 +527,8 @@ class QQMusicService {
   }
 
   // 获取新碟信息
-  async getNewAlbums(limit: number = 10): Promise<any> {
-    return await this.request('/top/album', {
-      limit
-    });
+  async getNewAlbums(limit: number = 20, page: number = 1): Promise<any> {
+    return this.request('/getNewDisks', { limit, page });
   }
 
   // 获取排行榜

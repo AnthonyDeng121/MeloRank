@@ -1,0 +1,18 @@
+.new-releases { max-width: 1120px; margin: 0 auto; display: grid; gap: 14px; color: #f0f1f8; color-scheme: dark; }
+.new-releases header, .release-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.new-releases header { justify-content: space-between; }
+.new-releases h2 { font-size: 26px; font-weight: 700; }
+.new-releases p, .new-releases small { color: #bec5dc; overflow-wrap: anywhere; }
+.release-muted { font-size: 13px; }
+.release-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 236px), 1fr)); gap: 12px; }
+.release-card, .release-tools, .release-tracks { display: grid; gap: 10px; min-width: 0; padding: 12px; border: 1px solid #303441; border-radius: 12px; background: #17191f; }
+.release-meta { display: grid; grid-template-columns: 60px minmax(0, 1fr); align-items: start; gap: 10px; }
+.release-meta img { width: 60px; height: 60px; border-radius: 6px; background: #242835; object-fit: cover; }
+.release-meta h3 { overflow-wrap: anywhere; font-size: 15px; font-weight: 650; }
+.new-releases :is(button, select, input) { max-width: 100%; color: inherit; background: #232632; border: 1px solid #393e50; border-radius: 7px; padding: 5px 8px; font-size: 13px; }
+.new-releases button:not(:disabled), .new-releases summary { cursor: pointer; }
+.new-releases button:disabled { opacity: .5; }
+.new-releases button[aria-pressed="true"] { background: #414e91; border-color: #697bde; }
+.new-releases label { display: grid; gap: 3px; font-size: 12px; }
+.new-releases details .release-toolbar { margin-top: 8px; }
+.new-releases > button { justify-self: start; }

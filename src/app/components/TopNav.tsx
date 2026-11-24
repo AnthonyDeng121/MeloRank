@@ -15,7 +15,7 @@ export function TopNav({ currentPage, onNavigate, onTogglePlayQueue }: TopNavPro
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [platform, setPlatform] = useState<MusicProvider>(activeProvider);
   const account = accounts[activeProvider];
-  const navItems = [{ id: 'home', label: '首页' }, { id: 'search', label: '搜索' }, { id: 'player', label: '播放器' }, { id: 'yearly-ranking', label: '年度榜单' }, { id: 'yearly-awards', label: '年度奖项' }, { id: 'audio-lab', label: '音频实验室' }, { id: 'music-library', label: '我的音乐' }];
+  const navItems = [{ id: 'home', label: '首页' }, { id: 'search', label: '搜索' }, { id: 'new-releases', label: '新碟发现' }, { id: 'player', label: '播放器' }, { id: 'yearly-ranking', label: '年度榜单' }, { id: 'yearly-awards', label: '年度奖项' }, { id: 'audio-lab', label: '音频实验室' }, { id: 'music-library', label: '我的音乐' }];
   useEffect(() => {
     const open = (event: Event) => { const provider = (event as CustomEvent).detail; setPlatform(platformList.includes(provider) ? provider : activeProvider); setShowLoginModal(true); };
     window.addEventListener('music-login', open); return () => window.removeEventListener('music-login', open);
