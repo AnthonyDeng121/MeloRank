@@ -1,3 +1,4 @@
+import { resolveGrammyCover } from '../services/grammyArtwork';
 import { AwardWorkSearch } from '../components/AwardWorkSearch';
 import React, { useEffect, useRef, useState } from 'react';
 import { Award as AwardIcon, Download } from 'lucide-react';
@@ -131,6 +132,36 @@ export function YearlyAwards() {
   const awardField = award?.official?.field ?? '';
   const fieldAwards = edition.awards.filter(item => item.official?.field === awardField);
   const kinds = [...new Set(fieldAwards.map(item => item.official?.kind ?? ''))].filter(Boolean);
+  const official = mode === 'grammy' ? award?.official : undefined;
+  const [artwork, setArtwork] = useState<Record<string, string>>({});
+  const [artworkLoading, setArtworkLoading] = useState(false);
+  useEffect(() => {
+    setArtwork({});
+    setArtworkLoading(false);
+    if (!official || official.kind === '艺人与个人') return;
+    const missing = official.nominees.filter(([, title, artist]) => artist && (editionYear !== grammyYear || !grammyCover(title)));
+    if (!missing.length) return;
+    const controller = new AbortController();
+    const urls: string[] = [];
+    setArtworkLoading(true);
+    void (async () => {
+      for (const [id, title, artist] of missing) {
+        if (controller.signal.aborted) break;
+        const blob = await resolveGrammyCover(title, artist, controller.signal).catch(() => null);
+        if (!blob || controller.signal.aborted) continue;
+        const url = URL.createObjectURL(blob);
+        urls.push(url);
+        setArtwork(value => ({ ...value, [id]: url }));
+      }
+      if (!controller.signal.aborted) setArtworkLoading(false);
+    })();
+    return () => {
+      controller.abort();
+      urls.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [official, editionYear]);
+  const withCover = (work?: Work) => work && !work.cover && artwork[work.id] ? { ...work, cover: artwork[work.id] } : work;
+
   const winner = award?.works.find(work => work.id === award.winner);
   const preference = award?.works.find(work => work.id === award.preference);
   const customAwards = editions.custom.awards.filter(item => !item.scope);
@@ -324,6 +355,7 @@ export function YearlyAwards() {
           </select></label>
           <button className="awards-download" disabled={!award || exporting} onClick={() => void download()}><Download size={16} aria-hidden="true" />{exporting ? '正在导出…' : '下载 PNG'}</button>
         </div>
+        {mode === 'grammy' && artworkLoading && <p role="status" className="award-saved">正在查找缺失封面，可先预览或导出。</p>}
         {award && <div ref={setFrame} className="award-poster-frame"><article ref={poster} className="award-poster" data-theme={edition.theme}>
           {mode === 'grammy' ? <div className="grammy-poster">
             <div className="grammy-rule">GRAMMY AWARDS · 第 {activeGrammy.number} 届 / {edition.year}</div>
@@ -331,7 +363,7 @@ export function YearlyAwards() {
             <div className="grammy-category">{award.title} {award.official?.english !== award.title && <i>{award.official?.english}</i>}</div>
             <div className="grammy-picks">
               {([['will win', winner], ['should win', preference]] as const).map(([label, work]) => <div key={label}>
-                <h4>{label}</h4><div className="grammy-art"><Cover work={work} /></div>
+                <h4>{label}</h4><div className="grammy-art"><Cover work={withCover(work)} /></div>
                 <strong>{work?.title || '待定'}</strong><p>{work?.artist}</p>
               </div>)}
             </div>
@@ -339,7 +371,7 @@ export function YearlyAwards() {
             <div className="grammy-rule grammy-nominees-title">完整提名</div>
             <ol className="grammy-grid" data-count={award.works.length}>
               {award.works.map(work => <li key={work.id}>
-                <div className="grammy-art"><Cover work={work} /></div>
+                <div className="grammy-art"><Cover work={withCover(work)} /></div>
                 <strong>{work.title}</strong><p>{work.artist}</p>
               </li>)}
             </ol>

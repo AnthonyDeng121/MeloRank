@@ -1,5 +1,5 @@
 import { ArrowUpRight, Bookmark, Disc3, ListMusic, Play, SlidersHorizontal } from 'lucide-react';
-import { appleNewReleases, formats, musicBrainzNewReleases, normalize, pitchforkReviews, qqRegionReleases,
+import { appleNewReleases, formats, genreBucket, releaseWeek, musicBrainzNewReleases, normalize, pitchforkReviews, qqRegionReleases,
   regions, releaseIdentity, releaseKey as keyOf, sourceNames, titleFormat, verifiedReleases, type Format, type Region, type Release,
 } from '../services/newReleaseSources';
 import React, { useEffect, useState } from 'react';
@@ -16,10 +16,23 @@ function readLibrary(): Library {
   try { return JSON.parse(localStorage.getItem(storageKey) || 'null') ?? emptyLibrary; }
   catch { return emptyLibrary; }
 }
+function FilterChips({ label, options, selected, onChange }: {
+  label: string; options: [string, string][]; selected: string[]; onChange: (values: string[]) => void;
+}) {
+  return <div className="release-control-row" role="group" aria-label={label}>
+    <span>{label}</span><div className="release-chips">
+      <button aria-pressed={!selected.length} onClick={() => onChange([])}>{label === '排除' ? '不排除' : '不限'}</button>
+      {options.map(([key, name]) => <button key={key} aria-pressed={selected.includes(key)} onClick={() => onChange(
+        selected.includes(key) ? selected.filter(value => value !== key) : [...selected, key]
+      )}>{name}</button>)}
+    </div>
+  </div>;
+}
+
 export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void }) {
   const { setCurrentSong } = useMusic();
   const [feed, setFeed] = useState<Release[]>([]);
-  const [source, setSource] = useState('');
+  const [source, setSource] = useState<string[]>([]);
   const [region, setRegion] = useState<Region | ''>('');
   const [reviews, setReviews] = useState<Awaited<ReturnType<typeof pitchforkReviews>>>([]);
   const [loading, setLoading] = useState(false);
@@ -30,11 +43,11 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
   const [page, setPage] = useState(1);
   const [retry, setRetry] = useState(0);
   const [saved, setSaved] = useState(false);
-  const [days, setDays] = useState('7');
+  const [week, setWeek] = useState(0);
   const [format, setFormat] = useState('featured');
-  const [genre, setGenre] = useState('');
-  const [excludedGenre, setExcludedGenre] = useState('');
-  const [visibility, setVisibility] = useState('active');
+  const [genre, setGenre] = useState<string[]>([]);
+  const [excludedGenre, setExcludedGenre] = useState<string[]>([]);
+  const [visibility, setVisibility] = useState<string[]>(['待筛选', '想听']);
   const [pending, setPending] = useState('');
   const [preview, setPreview] = useState<Awaited<ReturnType<typeof getCatalogDetail>>>();
   const [message, setMessage] = useState('');
@@ -58,7 +71,7 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
     if (page === 1) setFeed([]);
     const tasks: [string, Promise<Release[]>][] = [
       ['QQ 音乐', qqRegionReleases(region, page, signal)],
-      ['MusicBrainz', musicBrainzNewReleases(page, format === 'EP' ? 'EP' : '专辑', Number(days) || 30, signal)],
+      ['MusicBrainz', musicBrainzNewReleases(page, format === 'EP' ? 'EP' : '专辑', week, signal)],
     ];
     if (page === 1) tasks.push(['Apple 地区榜', appleNewReleases(region, signal)]);
     void Promise.all(tasks.map(async ([name, task]) => {
@@ -70,7 +83,7 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
       }
     })).then(() => { if (!signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, [page, retry, region, format, days]);
+  }, [page, retry, region, format, week]);
 
   useEffect(() => {
     if (preview) document.getElementById('release-tracks')?.scrollIntoView({ block: 'nearest' });
@@ -78,11 +91,8 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
 
   const all = [...new Map([...library.items.filter(item => !item.manual), ...verifiedReleases, ...feed, ...library.items.filter(item => item.manual)].map(item => [keyOf(item), item])).values()].map(item =>
     library.tags[keyOf(item)] ? { ...item, ...library.tags[keyOf(item)] } : item);
-  const threshold = new Date();
-  threshold.setDate(threshold.getDate() - Number(days) + 1);
-  const start = threshold.toLocaleDateString('sv-SE');
-  const today = new Date().toLocaleDateString('sv-SE');
-  const genres = [...new Set(all.map(item => item.genre))].sort();
+  const { start, end, through } = releaseWeek(week);
+  const genres = ['流行', '摇滚', '电子／舞曲', 'R&B／灵魂', '说唱', '爵士', '民谣', '古典', '乡村', '金属', '其他风格', '未分类'];
   const queue = all.filter(item => library.decisions[keyOf(item)] === '想听');
   const hasReview = (item: Release) => reviews.find(review =>
     normalize(review.title) === normalize(item.title) && !!item.artist &&
@@ -115,13 +125,15 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
     const decision = library.decisions[keyOf(item)];
     if (saved) return decision === '已收藏';
     const discoveryDecision = decisionFor(item);
-    if (source && item.provider !== source) return false;
+    if (source.length && !source.includes(item.provider)) return false;
     if (region && (item.region ?? '其他／待确认') !== region) return false;
     if (library.hidden.includes(item.artist) || (hideAI && item.ai)) return false;
     const matchesFormat = format === 'featured' ? ['专辑', 'EP'].includes(item.format) : !format || item.format === format;
-    return (visibility === 'all' || !discoveryDecision || discoveryDecision === '想听') &&
-      (item.manual || !days || (item.date ? item.date >= start && item.date <= today : format === 'EP' || !format || format === '未分类')) &&
-      matchesFormat && (!genre || item.genre === genre) && (!excludedGenre || item.genre !== excludedGenre);
+    const style = genreBucket(item.genre);
+    const matchesWeek = item.date ? item.date >= start && item.date <= through :
+      (item.manual || (week === 0 && format === 'EP'));
+    return (!visibility.length || visibility.includes(discoveryDecision ?? '待筛选')) &&
+      matchesWeek && matchesFormat && (!genre.length || genre.includes(style)) && !excludedGenre.includes(style);
   }).sort((left, right) => {
     const score = (item: typeof left) => (item.review ? 4 : 0) + (item.chartRank ? 2 : 0) + (item.sourceCount > 1 ? 1 : 0);
     return Number(!!right.date) - Number(!!left.date) ||
@@ -190,18 +202,23 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
           {(['', ...regions] as const).map(value => <button key={value}
             aria-pressed={region === value} onClick={() => { setPage(1); setRegion(value); }}>{value || '全部地区'}</button>)}
         </div></div>
-        <div className="release-control-row"><span>筛选</span><div className="release-direct-filters">
-          <label>来源<select value={source} onChange={event => setSource(event.target.value)}><option value="">全部来源</option>
-            {Object.entries(sourceNames).map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></label>
-          <label>风格<select value={genre} onChange={event => setGenre(event.target.value)}><option value="">不限</option>{genres.map(value => <option key={value}>{value}</option>)}</select></label>
-          <label>排除风格<select value={excludedGenre} onChange={event => setExcludedGenre(event.target.value)}><option value="">不排除</option>{genres.map(value => <option key={value}>{value}</option>)}</select></label>
-          <label>浏览状态<select value={visibility} onChange={event => setVisibility(event.target.value)}><option value="active">待筛选／想听</option><option value="all">含已处理</option></select></label>
-          <label className="release-check"><input type="checkbox" checked={hideAI} onChange={event => setHideAI(event.target.checked)} /> 隐藏来源明确标注的 AI 发行</label>
+        <FilterChips label="来源" options={Object.entries(sourceNames)} selected={source} onChange={setSource} />
+        <FilterChips label="风格" options={genres.map(name => [name, name])} selected={genre} onChange={values => {
+          setGenre(values); setExcludedGenre(current => current.filter(value => !values.includes(value)));
+        }} />
+        <FilterChips label="排除" options={genres.map(name => [name, name])} selected={excludedGenre} onChange={values => {
+          setExcludedGenre(values); setGenre(current => current.filter(value => !values.includes(value)));
+        }} />
+        <FilterChips label="状态" options={['待筛选', '想听', '跳过', '已收藏'].map(name => [name, name])} selected={visibility} onChange={setVisibility} />
+        <div className="release-control-row"><span>发行周</span><div className="release-chips">
+          {[0, 1, 2, 3].map(value => <button key={value} aria-pressed={week === value} onClick={() => { setPage(1); setWeek(value); }}>
+            {value === 0 ? '本周' : value === 1 ? '上周' : `前 ${value} 周`}
+          </button>)}<small>{start} 至 {end}</small>
         </div></div>
         <div className="release-controls-footer">
           <div className="release-chips">
-            <label>时间<select value={days} onChange={event => { setPage(1); setDays(event.target.value); }}><option value="7">近七天</option><option value="30">近三十天</option></select></label>
             <label>排序<select value={priority} onChange={event => setPriority(event.target.value)}><option value="curated">优先有推荐依据</option><option value="latest">按发行时间</option></select></label>
+            <button aria-pressed={hideAI} onClick={() => setHideAI(value => !value)}>隐藏已标注 AI</button>
           </div>
           <button className="release-primary" disabled={!queue.length} onClick={() => setLibrary(previous => ({ ...previous,
             decisions: Object.fromEntries(Object.entries(previous.decisions).map(([id, value]) => [id, value === '想听' ? '已收藏' : value])) }))}>

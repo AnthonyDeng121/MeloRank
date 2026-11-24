@@ -43,6 +43,27 @@ function inferredRegion(genre: string): Region | undefined {
 const appleMarkets: Record<string, Region> = { cn: '华语', tw: '华语', kr: 'K-pop', us: '欧美', jp: '日语' };
 const qqMarkets: Record<number, Region> = { 1: '华语', 2: '华语', 3: '欧美', 4: 'K-pop', 5: '日语' };
 
+export function releaseWeek(weeksAgo: number, now = new Date()) {
+  const today = now.toLocaleDateString('sv-SE', { timeZone: 'Asia/Shanghai' });
+  const friday = new Date(today + 'T00:00:00Z');
+  friday.setUTCDate(friday.getUTCDate() - (friday.getUTCDay() + 2) % 7 - weeksAgo * 7);
+  const thursday = new Date(friday);
+  thursday.setUTCDate(thursday.getUTCDate() + 6);
+  const start = friday.toISOString().slice(0, 10);
+  const end = thursday.toISOString().slice(0, 10);
+  return { start, end, through: end < today ? end : today };
+}
+
+export function genreBucket(tag: string) {
+  if (/k[ -]?pop|j[ -]?pop|c[ -]?pop|mandopop|cantopop|korean pop|japanese pop|华语|韩国流行|国语流行/i.test(tag)) return '流行';
+  const genres: [RegExp, string][] = [
+    [/metal|金属/i, '金属'], [/hip.hop|rap|说唱/i, '说唱'], [/r&b|soul|灵魂|节奏布鲁斯/i, 'R&B／灵魂'],
+    [/rock|摇滚/i, '摇滚'], [/electronic|dance|电子|舞曲/i, '电子／舞曲'], [/jazz|爵士/i, '爵士'],
+    [/folk|民谣/i, '民谣'], [/classical|古典/i, '古典'], [/country|乡村/i, '乡村'], [/pop|流行/i, '流行'],
+  ];
+  return genres.find(([pattern]) => pattern.test(tag))?.[1] ?? (tag === '未分类' ? tag : '其他风格');
+}
+
 function dateRange(days: number) {
   const now = new Date();
   const start = new Date(now);
@@ -151,8 +172,8 @@ interface ReleaseGroup {
   tags?: { name: string; count: number }[];
 }
 
-export async function musicBrainzNewReleases(page: number, format: 'EP' | '专辑', days: number, signal: AbortSignal): Promise<Release[]> {
-  const [from, to] = dateRange(days);
+export async function musicBrainzNewReleases(page: number, format: 'EP' | '专辑', weeksAgo: number, signal: AbortSignal): Promise<Release[]> {
+  const { start: from, through: to } = releaseWeek(weeksAgo);
   const params = new URLSearchParams({
     query: `firstreleasedate:[${from} TO ${to}] AND primarytype:${format === 'EP' ? 'ep' : 'album'}`,
     fmt: 'json', limit: '50', offset: String((page - 1) * 50),
