@@ -1542,5 +1542,13 @@
 .ranking-form .form-group select { padding: 9px 10px; }
 .ranking-form .form-group textarea { min-height: 64px; height: 64px; padding: 9px 10px; }
 .ranking-bonus-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.ranking-bonus-fields .score-input-with-arrows { width: 100%; max-width: 100%; }
+.ranking-bonus-fields .score-input-with-arrows { width: 76px; max-width: 100%; }
 .ranking-bonus-fields .score-adjuster { min-width: 0; }
+
+.ranking-bonus-fields .form-group { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ranking-bonus-fields .form-group label { margin-bottom: 0; white-space: nowrap; }
+.ranking-form .ranking-bonus-fields input { height: 36px; padding: 6px 24px 6px 6px; }
+.ranking-bonus-fields .arrow-controls { right: 4px; gap: 0; }
+@media (max-width: 380px) {
+  .ranking-bonus-fields { grid-template-columns: 1fr; gap: 0; }
+}
