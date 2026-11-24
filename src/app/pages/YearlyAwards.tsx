@@ -21,7 +21,7 @@ type Scope = typeof scopes[number];
 const presetTitle = (scope: Scope, category: Category) =>
   scope === '通类' && (category === 'collaboration' || category === 'cover')
     ? '最佳' + categories[category][0]
-    : (scope === '通类' ? '' : scope) + '年度' + categories[category][0] + '奖';
+    : (scope === '通类' ? '' : scope) + '年度' + categories[category][0];
 const newAward = (title: string, category: Category): Award => ({
   id: crypto.randomUUID(), title, category, works: [], winner: '', reason: '',
 });
@@ -43,13 +43,18 @@ function customEdition(previous?: Edition): Edition {
   const adopted = new Set<string>();
   const presets = scopes.flatMap(scope => categoryKeys.map(category => {
     const title = presetTitle(scope, category);
-    const existing = saved.find(item => (item.title === title || (scope === '通类' && item.title === '通类' + title)) && !adopted.has(item.id));
+    const existing = saved.find(item => (item.title === title || item.title === title + '奖' || (scope === '通类' && [title, title + '奖'].some(name => item.title === '通类' + name))) && !adopted.has(item.id));
     if (existing) adopted.add(existing.id);
     return { ...(existing ?? newAward(title, category)), title, category, scope };
   }));
   const awards = [...presets, ...saved.filter(item => !adopted.has(item.id))];
   return { name: 'MeloRank 音乐奖', year: String(new Date().getFullYear()), theme: 'gold',
     selected: awards[0].id, ...previous, awards, presetScopesAdded: true };
+}
+function editionYears(saved: string) {
+  const latest = new Date().getFullYear() + 1;
+  const years = Array.from({ length: latest - 1899 }, (_, index) => String(latest - index));
+  return saved && !years.includes(saved) ? [saved, ...years] : years;
 }
 function readEditions(): Record<Mode, Edition> {
   try {
@@ -165,7 +170,10 @@ export function YearlyAwards() {
       <section className="awards-editor" aria-label="奖项编辑">
         {mode === 'custom' ? <div className="awards-fields">
           <label>奖项总名称<input value={edition.name} onChange={event => editEdition(value => ({ ...value, name: event.target.value }))} /></label>
-          <label>届次年份<input inputMode="numeric" maxLength={4} value={edition.year} onChange={event => editEdition(value => ({ ...value, year: event.target.value.replace(/\D/g, '') }))} /></label>
+          <label>届次年份<select value={edition.year} onChange={event => editEdition(value => ({ ...value, year: event.target.value }))}>
+            {edition.year === '' && <option value="" disabled>选择年份</option>}
+            {editionYears(edition.year).map(year => <option key={year}>{year}</option>)}
+          </select></label>
         </div> : <div className="awards-source"><strong>2027 · 第 69 届格莱美</strong><a href={grammySource} target="_blank" rel="noreferrer">查看官方提名 ↗</a></div>}
         {mode === 'grammy' ? <label>选择奖项<select value={award?.id ?? ''} onChange={event => editEdition(value => ({ ...value, selected: event.target.value }))}>
           {edition.awards.map(item => <option value={item.id} key={item.id}>{item.title}</option>)}
@@ -222,7 +230,7 @@ export function YearlyAwards() {
           </div> : <>
           <div className="awards-actions">
             <h3>提名作品 <small>{award.works.length}</small></h3>
-            <button onClick={() => {
+            <button className="award-primary" onClick={() => {
               const work: Work = { id: crypto.randomUUID(), title: '', artist: '', credits: {}, cover: '' };
               editAward(value => ({ ...value, works: [...value.works, work] }));
             }}>添加提名</button>
@@ -237,18 +245,18 @@ export function YearlyAwards() {
             </div>
             {credit && <label>{credit}<input value={work.credits[award.category] ?? ''} onChange={event => editWork(work.id, { credits: { ...work.credits, [award.category]: event.target.value } })} /></label>}
             <div className="awards-nomination-actions">
-              <label>封面<input type="file" accept="image/*" onChange={async event => {
+              <label className="award-upload"><span>{work.cover ? '更换封面' : '上传封面'}</span><input aria-label="上传封面" type="file" accept="image/*" onChange={async event => {
                 const file = event.target.files?.[0];
                 event.target.value = '';
                 if (!file) return;
                 try { editWork(work.id, { cover: await coverData(file) }); }
                 catch { toast.error('无法读取封面，请选择有效的图片'); }
               }} /></label>
-              {work.cover && <button onClick={() => editWork(work.id, { cover: '' })}>清除封面</button>}
-              <button onClick={() => editAward(value => ({ ...value, works: value.works.filter(item => item.id !== work.id), winner: value.winner === work.id ? '' : value.winner }))}>移除提名</button>
+              {work.cover && <button className="award-text-action" onClick={() => editWork(work.id, { cover: '' })}>清除封面</button>}
+              <button className="award-text-action award-delete" onClick={() => editAward(value => ({ ...value, works: value.works.filter(item => item.id !== work.id), winner: value.winner === work.id ? '' : value.winner }))}>移除提名</button>
             </div>
           </fieldset>)}
-          {!award.scope && <button className="award-delete" onClick={() => {
+          {!award.scope && <button className="award-text-action award-delete" onClick={() => {
             if (!window.confirm('删除这个奖项及其提名？')) return;
             editEdition(value => ({ ...value, awards: value.awards.filter(item => item.id !== award.id), selected: '' }));
           }}>删除当前奖项</button>}

@@ -13,7 +13,7 @@ export const grammyCategories = [
     ['LUX (Complete Works)', 'ROSALÍA'],
     ['The Life of a Showgirl', 'Taylor Swift'],
   ] },
-  { id: 'record-of-the-year', title: '年度录制', category: 'production', nominees: [
+  { id: 'record-of-the-year', title: '年度制作', category: 'production', nominees: [
     ['Man I Need', 'Olivia Dean'],
     ["Choosin' Texas", 'Ella Langley'],
     ['I Just Might', 'Bruno Mars'],
@@ -33,14 +33,14 @@ export const grammyCategories = [
     ['Risk It All', 'Bruno Mars'],
     ['WHERE IS MY HUSBAND!', 'RAYE'],
   ] },
-  { id: 'best-pop-solo-performance', title: '最佳流行个人表演', category: 'song', nominees: [
+  { id: 'best-pop-solo-performance', title: '最佳流行歌手', category: 'song', nominees: [
     ['Man I Need', 'Olivia Dean'],
     ['Risk It All', 'Bruno Mars'],
     ['WHERE IS MY HUSBAND!', 'RAYE'],
     ['the cure', 'Olivia Rodrigo'],
     ['Sauvignon Blanc', 'ROSALÍA'],
   ] },
-  { id: 'best-pop-duo-group-performance', title: '最佳流行组合／合作表演', category: 'collaboration', nominees: [
+  { id: 'best-pop-duo-group-performance', title: '最佳流行合作', category: 'collaboration', nominees: [
     ['RUNWAY', 'Lady Gaga, Doechii'],
     ['Bring Your Love', 'Madonna, Sabrina Carpenter'],
     ['Click Clack Symphony.', 'RAYE Featuring Hans Zimmer'],

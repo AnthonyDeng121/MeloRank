@@ -156,3 +156,55 @@
 @media (min-width: 801px) {
   .awards-editor { max-height: max(360px, calc(100dvh - 212px)); overflow-y: auto; }
 }
+.yearly-awards :is(input:not([type="file"]), textarea) {
+  background: #111319;
+  border-color: #303747;
+}
+.yearly-awards select {
+  background: #202433;
+  border-color: #394156;
+}
+.yearly-awards .award-primary {
+  color: #fff;
+  background: #4659b4;
+  border-color: #7183ea;
+  font-weight: 600;
+}
+.yearly-awards .awards-nomination {
+  background: #1b1e27;
+  border-color: #303747;
+  padding: 10px 12px;
+}
+.awards-nomination legend { color: #c5cee8; font-size: 13px; font-weight: 600; }
+.awards-nomination-actions {
+  justify-content: flex-start;
+  align-items: center;
+  gap: 6px;
+  padding-top: 7px;
+  border-top: 1px solid #303747;
+}
+.yearly-awards .award-upload {
+  display: inline-grid;
+  position: relative;
+  flex: none;
+  padding: 5px 9px;
+  border: 1px solid #46536c;
+  border-radius: 6px;
+  color: #c5d0ff;
+  cursor: pointer;
+}
+.yearly-awards .award-upload input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.award-upload:focus-within { outline: 2px solid #a6b4ff; outline-offset: 2px; }
+.yearly-awards button.award-text-action {
+  color: #bac5de;
+  background: transparent;
+  border-color: transparent;
+}
+.yearly-awards button.award-text-action:hover { background: #282f40; border-color: transparent; }
+.yearly-awards button.award-text-action.award-delete { color: #f7a2a2; }
+.awards-nomination-actions .award-delete { margin-left: auto; }
