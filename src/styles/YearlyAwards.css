@@ -109,3 +109,28 @@
 @media (max-width: 800px) {
   .awards-layout { grid-template-columns: minmax(0, 1fr); }
 }
+.award-work-search ul { list-style: none; padding: 0; margin: 8px 0; display: grid; gap: 4px; }
+.award-work-search li button { width: 100%; display: flex; text-align: left; gap: 10px; align-items: center; }
+.award-work-search img { width: 36px; height: 36px; object-fit: cover; border-radius: 4px; }
+.award-work-search p { color: #b8bed0; font-size: 13px; }
+.grammy-poster { padding-top: 12px; }
+.grammy-rule { display: flex; align-items: center; gap: 24px; color: var(--accent); font-size: 17px; }
+.grammy-rule::after { content: ""; height: 1px; background: var(--accent); opacity: .55; flex: 1; }
+.grammy-poster > h3 { font-size: 50px; font-weight: 500; margin: 14px 0 22px; }
+.grammy-category { color: var(--accent); font-size: 27px; border-bottom: 1px solid var(--accent); padding-bottom: 12px; }
+.grammy-category i { color: var(--ink); font-size: 20px; margin-left: 12px; }
+.grammy-picks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); text-align: center; margin: 20px 0 28px; }
+.grammy-picks > div { padding: 0 24px; }
+.grammy-picks > div + div { border-left: 1px solid var(--accent); }
+.grammy-picks h4 { font-size: 33px; color: var(--accent); font-style: italic; margin-bottom: 12px; }
+.grammy-art { border: 1px solid var(--accent); background: var(--base); }
+.grammy-picks .grammy-art { width: 256px; height: 256px; margin: 0 auto 8px; }
+.grammy-picks strong { font-size: 25px; font-weight: 500; }
+.grammy-picks p { font-size: 20px; opacity: .8; }
+.grammy-nominees-title { font-size: 29px; margin-bottom: 12px; }
+.grammy-grid { display: flex; flex-wrap: wrap; justify-content: center; align-items: start; gap: 18px 24px; list-style: none; padding: 0; }
+.grammy-grid li { width: 206px; font-size: 19px; }
+.grammy-grid[data-count="5"] { column-gap: 58px; }
+.grammy-grid .grammy-art { width: 206px; height: 206px; margin-bottom: 5px; }
+.grammy-grid strong { display: block; font-weight: 500; }
+.grammy-grid p { font-size: 16px; opacity: .8; }

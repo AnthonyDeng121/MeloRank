@@ -55,3 +55,29 @@ export const grammyCategories = [
     ['you seem pretty sad for a girl so in love', 'Olivia Rodrigo'],
   ] },
 ] as const;
+export const grammyEnglishTitles: Record<string, string> = {
+  'album-of-the-year': 'Album of the Year',
+  'record-of-the-year': 'Record of the Year',
+  'song-of-the-year': 'Song of the Year',
+  'best-pop-solo-performance': 'Best Pop Solo Performance',
+  'best-pop-duo-group-performance': 'Best Pop Duo/Group Performance',
+  'best-pop-vocal-album': 'Best Pop Vocal Album',
+};
+
+const artwork: Record<string, string> = {
+  Berghain: 'berghain', 'LUX (Complete Works)': 'berghain',
+  "Choosin' Texas": 'texas',
+  'the cure': 'cure',
+  'hate that i made you love me': 'hate',
+  'I Knew It, I Knew You (from Toy Story 5)': 'toy',
+  'Man I Need': 'man', 'The Art of Loving': 'man',
+  'Risk It All': 'risk', 'I Just Might': 'risk', 'The Romantic': 'risk',
+  'WHERE IS MY HUSBAND!': 'husband', RUNWAY: 'runway', 'Bring Your Love': 'bring',
+  'Click Clack Symphony.': 'click', 'THIS MUSIC MAY CONTAIN HOPE.': 'click',
+  'The Life of a Showgirl': 'showgirl', 'The Fate of Ophelia': 'showgirl',
+  Dracula: 'dracula', 'Sauvignon Blanc': 'sauvignon',
+};
+
+export function grammyCover(title: string) {
+  return artwork[title] ? `/grammy-2027/${artwork[title]}.webp` : '';
+}
