@@ -1,5 +1,5 @@
 import { ArrowUpRight, Bookmark, Disc3, ListMusic, Play, SlidersHorizontal } from 'lucide-react';
-import { appleNewReleases, formats, genreBucket, releaseWeek, musicBrainzNewReleases, normalize, pitchforkReviews, qqRegionReleases,
+import { appleNewReleases, formats, genreBucket, releaseWeek, currentReleaseYear, musicBrainzNewReleases, normalize, pitchforkReviews, qqRegionReleases,
   regions, releaseIdentity, releaseKey as keyOf, sourceNames, titleFormat, verifiedReleases, type Format, type Region, type Release,
 } from '../services/newReleaseSources';
 import React, { useEffect, useState } from 'react';
@@ -43,7 +43,16 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
   const [page, setPage] = useState(1);
   const [retry, setRetry] = useState(0);
   const [saved, setSaved] = useState(false);
-  const [week, setWeek] = useState(0);
+  const releaseYear = currentReleaseYear();
+  const [weekNumber, setWeekNumber] = useState(releaseYear.current);
+  const [weekInput, setWeekInput] = useState(String(releaseYear.current));
+  const week = releaseYear.current - weekNumber;
+  function selectWeek(value: number) {
+    const next = Number.isInteger(value) ? Math.min(releaseYear.total, Math.max(1, value)) : weekNumber;
+    setPage(1);
+    setWeekNumber(next);
+    setWeekInput(String(next));
+  }
   const [format, setFormat] = useState('featured');
   const [genre, setGenre] = useState<string[]>([]);
   const [excludedGenre, setExcludedGenre] = useState<string[]>([]);
@@ -71,15 +80,17 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
     if (page === 1) setFeed([]);
     const tasks: [string, Promise<Release[]>][] = [
       ['QQ 音乐', qqRegionReleases(region, page, signal)],
-      ['MusicBrainz', musicBrainzNewReleases(page, format === 'EP' ? 'EP' : '专辑', week, signal)],
+       ...(week >= 0 ? [['MusicBrainz', musicBrainzNewReleases(page, format === 'EP' ? 'EP' : '专辑', week, signal)] as [string, Promise<Release[]>]] : []),
     ];
     if (page === 1) tasks.push(['Apple 地区榜', appleNewReleases(region, signal)]);
     void Promise.all(tasks.map(async ([name, task]) => {
       try {
         const entries = await task;
         if (!signal.aborted) setFeed(previous => [...new Map([...previous, ...entries].map(item => [keyOf(item), item])).values()]);
-      } catch {
-        if (!signal.aborted) setFailed(previous => [...previous, name]);
+      } catch (error) {
+        if (!signal.aborted) setFailed(previous => [...previous, name === 'MusicBrainz'
+          ? `MusicBrainz（${error instanceof Error && /^HTTP \d+$/.test(error.message) ? error.message : error instanceof Error && error.name === 'TimeoutError' ? '请求超时' : '网络连接失败'}）`
+          : name]);
       }
     })).then(() => { if (!signal.aborted) setLoading(false); });
     return () => controller.abort();
@@ -211,9 +222,13 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
         }} />
         <FilterChips label="状态" options={['待筛选', '想听', '跳过', '已收藏'].map(name => [name, name])} selected={visibility} onChange={setVisibility} />
         <div className="release-control-row"><span>发行周</span><div className="release-chips">
-          {[0, 1, 2, 3].map(value => <button key={value} aria-pressed={week === value} onClick={() => { setPage(1); setWeek(value); }}>
-            {value === 0 ? '本周' : value === 1 ? '上周' : `前 ${value} 周`}
-          </button>)}<small>{start} 至 {end}</small>
+          <button aria-label="上一周" disabled={weekNumber === 1} onClick={() => selectWeek(weekNumber - 1)}>‹</button>
+          <label>{releaseYear.year} 年第 <input aria-label="发行周周数" type="number" min={1} max={releaseYear.total} step={1}
+            value={weekInput} onChange={event => setWeekInput(event.target.value)}
+            onBlur={() => selectWeek(weekInput.trim() ? Number(weekInput) : weekNumber)}
+            onKeyDown={event => { if (event.key === 'Enter') event.currentTarget.blur(); }} /> 周</label>
+          <button aria-label="下一周" disabled={weekNumber === releaseYear.total} onClick={() => selectWeek(weekNumber + 1)}>›</button>
+          <small>{start} 至 {end}</small>
         </div></div>
         <div className="release-controls-footer">
           <div className="release-chips">

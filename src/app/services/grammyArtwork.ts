@@ -26,7 +26,7 @@ async function toThumbnail(image: Blob) {
   } finally { bitmap.close(); }
 }
 
-export async function resolveGrammyCover(title: string, artist: string, signal: AbortSignal): Promise<Blob | null> {
+export async function resolveGrammyCover(title: string, artist: string, signal: AbortSignal, online = true): Promise<Blob | null> {
   const key = normalize(title) + ':' + normalize(artist);
   if (!normalize(title) || !normalize(artist)) return null;
   const cacheKey = new URL('/grammy/artwork-cache/' + encodeURIComponent(key), location.origin).href;
@@ -38,6 +38,7 @@ export async function resolveGrammyCover(title: string, artist: string, signal: 
     if (age < 24 * 60 * 60 * 1000) return null;
   }
 
+  if (!online) return null;
   const miss = async () => {
     if (!signal.aborted) await cache?.put(cacheKey, new Response('', {
       status: 404, headers: { 'X-MeloRank-Cached': String(Date.now()) },

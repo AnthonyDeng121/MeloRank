@@ -43,6 +43,23 @@ function inferredRegion(genre: string): Region | undefined {
 const appleMarkets: Record<string, Region> = { cn: '华语', tw: '华语', kr: 'K-pop', us: '欧美', jp: '日语' };
 const qqMarkets: Record<number, Region> = { 1: '华语', 2: '华语', 3: '欧美', 4: 'K-pop', 5: '日语' };
 
+export function currentReleaseYear(now = new Date()) {
+  const today = now.toLocaleDateString('sv-SE', { timeZone: 'Asia/Shanghai' });
+  const year = Number(today.slice(0, 4));
+  const firstFriday = (value: number) => {
+    const date = new Date(Date.UTC(value, 0, 1));
+    date.setUTCDate(date.getUTCDate() - (date.getUTCDay() + 2) % 7);
+    return date.getTime();
+  };
+  const next = firstFriday(year + 1);
+  const timestamp = Date.parse(today + 'T00:00:00Z');
+  const activeYear = timestamp >= next ? year + 1 : year;
+  const first = firstFriday(activeYear);
+  const weekMs = 7 * 86400000;
+  return { year: activeYear, current: Math.floor((timestamp - first) / weekMs) + 1,
+    total: (firstFriday(activeYear + 1) - first) / weekMs };
+}
+
 export function releaseWeek(weeksAgo: number, now = new Date()) {
   const today = now.toLocaleDateString('sv-SE', { timeZone: 'Asia/Shanghai' });
   const friday = new Date(today + 'T00:00:00Z');
@@ -179,7 +196,7 @@ export async function musicBrainzNewReleases(page: number, format: 'EP' | '专�
     fmt: 'json', limit: '50', offset: String((page - 1) * 50),
   });
   const response = await fetch('https://musicbrainz.org/ws/2/release-group/?' + params, { signal: withTimeout(signal) });
-  if (!response.ok) throw new Error('MusicBrainz unavailable');
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const groups: ReleaseGroup[] = (await response.json())['release-groups'];
   return groups.flatMap((item): Release[] => {
     const rawDate = item['first-release-date'] ?? '';

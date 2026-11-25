@@ -134,6 +134,19 @@ export function YearlyAwards() {
   const kinds = [...new Set(fieldAwards.map(item => item.official?.kind ?? ''))].filter(Boolean);
   const official = mode === 'grammy' ? award?.official : undefined;
   const [artwork, setArtwork] = useState<Record<string, string>>({});
+  const [onlineCover, setOnlineCover] = useState<{ key: string }>();
+  useEffect(() => { setOnlineCover(undefined); }, [official, editionYear]);
+  const [manualArtwork, setManualArtwork] = useState<Record<string, string>>({});
+  const manualKey = (id: string) => `melorank-grammy-cover:${editionYear}:${id}`;
+  async function uploadNomineeCover(id: string, file?: File) {
+    if (!file) return;
+    try {
+      const cover = await coverData(file);
+      const key = manualKey(id);
+      localStorage.setItem(key, cover);
+      setManualArtwork(current => ({ ...current, [key]: cover }));
+    } catch { toast.error('无法保存封面，请检查图片文件或浏览器存储空间。'); }
+  }
   const [artworkLoading, setArtworkLoading] = useState(false);
   useEffect(() => {
     setArtwork({});
@@ -143,11 +156,12 @@ export function YearlyAwards() {
     if (!missing.length) return;
     const controller = new AbortController();
     const urls: string[] = [];
-    setArtworkLoading(true);
+    const online = onlineCover?.key === editionYear + ':' + official.id;
+    setArtworkLoading(online);
     void (async () => {
       for (const [id, title, artist] of missing) {
         if (controller.signal.aborted) break;
-        const blob = await resolveGrammyCover(title, artist, controller.signal).catch(() => null);
+        const blob = await resolveGrammyCover(title, artist, controller.signal, online).catch(() => null);
         if (!blob || controller.signal.aborted) continue;
         const url = URL.createObjectURL(blob);
         urls.push(url);
@@ -159,8 +173,14 @@ export function YearlyAwards() {
       controller.abort();
       urls.forEach(url => URL.revokeObjectURL(url));
     };
-  }, [official, editionYear]);
-  const withCover = (work?: Work) => work && !work.cover && artwork[work.id] ? { ...work, cover: artwork[work.id] } : work;
+  }, [official, editionYear, onlineCover]);
+  const withCover = (work?: Work) => {
+    if (!work || mode !== 'grammy') return work;
+    const key = manualKey(work.id);
+    let manual = manualArtwork[key];
+    try { manual ||= localStorage.getItem(key) || ''; } catch { /* Storage is optional. */ }
+    return { ...work, cover: manual || work.cover || artwork[work.id] || '' };
+  };
 
   const winner = award?.works.find(work => work.id === award.winner);
   const preference = award?.works.find(work => work.id === award.preference);
@@ -308,6 +328,10 @@ export function YearlyAwards() {
             <h3>官方提名 <small>{award.works.length}</small></h3>
             <ul>{award.works.map(work => <li key={work.id} data-picked={work.id === award.winner}>
               <strong>{work.title}</strong><span>{work.artist}</span>
+              <label className="grammy-cover-upload">选择封面
+                <input type="file" accept="image/*" aria-label={`为 ${work.title} 选择封面`}
+                  onChange={event => { void uploadNomineeCover(work.id, event.target.files?.[0]); event.target.value = ''; }} />
+              </label>
             </li>)}</ul>
           </div> : <>
           <div className="awards-actions">
@@ -355,6 +379,9 @@ export function YearlyAwards() {
           </select></label>
           <button className="awards-download" disabled={!award || exporting} onClick={() => void download()}><Download size={16} aria-hidden="true" />{exporting ? '正在导出…' : '下载 PNG'}</button>
         </div>
+        {official && official.kind !== '艺人与个人' && <button disabled={artworkLoading}
+          onClick={() => setOnlineCover({ key: editionYear + ':' + official.id })}
+        >{artworkLoading ? '正在联网补图…' : '联网补图'}</button>}
         {mode === 'grammy' && artworkLoading && <p role="status" className="award-saved">正在查找缺失封面，可先预览或导出。</p>}
         {award && <div ref={setFrame} className="award-poster-frame"><article ref={poster} className="award-poster" data-theme={edition.theme}>
           {mode === 'grammy' ? <div className="grammy-poster">
