@@ -46,11 +46,12 @@ export async function resolveGrammyCover(title: string, artist: string, signal: 
     return null;
   };
   await searchSlot(signal);
+  const deadline = AbortSignal.any([signal, AbortSignal.timeout(1000)]);
   const params = new URLSearchParams({
     query: `releasegroup:${quoted(title)} AND artist:${quoted(artist)}`, fmt: 'json', limit: '8',
   });
   const search = await fetch('https://musicbrainz.org/ws/2/release-group/?' + params, {
-    signal: AbortSignal.any([signal, AbortSignal.timeout(8000)]),
+    signal: deadline,
   });
   if (!search.ok) return null;
   const candidates: CoverCandidate[] = (await search.json())['release-groups'] ?? [];
@@ -59,12 +60,13 @@ export async function resolveGrammyCover(title: string, artist: string, signal: 
   // Different release groups can share the same title and credits.
   if (matches.length !== 1 || !/^[\da-f-]{36}$/i.test(matches[0].id)) return miss();
   const image = await fetch(`https://coverartarchive.org/release-group/${matches[0].id}/front-250`, {
-    signal: AbortSignal.any([signal, AbortSignal.timeout(8000)]),
+    signal: deadline,
   });
   if (image.status === 404) return miss();
   if (!image.ok || !image.headers.get('Content-Type')?.startsWith('image/')) return null;
   const input = await image.blob();
   if (input.size > 2 * 1024 * 1024) return null;
+  deadline.throwIfAborted();
   const thumbnail = await toThumbnail(input);
   if (thumbnail && !signal.aborted) await cache?.put(cacheKey, new Response(thumbnail)).catch(() => {});
   return thumbnail;

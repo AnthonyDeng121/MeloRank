@@ -53,10 +53,14 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
     setWeekNumber(next);
     setWeekInput(String(next));
   }
-  const [format, setFormat] = useState('featured');
+  const [selectedFormats, setSelectedFormats] = useState<string[]>(['专辑', 'EP']);
+  const formatsKey = selectedFormats.join('|');
   const [genre, setGenre] = useState<string[]>([]);
   const [excludedGenre, setExcludedGenre] = useState<string[]>([]);
   const [visibility, setVisibility] = useState<string[]>(['待筛选', '想听']);
+  const [trackNotice, setTrackNotice] = useState<{ id: string; text: string }>();
+  const [applePreviews, setApplePreviews] = useState<{ id: string; tracks: { trackId: number; trackName: string; previewUrl: string }[] }>();
+  const [previewTrack, setPreviewTrack] = useState<number>();
   const [pending, setPending] = useState('');
   const [preview, setPreview] = useState<Awaited<ReturnType<typeof getCatalogDetail>>>();
   const [message, setMessage] = useState('');
@@ -80,7 +84,8 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
     if (page === 1) setFeed([]);
     const tasks: [string, Promise<Release[]>][] = [
       ['QQ 音乐', qqRegionReleases(region, page, signal)],
-       ...(week >= 0 ? [['MusicBrainz', musicBrainzNewReleases(page, format === 'EP' ? 'EP' : '专辑', week, signal)] as [string, Promise<Release[]>]] : []),
+       ...(week >= 0 ? (['专辑', 'EP'] as const).filter(type => !formatsKey || formatsKey.split('|').includes(type))
+         .map(type => ['MusicBrainz ' + type, musicBrainzNewReleases(page, type, week, signal)] as [string, Promise<Release[]>]) : []),
     ];
     if (page === 1) tasks.push(['Apple 地区榜', appleNewReleases(region, signal)]);
     void Promise.all(tasks.map(async ([name, task]) => {
@@ -88,13 +93,13 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
         const entries = await task;
         if (!signal.aborted) setFeed(previous => [...new Map([...previous, ...entries].map(item => [keyOf(item), item])).values()]);
       } catch (error) {
-        if (!signal.aborted) setFailed(previous => [...previous, name === 'MusicBrainz'
+        if (!signal.aborted) setFailed(previous => [...previous, name.startsWith('MusicBrainz')
           ? `MusicBrainz（${error instanceof Error && /^HTTP \d+$/.test(error.message) ? error.message : error instanceof Error && error.name === 'TimeoutError' ? '请求超时' : '网络连接失败'}）`
           : name]);
       }
     })).then(() => { if (!signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, [page, retry, region, format, week]);
+  }, [page, retry, region, formatsKey, week]);
 
   useEffect(() => {
     if (preview) document.getElementById('release-tracks')?.scrollIntoView({ block: 'nearest' });
@@ -139,10 +144,10 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
     if (source.length && !source.includes(item.provider)) return false;
     if (region && (item.region ?? '其他／待确认') !== region) return false;
     if (library.hidden.includes(item.artist) || (hideAI && item.ai)) return false;
-    const matchesFormat = format === 'featured' ? ['专辑', 'EP'].includes(item.format) : !format || item.format === format;
+    const matchesFormat = !selectedFormats.length || selectedFormats.includes(item.format);
     const style = genreBucket(item.genre);
     const matchesWeek = item.date ? item.date >= start && item.date <= through :
-      (item.manual || (week === 0 && format === 'EP'));
+      (item.manual || (week === 0 && item.format === 'EP' && selectedFormats.includes('EP')));
     return (!visibility.length || visibility.includes(discoveryDecision ?? '待筛选')) &&
       matchesWeek && matchesFormat && (!genre.length || genre.includes(style)) && !excludedGenre.includes(style);
   }).sort((left, right) => {
@@ -175,14 +180,28 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
   async function loadTracks(item: Release) {
     setPending(keyOf(item));
     setPreview(undefined);
-    setMessage('');
+    const id = keyOf(item);
+    setTrackNotice(undefined);
+    setApplePreviews(undefined);
+    setPreviewTrack(undefined);
     try {
+      if (item.provider === 'apple' && /^\d+$/.test(item.id)) {
+        try {
+          const country = item.externalUrl?.match(/^https:\/\/music\.apple\.com\/([a-z]{2})\//)?.[1] ?? 'us';
+          const response = await fetch(`https://itunes.apple.com/lookup?id=${item.id}&entity=song&country=${country}`, { signal: AbortSignal.timeout(4000) });
+          if (!response.ok) throw new Error('Apple lookup unavailable');
+          const { results } = await response.json();
+          const tracks = results?.filter((track: { collectionId: number; trackId: number; previewUrl?: string }) =>
+            String(track.collectionId) === item.id && track.trackId && track.previewUrl?.startsWith('https://'));
+          if (tracks?.length) { setApplePreviews({ id, tracks }); return; }
+        } catch { /* The QQ catalogue is an independent fallback. */ }
+      }
       let catalog: CatalogItem;
       if (item.provider !== 'qq') {
         const { items } = await searchCatalog('qq', 'albums', item.title, 12, 1);
         const match = items.find((entry: CatalogItem) => normalize(entry.title) === normalize(item.title) &&
           !!item.artist && normalize(entry.artist) === normalize(item.artist));
-        if (!match) { setMessage('QQ 音乐未找到同名且同艺人的专辑，可打开来源查看发行资料。'); return; }
+        if (!match) { setTrackNotice({ id, text: '未找到可试听曲目，可在发行资料打开原平台。' }); return; }
         catalog = match;
       } else {
         catalog = { ...item, provider: item.provider };
@@ -190,7 +209,7 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
       const detail = await getCatalogDetail(catalog);
       if (!detail.songs.length) throw new Error('Empty tracks');
       setPreview(detail);
-    } catch { setMessage('暂时无法读取这张专辑的曲目。'); }
+    } catch { setTrackNotice({ id, text: '暂时无法读取曲目，请重试或打开原平台。' }); }
     finally { setPending(''); }
   }
 
@@ -200,15 +219,8 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
       <div className="release-toolbar"><button aria-pressed={!saved} onClick={() => setSaved(false)}>浏览新碟</button><button aria-pressed={saved} onClick={() => setSaved(true)}>已收藏</button></div></header>
     {!saved && <>
       <section className="release-controls" aria-label="筛选发行">
-        <div className="release-control-row"><span>类型</span><div className="release-chips">
-          {[['featured','专辑 + EP'],['专辑','专辑'],['EP','EP'],['单曲','单曲']].map(([value,label]) => <button key={value}
-            aria-pressed={format === value} onClick={() => { setPage(1); setFormat(value); }}>{label}</button>)}
-          <select aria-label="其他发行类型" value={['featured','专辑','EP','单曲'].includes(format) ? 'more' : format}
-            onChange={event => { setPage(1); setFormat(event.target.value); }}>
-            <option value="more" disabled>其他类型</option><option value="">全部类型</option>
-            {formats.slice(3).map(value => <option key={value}>{value}</option>)}
-          </select>
-        </div></div>
+        <FilterChips label="类型" options={formats.map(type => [type, type])} selected={selectedFormats}
+          onChange={values => { setPage(1); setSelectedFormats(values); }} />
         <div className="release-control-row"><span>地区</span><div className="release-chips">
           {(['', ...regions] as const).map(value => <button key={value}
             aria-pressed={region === value} onClick={() => { setPage(1); setRegion(value); }}>{value || '全部地区'}</button>)}
@@ -222,12 +234,15 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
         }} />
         <FilterChips label="状态" options={['待筛选', '想听', '跳过', '已收藏'].map(name => [name, name])} selected={visibility} onChange={setVisibility} />
         <div className="release-control-row"><span>发行周</span><div className="release-chips">
-          <button aria-label="上一周" disabled={weekNumber === 1} onClick={() => selectWeek(weekNumber - 1)}>‹</button>
-          <label>{releaseYear.year} 年第 <input aria-label="发行周周数" type="number" min={1} max={releaseYear.total} step={1}
-            value={weekInput} onChange={event => setWeekInput(event.target.value)}
-            onBlur={() => selectWeek(weekInput.trim() ? Number(weekInput) : weekNumber)}
-            onKeyDown={event => { if (event.key === 'Enter') event.currentTarget.blur(); }} /> 周</label>
-          <button aria-label="下一周" disabled={weekNumber === releaseYear.total} onClick={() => selectWeek(weekNumber + 1)}>›</button>
+          <span>{releaseYear.year} 年第</span>
+          <div className="release-week-input">
+            <button aria-label="上一周" disabled={weekNumber === 1} onClick={() => selectWeek(weekNumber - 1)}>‹</button>
+            <input aria-label="发行周周数" type="text" inputMode="numeric" maxLength={2} value={weekInput}
+              onChange={event => setWeekInput(event.target.value.replace(/\D/g, ''))}
+              onBlur={() => selectWeek(weekInput.trim() ? Number(weekInput) : weekNumber)}
+              onKeyDown={event => { if (event.key === 'Enter') event.currentTarget.blur(); }} />
+            <button aria-label="下一周" disabled={weekNumber === releaseYear.total} onClick={() => selectWeek(weekNumber + 1)}>›</button>
+          </div><span>周</span>
           <small>{start} 至 {end}</small>
         </div></div>
         <div className="release-controls-footer">
@@ -267,7 +282,7 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
     {storageError && <p role="alert">浏览器存储写入失败，本次修改可能在刷新后丢失。</p>}
     {message && <p role="status">{message}</p>}
     {!saved && <div className="release-results">
-      <h3>{format === 'featured' ? '新专辑与 EP' : format || '发行列表'} <small>{visible.length}</small></h3>
+      <h3>{selectedFormats.length === 1 ? selectedFormats[0] : '发行列表'} <small>{visible.length}</small></h3>
       <p role="status">{loading ? '正在补全发行资料…' : ''}{failed.length ? ` ${failed.join('、')}暂不可用。` : ''}</p>
     </div>}
     {preview && <section id="release-tracks" className="release-tracks" aria-label="试听曲目">
@@ -303,6 +318,14 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
             : <button className="release-quiet" onClick={() => onOpen({ ...item, provider: 'qq' })}><ListMusic size={15} /> 详情</button>)}
           {decision && <button className="release-quiet" onClick={() => decide(item)}>{decision} · 撤销</button>}
         </div>
+        {pending === id && <p className="release-track-feedback" role="status">正在查找可试听曲目…</p>}
+        {trackNotice?.id === id && <p className="release-track-feedback" role="status">{trackNotice.text}</p>}
+        {applePreviews?.id === id && <div className="release-track-feedback">
+          <div className="release-toolbar">{applePreviews.tracks.map(track => <button key={track.trackId}
+            onClick={() => setPreviewTrack(track.trackId)}>▶ {track.trackName}</button>)}</div>
+          {previewTrack && <audio key={previewTrack} controls autoPlay src={applePreviews.tracks.find(track => track.trackId === previewTrack)?.previewUrl} />}
+          {item.externalUrl && <a href={item.externalUrl} target="_blank" rel="noreferrer">在 Apple Music 查看</a>}
+        </div>}
         {!saved && <details className="release-classify"><summary>分类与来源</summary>
           <div className="release-toolbar">
           {item.provider !== 'qq'

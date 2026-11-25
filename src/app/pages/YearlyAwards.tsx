@@ -136,17 +136,6 @@ export function YearlyAwards() {
   const [artwork, setArtwork] = useState<Record<string, string>>({});
   const [onlineCover, setOnlineCover] = useState<{ key: string }>();
   useEffect(() => { setOnlineCover(undefined); }, [official, editionYear]);
-  const [manualArtwork, setManualArtwork] = useState<Record<string, string>>({});
-  const manualKey = (id: string) => `melorank-grammy-cover:${editionYear}:${id}`;
-  async function uploadNomineeCover(id: string, file?: File) {
-    if (!file) return;
-    try {
-      const cover = await coverData(file);
-      const key = manualKey(id);
-      localStorage.setItem(key, cover);
-      setManualArtwork(current => ({ ...current, [key]: cover }));
-    } catch { toast.error('无法保存封面，请检查图片文件或浏览器存储空间。'); }
-  }
   const [artworkLoading, setArtworkLoading] = useState(false);
   useEffect(() => {
     setArtwork({});
@@ -174,13 +163,8 @@ export function YearlyAwards() {
       urls.forEach(url => URL.revokeObjectURL(url));
     };
   }, [official, editionYear, onlineCover]);
-  const withCover = (work?: Work) => {
-    if (!work || mode !== 'grammy') return work;
-    const key = manualKey(work.id);
-    let manual = manualArtwork[key];
-    try { manual ||= localStorage.getItem(key) || ''; } catch { /* Storage is optional. */ }
-    return { ...work, cover: manual || work.cover || artwork[work.id] || '' };
-  };
+  const withCover = (work?: Work) => work && !work.cover && artwork[work.id]
+    ? { ...work, cover: artwork[work.id] } : work;
 
   const winner = award?.works.find(work => work.id === award.winner);
   const preference = award?.works.find(work => work.id === award.preference);
@@ -277,7 +261,7 @@ export function YearlyAwards() {
             }}><option value="">全部</option>{kinds.map(kind => <option key={kind}>{kind}</option>)}</select></label>
           </div>
           <label>选择奖项<select value={award.id} onChange={event => editEdition(value => ({ ...value, selected: event.target.value }))}>
-            {fieldAwards.filter(item => !awardKind || item.official?.kind === awardKind).map(item => <option value={item.id} key={item.id}>{item.title}</option>)}
+            {fieldAwards.filter(item => !awardKind || item.official?.kind === awardKind).map(item => <option value={item.id} key={item.id}>{item.title} · {item.official?.english}</option>)}
           </select></label>
         </> : grammyError ? <button onClick={() => setGrammyRetry(value => value + 1)}>名单加载失败，重试</button> : <p role="status">正在加载官方提名…</p>) : <>
           <div className="awards-fields">
@@ -328,10 +312,7 @@ export function YearlyAwards() {
             <h3>官方提名 <small>{award.works.length}</small></h3>
             <ul>{award.works.map(work => <li key={work.id} data-picked={work.id === award.winner}>
               <strong>{work.title}</strong><span>{work.artist}</span>
-              <label className="grammy-cover-upload">选择封面
-                <input type="file" accept="image/*" aria-label={`为 ${work.title} 选择封面`}
-                  onChange={event => { void uploadNomineeCover(work.id, event.target.files?.[0]); event.target.value = ''; }} />
-              </label>
+
             </li>)}</ul>
           </div> : <>
           <div className="awards-actions">
