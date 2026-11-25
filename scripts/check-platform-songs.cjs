@@ -41,6 +41,18 @@ const service = sandbox.exports;
   await service.platformSongUrl({ songmid: 'qq-id' });
   assert.equal(calls.at(-1)[0], 'qq-url');
   const fallbackSong = { ...song, provider: 'qq', songmid: 'qq-empty' };
+  const savedSearch = qqMusicService.searchWithType, savedLyric = qqMusicService.getLyric;
+  qqMusicService.searchWithType = async () => ({ response: { data: { song: { list: [
+    { ...fallbackSong, songmid: 'qq-clean', songname: 'Song (Clean)', explicit: false },
+    { ...fallbackSong, songmid: 'qq-explicit', songname: 'Song (Explicit)', explicit: true },
+    { ...fallbackSong, songmid: 'qq-remix', songname: 'Song (Remix)' },
+  ] } } } });
+  qqMusicService.getLyric = async id => ({ response: { lyric: id === 'qq-empty' ? '' : id === 'qq-clean' ? '[00:01]f***' : '[00:01]fuck' } });
+  const sameCatalog = await service.platformLyric({ ...fallbackSong, explicit: true });
+  assert.equal(sameCatalog.response.lyric, '[00:01]fuck', 'same-platform explicit recording supplies lyrics before overseas lookup');
+  assert.equal((await service.platformLyric({ ...fallbackSong, explicit: false })).response.lyric, '[00:01]f***', 'clean requests preserve clean editions');
+  qqMusicService.searchWithType = savedSearch; qqMusicService.getLyric = savedLyric;
+
   assert.equal((await service.platformLyric(fallbackSong)).response.lyric, '[00:01]fixture');
   assert.equal(externalCalls, 0, 'domestic synchronized lyrics do not call overseas services');
   const originalRequest = netease.request;

@@ -874,7 +874,7 @@
 .full-lyrics-dialog button:focus-visible, .full-lyrics-content:focus-visible { outline: 2px solid #667eea; outline-offset: 3px; }
 @media (max-width: 600px) { .full-lyrics-surface { padding: 20px; } .full-lyrics-close { top: 16px; right: 16px; } }
 
-.player-page .lyrics-panel .lyrics-content { flex: 1; min-height: 0; overflow-y: auto; align-items: flex-start; }
+.player-page .lyrics-panel .lyrics-content { flex: 1; min-height: 0; overflow-y: auto; align-items: safe center; }
 .player-page .lyrics-panel .dynamic-lyrics { padding: 4px 0; gap: 16px; }
 .player-page .lyrics-panel .lyrics-header { margin-bottom: 16px; flex: none; }
 .player-page .quick-review-panel { padding: 18px; }
@@ -911,3 +911,17 @@
 .player-page .plain-lyrics { width: 100%; margin: 0; white-space: pre-wrap; text-align: center; line-height: 1.8; }
 
 .player-page .lyric-source { color: #999; font-size: 11px; text-decoration: none; margin-left: 8px; }
+
+/* Both review sections share the same typography and control dimensions. */
+.player-page .quick-review-panel :is(label, input, textarea, .song-rating-total) {
+  font-family: inherit; font-size: 13px; font-weight: 400; line-height: 20px;
+}
+.player-page .quick-review-panel :is(.song-rating-fields input, .inline-work-review input) {
+  box-sizing: border-box; width: 52px; height: 34px; padding: 3px 6px; text-align: center;
+  color: #eee; background: #222; border: 1px solid #38383e; border-radius: 6px;
+}
+.player-page .quick-review-panel :is(.song-rating-form textarea, .inline-work-review textarea) {
+  box-sizing: border-box; width: 100%; min-height: 52px; height: 52px; padding: 8px 10px;
+  color: #eee; background: #222; border: 1px solid #38383e; border-radius: 6px;
+}
+.player-page .inline-work-review .review-text-label { font-size: 13px; font-weight: 400; gap: 6px; }

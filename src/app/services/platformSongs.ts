@@ -5,7 +5,7 @@ import { qqMusicService } from './qqMusicService';
 export interface PlatformSong {
   songmid: string; songname: string; singer: Array<{ name: string; mid: string }>;
   albumname: string; albummid: string; coverUrl?: string; duration?: number;
-  provider?: MusicProvider; providerId?: string; uri?: string; url?: string; albumId?: string;
+  explicit?: boolean; provider?: MusicProvider; providerId?: string; uri?: string; url?: string; albumId?: string;
 }
 export function neteaseSong(value: any): PlatformSong {
   const album = value.al || value.album || {};
@@ -14,7 +14,7 @@ export function neteaseSong(value: any): PlatformSong {
     albumname: album.name || '', albumId: String(album.id || ''), albummid: '', coverUrl: album.picUrl, duration: (value.dt || value.duration || 0) / 1000 };
 }
 export function spotifySong(value: any): PlatformSong {
-  return { provider: 'spotify', providerId: value.id, uri: value.uri || `spotify:track:${value.id}`, songmid: `spotify:${value.id}`, songname: value.name,
+  return { explicit: typeof value.explicit === 'boolean' ? value.explicit : undefined, provider: 'spotify', providerId: value.id, uri: value.uri || `spotify:track:${value.id}`, songmid: `spotify:${value.id}`, songname: value.name,
     singer: (value.artists || []).map((artist: any) => ({ name: artist.name, mid: artist.id || '' })), albumname: value.album?.name || '', albummid: '',
     albumId: value.album?.id || '', coverUrl: value.album?.images?.[0]?.url, duration: (value.duration_ms || 0) / 1000 };
 }
@@ -89,22 +89,48 @@ async function catalogLyric(song: PlatformSong) {
   }
   return lyricData(await qqMusicService.getLyric(song.songmid));
 }
+const lyricTitle = (value: string) => playbackTitle(value).replace(/\s*[([]\s*(?:feat\.?|ft\.?)\s+.*?[)\]]/gi, '').normalize('NFKC').toLowerCase().replace(/[\s\p{P}\p{S}]/gu, '');
+const cleanEdition = (value: string) => /\b(clean|censored|radio edit|edited version)\b/i.test(value);
+const maskedLyric = (value: string) => /[\p{L}]*\*{2,}[\p{L}]*|\b(?:f[ *.-]+ck|sh[ *.-]+t|b[ *.-]+tch)\b/iu.test(value);
+const explicitWords = (value: string) => (value.match(/\b(?:fuck(?:ing|ed|er|ers)?|shit|bitch(?:es)?|pussy|pussies|nigga(?:s)?|cunt|motherfuck\w*)\b/gi) || []).length;
 export async function platformLyric(song: PlatformSong): Promise<any> {
   const providers: Array<'qq' | 'netease'> = song.provider === 'netease' ? ['netease', 'qq'] : ['qq', 'netease'];
+  const wantsClean = song.explicit === false || cleanEdition(`${song.songname} ${song.albumname}`);
   let plain: ReturnType<typeof lyricData> | undefined;
+  const acceptable = (data: ReturnType<typeof lyricData>) => usableLyric(data.lyric) && (wantsClean ? !explicitWords(data.lyric) : !maskedLyric(data.lyric));
+  const timed = (value: string) => /\[\d+:\d{2}(?:\.\d{1,3})?\]/.test(value);
   for (const provider of providers) {
+    const tried = new Set<string>();
     try {
       const matched = await resolvePlaybackSong(song, provider);
-      const data = await catalogLyric(matched);
-      if (!usableLyric(data.lyric)) continue;
-      if (/\[\d+:\d{2}(?:\.\d{1,3})?\]/.test(data.lyric)) return { response: data };
-      plain ||= data;
-    } catch { /* Missing catalog match, timeout or unavailable lyrics: try the other provider. */ }
+      tried.add(matched.songmid);
+      if (wantsClean ? matched.explicit !== true : matched.explicit !== false && !cleanEdition(`${matched.songname} ${matched.albumname}`)) {
+        const data = await catalogLyric(matched);
+        if (acceptable(data)) { if (timed(data.lyric)) return { response: data }; plain ||= data; }
+      }
+    } catch { /* Keep searching other catalog entries when one recording has no lyrics. */ }
+    try {
+      const query = `${playbackTitle(song.songname)} ${song.singer[0]?.name || ''}`;
+      const result = await searchPlatform(provider, query, 20, 1);
+      const candidates: PlatformSong[] = (result.response?.data?.song?.list || []).map((value: any) => provider === 'qq' ? {
+        ...value, provider: 'qq', songmid: value.songmid || value.mid, songname: value.songname || value.name,
+        albumname: value.albumname || value.album?.name || '', duration: value.duration || value.interval,
+      } : value).filter((candidate: PlatformSong) => candidate.songmid && !tried.has(candidate.songmid)
+        && lyricTitle(candidate.songname) === lyricTitle(song.songname)
+        && candidate.singer?.some(artist => song.singer.some(original => lyricTitle(original.name) === lyricTitle(artist.name)))
+        && (!song.duration || !candidate.duration || Math.abs(song.duration - candidate.duration) <= 3)
+        && (wantsClean ? candidate.explicit !== true : candidate.explicit !== false && !cleanEdition(`${candidate.songname} ${candidate.albumname}`))).slice(0, 5);
+      const lyrics = (await Promise.all(candidates.map(async candidate => {
+        try { return await catalogLyric(candidate); } catch { return undefined; }
+      }))).filter((data): data is ReturnType<typeof lyricData> => !!data && acceptable(data));
+      lyrics.sort((a, b) => Number(timed(b.lyric)) - Number(timed(a.lyric)) || explicitWords(b.lyric) - explicitWords(a.lyric));
+      for (const data of lyrics) { if (timed(data.lyric)) return { response: data }; plain ||= data; }
+    } catch { /* Catalog searches can fail independently of playback and other lyric sources. */ }
   }
   try {
     const data = lyricData({ response: await externalLyrics(song) });
-    if (usableLyric(data.lyric) && (!plain || /\[\d+:\d{2}(?:\.\d{1,3})?\]/.test(data.lyric))) return { response: data };
-  } catch { /* Overseas source failure must not interrupt playback or discard domestic lyrics. */ }
+    if (acceptable(data) && (!plain || timed(data.lyric))) return { response: data };
+  } catch { /* Keep domestic plain lyrics when the overseas source fails. */ }
   return { response: plain || { lyric: '', trans: '', roma: '' } };
 }
 export async function platformPlayableUrl(song: PlatformSong) {
