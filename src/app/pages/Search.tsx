@@ -378,11 +378,7 @@ export function Search({ onOpenCatalog, onOpenMV }: { onOpenCatalog: (item: Cata
               <button 
                 className="action-btn" 
                 onClick={() => {
-                  // 处理搜索结果，构建播放队列
-                  const responseData = searchResults.response || searchResults;
-                  const actualData = responseData.data || responseData;
-                  const songList = actualData.song?.list || [];
-                  setCurrentSong(song, songList);
+                  setCurrentSong(song);
                   console.log('播放歌曲:', song);
                 }}
               >

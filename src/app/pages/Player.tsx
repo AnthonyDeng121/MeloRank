@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useMusic } from '../contexts/MusicContext';
 import '../../styles/Player.css';
+import '../../styles/LyricSeeking.css';
 import { Repeat1, ListMusic, Shuffle, Maximize2, X } from 'lucide-react';
 import { parseLrc, matchLyric } from '../services/lyrics';
 
@@ -393,9 +394,15 @@ export function Player({ selection, onSelectionChange, mvSelection, onMVChange }
               <button type="button" aria-pressed={showRomanization} onClick={() => { setShowRomanization(!showRomanization); localStorage.setItem('lyricsRomanization', String(!showRomanization)); }}>音译 / 罗马音</button>
               {(showTranslation && !translatedLines.some(line => line.text) || showRomanization && !romanizedLines.some(line => line.text)) && <span>该歌曲暂无{showTranslation && !translatedLines.some(line => line.text) ? '翻译' : ''}{showTranslation && !translatedLines.some(line => line.text) && showRomanization && !romanizedLines.some(line => line.text) ? '及' : ''}{showRomanization && !romanizedLines.some(line => line.text) ? '音译' : ''}</span>}
             </div>
+              {parsedLyrics.length > 0 && <div className="full-lyrics-progress">
+                <span>{formatTime(currentTime)}</span>
+                <input type="range" aria-label="完整歌词播放进度" min={0} max={duration || 0} step={0.1} value={Math.min(currentTime, duration || 0)} disabled={duration <= 0} onChange={event => seekTo(Number(event.target.value))} />
+                <span>{formatTime(duration)}</span>
+              </div>}
               <div className="full-lyrics-content" ref={fullLyricsViewport} tabIndex={0} aria-label="完整歌词，可滚动查看">
                 <div className="dynamic-lyrics">
                   {parsedLyrics.map((lyric, index) => <p key={index} className={`lyric-line ${index === currentLyricIndex ? 'current-lyric' : ''}`} aria-current={index === currentLyricIndex ? 'true' : undefined}>
+                    <button type="button" className="lyric-seek-button" aria-label={`从这句播放：${lyric.text || formatTime(lyric.time)}`} disabled={duration <= 0 || lyric.time > duration} onClick={() => { seekTo(Math.max(0, lyric.time)); if (!isPlaying) togglePlay(); }}>▶</button>
                     <span className="lyric-original">{lyric.text}</span>
                     {showTranslation && matchLyric(translatedLines, lyric.time) && <span className="lyric-translation">{matchLyric(translatedLines, lyric.time)}</span>}
                     {showRomanization && matchLyric(romanizedLines, lyric.time) && <span className="lyric-romanization">{matchLyric(romanizedLines, lyric.time)}</span>}

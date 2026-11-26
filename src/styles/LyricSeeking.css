@@ -1,0 +1,6 @@
+.full-lyrics-progress { display: flex; align-items: center; gap: 12px; padding: 12px 0; font-size: 13px; font-variant-numeric: tabular-nums; }
+.full-lyrics-progress input { flex: 1; min-width: 0; accent-color: #8b5cf6; cursor: pointer; }
+.full-lyrics-content .lyric-line { position: relative; padding-right: 48px; }
+.lyric-seek-button { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border: 1px solid currentColor; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; font-size: 14px; }
+.lyric-seek-button:hover, .lyric-seek-button:focus-visible { background: #8b5cf633; outline-offset: 3px; }
+.lyric-seek-button:disabled { opacity: .35; cursor: default; }
