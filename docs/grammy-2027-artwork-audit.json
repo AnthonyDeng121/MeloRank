@@ -1,10 +1,14 @@
 {
   "total": 526,
-  "local": 413,
-  "missing": 113,
+  "local": 526,
+  "missing": 0,
   "broken": [],
   "verificationScope": "All local files decoded; source metadata and contact sheets reviewed. File validity alone does not prove artwork identity. Missing entries have no confirmed image and are not counted as complete.",
   "corrections": [
+    {
+      "id": "25983",
+      "reason": "Replaced incorrect red CONFESSIONS II artwork with the purple Madonna portrait bearing the album title."
+    },
     {
       "id": "26379",
       "reason": "Removed Dominic Fike image incorrectly matched to DOMi & JD BECK by substring."
@@ -400,7 +404,17 @@
       "artist": "Ella Langley",
       "image": "/grammy-2027/works/qq-0019GJ9B2EmzB0.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "Choosin' Texas",
+          "artist": "Ella Langley",
+          "image": "/grammy-2027/works/qq-0019GJ9B2EmzB0.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M0000019GJ9B2EmzB0.jpg",
+          "matchedTitle": "Choosin' Texas",
+          "matchedArtist": "Ella Langley"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -413,7 +427,17 @@
       "artist": "Olivia Rodrigo",
       "image": "/grammy-2027/works/qq-001tYp230nHvuL.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "the cure",
+          "artist": "Olivia Rodrigo",
+          "image": "/grammy-2027/works/qq-001tYp230nHvuL.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000001tYp230nHvuL.jpg",
+          "matchedTitle": "the cure",
+          "matchedArtist": "Olivia Rodrigo"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -472,7 +496,17 @@
       "artist": "Olivia Dean",
       "image": "/grammy-2027/works/qq-004EsKxq3kqmYY.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "Man I Need",
+          "artist": "Olivia Dean",
+          "image": "/grammy-2027/works/qq-004EsKxq3kqmYY.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000004EsKxq3kqmYY.jpg",
+          "matchedTitle": "Man I Need",
+          "matchedArtist": "Olivia Dean"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -508,7 +542,17 @@
       "artist": "RAYE",
       "image": "/grammy-2027/works/qq-004UwUbU1outYr.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "WHERE IS MY HUSBAND!",
+          "artist": "RAYE",
+          "image": "/grammy-2027/works/qq-004UwUbU1outYr.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000004UwUbU1outYr.jpg",
+          "matchedTitle": "WHERE IS MY HUSBAND!",
+          "matchedArtist": "RAYE"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -526,11 +570,12 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "Angine de Poitrine",
           "image": "https://media.grammy.net/uploads/2026/11/angine-de-poitrine-1-1024x576.avif",
-          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/"
+          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
-        384,
+        216,
         216
       ]
     },
@@ -546,11 +591,12 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "Geese",
           "image": "https://media.grammy.net/uploads/2026/11/geese-1-1024x683.avif",
-          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/"
+          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
-        384,
+        256,
         256
       ]
     },
@@ -566,7 +612,8 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "Ella Langley",
           "image": "https://media.grammy.net/uploads/2026/11/ella-langley-1.avif",
-          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/"
+          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
@@ -586,12 +633,13 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "Slayyyter",
           "image": "https://media.grammy.net/uploads/2026/11/slayyyter-1-687x1024.avif",
-          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/"
+          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
         258,
-        384
+        258
       ]
     },
     {
@@ -606,7 +654,8 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "SIENNA SPIRO",
           "image": "https://media.grammy.net/uploads/2026/11/sienna-spiro-1-1024x1024.avif",
-          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/"
+          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
@@ -626,12 +675,13 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "Don Toliver",
           "image": "https://media.grammy.net/uploads/2026/05/caleb-zackery-toliver_MI0004887424-MN0003746917-683x1024.avif",
-          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/"
+          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
         256,
-        384
+        256
       ]
     },
     {
@@ -646,12 +696,13 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "Remi Wolf",
           "image": "https://media.grammy.net/uploads/2026/11/remi-wolf-1-692x1024.avif",
-          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/"
+          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
         259,
-        384
+        259
       ]
     },
     {
@@ -666,11 +717,12 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "The Womack Sisters",
           "image": "https://media.grammy.net/uploads/2026/11/the-womack-sisters-1-1024x683.avif",
-          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/"
+          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
-        384,
+        256,
         256
       ]
     },
@@ -686,11 +738,12 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "Tony Berg",
           "image": "https://www.audeze.co.uk/cdn/shop/articles/TBerg.jpg?v=1595801191&width=384",
-          "source": "https://www.audeze.co.uk/blogs/audeze-artists/audeze-speaks-with-producer-and-music-industry-guru-tony-berg"
+          "source": "https://www.audeze.co.uk/blogs/audeze-artists/audeze-speaks-with-producer-and-music-industry-guru-tony-berg",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
-        384,
+        282,
         282
       ]
     },
@@ -706,12 +759,13 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "Dernst \"D'Mile\" Emile II",
           "image": "https://media.grammy.net/uploads/2024/11/dernst-emile-ii-32230-717x1024.avif",
-          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/"
+          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
         269,
-        384
+        269
       ]
     },
     {
@@ -726,11 +780,12 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "Noah Goldstein",
           "image": "https://media.grammy.net/uploads/2024/01/noah-goldstein-16747-1024x576.avif",
-          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/"
+          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
-        384,
+        216,
         216
       ]
     },
@@ -746,7 +801,8 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "Miranda Lambert",
           "image": "https://media.grammy.net/uploads/2025/11/miranda-lambert-4851.avif",
-          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/"
+          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
@@ -766,11 +822,12 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "Mike Sabath",
           "image": "https://media.grammy.net/uploads/2026/11/mike-sabath-1-1024x686.avif",
-          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/"
+          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
-        384,
+        257,
         257
       ]
     },
@@ -786,11 +843,12 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "Amy Allen",
           "image": "https://media.grammy.net/uploads/2026/02/amy-allen-37881-1024x679.avif",
-          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/"
+          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
-        384,
+        255,
         255
       ]
     },
@@ -806,7 +864,8 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "Edgar Barrera",
           "image": "https://media.grammy.net/uploads/2025/11/edgar-barrera-18854.avif",
-          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/"
+          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
@@ -826,7 +885,8 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "RAYE",
           "image": "https://media.grammy.net/uploads/2026/05/MI0005781060-MN0002593543.avif",
-          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/"
+          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
@@ -846,11 +906,12 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "Joybeth Taylor",
           "source": "https://bluebirdcafe.com/tm-attraction/joybeth-taylor/",
-          "image": "https://i.ticketweb.com/i/00/13/45/60/73_Original.jpg?v=5"
+          "image": "https://i.ticketweb.com/i/00/13/45/60/73_Original.jpg?v=5",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
-        384,
+        383,
         383
       ]
     },
@@ -866,11 +927,12 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "Theron Thomas",
           "source": "https://www.lenoxandparker.com/theron-thomas-is-music-the-songwriter-behind-the-soundtrack-of-our-lives/",
-          "image": "https://storage.ghost.io/c/8a/e7/8ae7c292-92b8-4748-b97c-a2619b00b576/content/images/size/w600/2026/11/WEBSITE-COVER-IMAGE-2-4.jpg"
+          "image": "https://storage.ghost.io/c/8a/e7/8ae7c292-92b8-4748-b97c-a2619b00b576/content/images/size/w600/2026/11/WEBSITE-COVER-IMAGE-2-4.jpg",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
-        384,
+        186,
         186
       ]
     },
@@ -881,7 +943,17 @@
       "artist": "Olivia Dean",
       "image": "/grammy-2027/works/qq-004EsKxq3kqmYY.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "Man I Need",
+          "artist": "Olivia Dean",
+          "image": "/grammy-2027/works/qq-004EsKxq3kqmYY.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000004EsKxq3kqmYY.jpg",
+          "matchedTitle": "Man I Need",
+          "matchedArtist": "Olivia Dean"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -894,7 +966,26 @@
       "artist": "Bruno Mars",
       "image": "/grammy-2027/works/qq-000x3hxC2r1LUC.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "The Romantic",
+          "artist": "Bruno Mars",
+          "image": "/grammy-2027/works/qq-000x3hxC2r1LUC.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000000x3hxC2r1LUC.jpg",
+          "matchedTitle": "Risk It All",
+          "matchedArtist": "Bruno Mars"
+        },
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "Risk it All",
+          "artist": "Bruno Mars",
+          "image": "/grammy-2027/works/qq-000x3hxC2r1LUC.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000000x3hxC2r1LUC.jpg",
+          "matchedTitle": "Risk It All",
+          "matchedArtist": "Bruno Mars"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -907,7 +998,17 @@
       "artist": "RAYE",
       "image": "/grammy-2027/works/qq-004UwUbU1outYr.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "WHERE IS MY HUSBAND!",
+          "artist": "RAYE",
+          "image": "/grammy-2027/works/qq-004UwUbU1outYr.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000004UwUbU1outYr.jpg",
+          "matchedTitle": "WHERE IS MY HUSBAND!",
+          "matchedArtist": "RAYE"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -920,7 +1021,17 @@
       "artist": "Olivia Rodrigo",
       "image": "/grammy-2027/works/qq-001tYp230nHvuL.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "the cure",
+          "artist": "Olivia Rodrigo",
+          "image": "/grammy-2027/works/qq-001tYp230nHvuL.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000001tYp230nHvuL.jpg",
+          "matchedTitle": "the cure",
+          "matchedArtist": "Olivia Rodrigo"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -1048,7 +1159,17 @@
       "artist": "Tame Impala With JENNIE",
       "image": "/grammy-2027/works/qq-0014HTNN4XPMsN.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "Dracula",
+          "artist": "Tame Impala With JENNIE",
+          "image": "/grammy-2027/works/qq-0014HTNN4XPMsN.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M0000014HTNN4XPMsN.jpg",
+          "matchedTitle": "Dracula",
+          "matchedArtist": "Tame Impala, JENNIE"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -1192,7 +1313,17 @@
       "artist": "Olivia Dean",
       "image": "/grammy-2027/works/qq-004aWD494Vc1zN.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "The Art of Loving",
+          "artist": "Olivia Dean",
+          "image": "/grammy-2027/works/qq-004aWD494Vc1zN.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000004aWD494Vc1zN.jpg",
+          "matchedTitle": "The Art of Loving (Intro)",
+          "matchedArtist": "Olivia Dean"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -1228,7 +1359,26 @@
       "artist": "Bruno Mars",
       "image": "/grammy-2027/works/qq-000x3hxC2r1LUC.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "The Romantic",
+          "artist": "Bruno Mars",
+          "image": "/grammy-2027/works/qq-000x3hxC2r1LUC.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000000x3hxC2r1LUC.jpg",
+          "matchedTitle": "Risk It All",
+          "matchedArtist": "Bruno Mars"
+        },
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "Risk it All",
+          "artist": "Bruno Mars",
+          "image": "/grammy-2027/works/qq-000x3hxC2r1LUC.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000000x3hxC2r1LUC.jpg",
+          "matchedTitle": "Risk It All",
+          "matchedArtist": "Bruno Mars"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -1241,7 +1391,17 @@
       "artist": "RAYE",
       "image": "/grammy-2027/works/qq-002SoDtP15g7IY.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "THIS MUSIC MAY CONTAIN HOPE.",
+          "artist": "RAYE",
+          "image": "/grammy-2027/works/qq-002SoDtP15g7IY.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000002SoDtP15g7IY.jpg",
+          "matchedTitle": "I Will Overcome.",
+          "matchedArtist": "RAYE"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -1254,7 +1414,35 @@
       "artist": "Olivia Rodrigo",
       "image": "/grammy-2027/works/qq-0043W1NQ1OXOHR.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "you seem pretty sad for a girl so in love",
+          "artist": "Olivia Rodrigo",
+          "image": "/grammy-2027/works/qq-0043W1NQ1OXOHR.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M0000043W1NQ1OXOHR.jpg",
+          "matchedTitle": "maggots for brains",
+          "matchedArtist": "Olivia Rodrigo"
+        },
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "what's wrong with me",
+          "artist": "Olivia Rodrigo, Robert Smith",
+          "image": "/grammy-2027/works/qq-0043W1NQ1OXOHR.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M0000043W1NQ1OXOHR.jpg",
+          "matchedTitle": "what’s wrong with me",
+          "matchedArtist": "Olivia Rodrigo, Robert Smith"
+        },
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "what's wrong with me",
+          "artist": "Daniel Nigro, Olivia Rodrigo & Sasha Sloan, songwriters (Olivia Rodrigo, Robert Smith)",
+          "image": "/grammy-2027/works/qq-0043W1NQ1OXOHR.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M0000043W1NQ1OXOHR.jpg",
+          "matchedTitle": "what’s wrong with me",
+          "matchedArtist": "Olivia Rodrigo, Robert Smith"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -1506,20 +1694,21 @@
       "category": "最佳舞曲／电子专辑",
       "title": "CONFESSIONS II",
       "artist": "Madonna",
-      "image": "/grammy-2027/works/07f4b83c-41bc-4a94-861c-e8e3aebeabd4.webp",
+      "image": "/grammy-2027/works/qq-000aVmTu15KMTb.jpg",
       "status": "local-file-valid",
       "sources": [
         {
           "manifest": "grammy-2027-work-cover-sources.json",
-          "image": "/grammy-2027/works/07f4b83c-41bc-4a94-861c-e8e3aebeabd4.webp",
-          "source": "https://coverartarchive.org/release/07f4b83c-41bc-4a94-861c-e8e3aebeabd4/front-250",
+          "image": "/grammy-2027/works/qq-000aVmTu15KMTb.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000000aVmTu15KMTb.jpg",
           "title": "CONFESSIONS II",
-          "artist": "Madonna"
+          "artist": "Madonna",
+          "verification": "Purple portrait cover bears Madonna and CONFESSIONS II; replaces incorrect red artwork."
         }
       ],
       "dimensions": [
-        250,
-        161
+        500,
+        500
       ]
     },
     {
@@ -1657,9 +1846,22 @@
       "category": "最佳混音录音",
       "title": "Love Sensation",
       "artist": "Stuart Price, remixer (Madonna & Kylie Minogue)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-1047106842.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-1047106842.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/67885947b38b42bf38579cd6cf52efa8/500x500-000000-80-0-0.jpg",
+          "title": "Love Sensation",
+          "artist": "Madonna",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "25991",
@@ -1689,9 +1891,22 @@
       "category": "最佳混音录音",
       "title": "A Question of Trust - Boys Noize Remix",
       "artist": "Boys Noize, remixer (Nine Inch Nails, Boys Noize)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezersong-review-3870321591.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezersong-review-3870321591.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/01bf1ec65315f1db684e79eac8876b16/500x500-000000-80-0-0.jpg",
+          "title": "A Question Of Trust (Boys Noize Remix)",
+          "artist": "Nine Inch Nails",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "25993",
@@ -1853,9 +2068,22 @@
       "category": "最佳金属表演",
       "title": "Hive Mind",
       "artist": "Knocked Loose Featuring Denzel Curry",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26000.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26000.webp",
+          "source": "https://open.spotify.com/embed/album/6eNCE2Inl49H7U8L0YaaRg",
+          "imageSource": "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02b0f2d071d2ee5965c435f83b",
+          "verification": "Matching release, title and artwork visually reviewed.",
+          "type": "release-artwork"
+        }
+      ],
+      "dimensions": [
+        300,
+        300
+      ]
     },
     {
       "id": "26001",
@@ -1997,9 +2225,22 @@
       "category": "最佳摇滚歌曲",
       "title": "Streets of Minneapolis - Radio Mix",
       "artist": "Bruce Springsteen, songwriter (Bruce Springsteen)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-907049172.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-907049172.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/78c09ca376ffef826c4ec03f7f468d4e/500x500-000000-80-0-0.jpg",
+          "title": "Streets of Minneapolis (Radio Mix)",
+          "artist": "Bruce Springsteen",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26008",
@@ -2008,7 +2249,17 @@
       "artist": "Max Bassin, Dominic DiGesu, Emily Green & Cameron Winter, songwriters (Geese)",
       "image": "/grammy-2027/works/qq-000duKOY3DmmXp.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "Trinidad",
+          "artist": "Geese",
+          "image": "/grammy-2027/works/qq-000duKOY3DmmXp.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000000duKOY3DmmXp.jpg",
+          "matchedTitle": "Trinidad",
+          "matchedArtist": "Geese"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -2303,7 +2554,17 @@
       "artist": "Phoebe Bridgers",
       "image": "/grammy-2027/works/qq-004Bb1A42Mlhks.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "Lost Weekend",
+          "artist": "Phoebe Bridgers",
+          "image": "/grammy-2027/works/qq-004Bb1A42Mlhks.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000004Bb1A42Mlhks.jpg",
+          "matchedTitle": "Lost Weekend",
+          "matchedArtist": "Phoebe Bridgers"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -2379,7 +2640,17 @@
       "artist": "ROSALÍA",
       "image": "/grammy-2027/works/qq-001NQYrG0zK1ZZ.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "LUX (Complete Works)",
+          "artist": "ROSALÍA",
+          "image": "/grammy-2027/works/qq-001NQYrG0zK1ZZ.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000001NQYrG0zK1ZZ.jpg",
+          "matchedTitle": "Dios Es Un Stalker",
+          "matchedArtist": "ROSALÍA"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -2497,9 +2768,23 @@
       "category": "最佳 R&B 合作或组合表演",
       "title": "Fallin'",
       "artist": "Chris Brown Featuring Leon Thomas",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-6764419265.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-6764419265.webp",
+          "source": "https://music.apple.com/us/album/fallin-feat-leon-thomas/1895772091?i=6764419265&uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/49/2c/95/492c9561-9df1-bdfc-ad24-00e9f2403db2/196874328361.jpg/600x600bb.jpg",
+          "title": "BROWN",
+          "artist": "Chris Brown",
+          "verification": "Release identified by album ID and full credits, including Broadway cast and edition."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26033",
@@ -2704,7 +2989,15 @@
       "artist": "Jahshua Brown, Darhyl Camper, Jr., Jeff Gitelman, Tiyon Mack, Victoria Monét & Branden Rowell, songwriters (Victoria Monét)",
       "image": "/grammy-2027/works/31c02804-49a3-47ec-ae63-45d0faf9ec5c.webp",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-work-cover-sources.json",
+          "image": "/grammy-2027/works/31c02804-49a3-47ec-ae63-45d0faf9ec5c.webp",
+          "source": "https://coverartarchive.org/release/31c02804-49a3-47ec-ae63-45d0faf9ec5c/front-250",
+          "title": "Let Me",
+          "artist": "Victoria Monét"
+        }
+      ],
       "dimensions": [
         250,
         250
@@ -2717,7 +3010,16 @@
       "artist": "Lazaro A. Camejo, Rob Gueringer, Nile Eugene Hargrove, Peter Lee Johnson, Marcus Clayton Paul, David Kenneth Phelps & Leon Thomas, songwriters (Leon Thomas)",
       "image": "/grammy-2027/works/deezer-839436302.webp",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-work-cover-sources.json",
+          "image": "/grammy-2027/works/deezer-839436302.webp",
+          "source": "https://www.deezer.com/album/839436302",
+          "artwork": "https://cdn-images.dzcdn.net/images/cover/3b7b514909218c5821a6abbfb67d9c4c/250x250-000000-80-0-0.jpg",
+          "title": "My Muse",
+          "artist": "Leon Thomas"
+        }
+      ],
       "dimensions": [
         250,
         250
@@ -2730,7 +3032,17 @@
       "artist": "Antonio Dixon, Kehlani Parrish, Ashton Norful, Khris Riddick-Tynes & Talay Riley, songwriters (Kehlani)",
       "image": "/grammy-2027/works/qq-000HNbUF1Raqtk.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "Out The Window",
+          "artist": "Kehlani",
+          "image": "/grammy-2027/works/qq-000HNbUF1Raqtk.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000000HNbUF1Raqtk.jpg",
+          "matchedTitle": "Out The Window",
+          "matchedArtist": "Kehlani"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -2743,7 +3055,15 @@
       "artist": "Adam Blackstone, Jill Scott & Vincent Tolan, songwriters (Jill Scott)",
       "image": "/grammy-2027/works/3e87de63-88b2-4fe0-8bb2-32c5260e1ad1.webp",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-work-cover-sources.json",
+          "image": "/grammy-2027/works/3e87de63-88b2-4fe0-8bb2-32c5260e1ad1.webp",
+          "source": "https://coverartarchive.org/release/3e87de63-88b2-4fe0-8bb2-32c5260e1ad1/front-250",
+          "title": "Pressha",
+          "artist": "Jill Scott"
+        }
+      ],
       "dimensions": [
         250,
         250
@@ -2756,7 +3076,15 @@
       "artist": "Ronald Banful & Temilade Openiyi, songwriters (Tems)",
       "image": "/grammy-2027/works/2d1b5cca-ae3d-47e6-a828-789ee71f37f7.webp",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-work-cover-sources.json",
+          "image": "/grammy-2027/works/2d1b5cca-ae3d-47e6-a828-789ee71f37f7.webp",
+          "source": "https://coverartarchive.org/release/2d1b5cca-ae3d-47e6-a828-789ee71f37f7/front-250",
+          "title": "What You Need",
+          "artist": "Tems"
+        }
+      ],
       "dimensions": [
         250,
         250
@@ -2872,9 +3200,22 @@
       "category": "最佳 R&B 专辑",
       "title": "BROWN (The Chocolate Edition)",
       "artist": "Chris Brown",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-1007369311.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-1007369311.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/b75fdeb32e6f3fb0760933cda2de95c8/500x500-000000-80-0-0.jpg",
+          "title": "BROWN (The Chocolate Edition)",
+          "artist": "Chris Brown",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26053",
@@ -3189,7 +3530,24 @@
       "artist": "Derek Anderson, Aaron Paryce Cheung, Jaasu Mallory, Jacques Webster & Caleb Toliver, songwriters (Don Toliver)",
       "image": "/grammy-2027/works/apple-1873328276.webp",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-apple-cover-sources.json",
+          "image": "/grammy-2027/works/apple-1873328276.webp",
+          "source": "https://music.apple.com/us/album/body/1873328276?i=1873328281&uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/00/c1/dd/00c1dd09-3f86-7288-01dc-63b9f4262f57/075679599377.jpg/600x600bb.jpg",
+          "title": "Body",
+          "artist": "Don Toliver"
+        },
+        {
+          "manifest": "grammy-2027-apple-cover-sources.json",
+          "image": "/grammy-2027/works/apple-1873328276.webp",
+          "source": "https://music.apple.com/us/album/e85/1873328276?i=1873328279&uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/00/c1/dd/00c1dd09-3f86-7288-01dc-63b9f4262f57/075679599377.jpg/600x600bb.jpg",
+          "title": "E85",
+          "artist": "Don Toliver"
+        }
+      ],
       "dimensions": [
         600,
         600
@@ -3202,7 +3560,16 @@
       "artist": "Matthew Allen, Javaan Durrell Anderson, Belcalis Almanzar, Ronnie Jackson, James D. Steed & Jordan Thorpe, songwriters (Cardi B)",
       "image": "/grammy-2027/works/deezer-823774851.webp",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-work-cover-sources.json",
+          "image": "/grammy-2027/works/deezer-823774851.webp",
+          "source": "https://www.deezer.com/album/823774851",
+          "artwork": "https://cdn-images.dzcdn.net/images/cover/0512ffe8654dbd6c01616ddffaca3786/250x250-000000-80-0-0.jpg",
+          "title": "ErrTime",
+          "artist": "Cardi B"
+        }
+      ],
       "dimensions": [
         250,
         250
@@ -3215,7 +3582,16 @@
       "artist": "Darius Scott, Jaylah Hickmon, Jahlil Gunter, Solána Rowe, Anthony “Moosa” Tiffith Jr. & Anthony “Top Dawg” Tiffith, songwriters (Doechii Featuring SZA)",
       "image": "/grammy-2027/works/apple-1865289044.webp",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-apple-cover-sources.json",
+          "image": "/grammy-2027/works/apple-1865289044.webp",
+          "source": "https://music.apple.com/us/album/girl-get-up/1865289044?i=1865289047&uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/31/16/24/311624ec-6e38-eb42-d55b-cd0318a61a7a/25UMGIM72063.rgb.jpg/600x600bb.jpg",
+          "title": "girl, get up.",
+          "artist": "Doechii & SZA"
+        }
+      ],
       "dimensions": [
         600,
         600
@@ -3248,9 +3624,22 @@
       "category": "最佳说唱歌曲",
       "title": "Spend Dat",
       "artist": "Caresha Romeka Brownlee, Akil King, Maurice Simmonds & Anthony Germaine White, songwriters (Yung Miami)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/applesong-review-1892189881.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/applesong-review-1892189881.webp",
+          "source": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/b1/a5/ef/b1a5efe5-9be8-285f-4d08-b676b4be4e08/26UMGIM41444.rgb.jpg/600x600bb.jpg",
+          "title": "Spend Dat",
+          "artist": "Yung Miami",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26072",
@@ -3364,18 +3753,44 @@
       "category": "最佳说唱专辑",
       "title": "BULLY - DELUXE",
       "artist": "Kanye West (Ye)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-1010171471.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-1010171471.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/bee7027021b52bb1b7487eee1cd82244/500x500-000000-80-0-0.jpg",
+          "title": "BULLY - DELUXE",
+          "artist": "Kanye West",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26078",
       "category": "最佳口述诗歌专辑",
       "title": "Black Shaman Strikes Back",
       "artist": "Marc Marcel",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-1057484582.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-1057484582.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/e7c226a8a3b0041ad90f17b89fc5e7f3/500x500-000000-80-0-0.jpg",
+          "title": "Black Shaman Strikes Back",
+          "artist": "Marc Marcel",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26079",
@@ -3403,9 +3818,22 @@
       "category": "最佳口述诗歌专辑",
       "title": "A Hero And A Villain",
       "artist": "Mad Skillz",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-1037428442.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-1037428442.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/d0fee03afefc304609dd278ab18499fc/500x500-000000-80-0-0.jpg",
+          "title": "A Hero And A Villain",
+          "artist": "Mad Skillz",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26081",
@@ -3478,9 +3906,22 @@
       "category": "最佳爵士表演",
       "title": "Good Life - TAMRON HALL Main Title Theme",
       "artist": "The Baylor Project",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/applesong-review-6802470206.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/applesong-review-6802470206.webp",
+          "source": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/d0/20/7b/d0207bcb-1485-5612-84ad-a0b2dbddce34/26UM1IM05071.rgb.jpg/600x600bb.jpg",
+          "title": "Good Life (TAMRON HALL Main Title Theme)",
+          "artist": "The Baylor Project",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26085",
@@ -3814,9 +4255,22 @@
       "category": "最佳大型爵士乐团专辑",
       "title": "Jim Mcneely Expeditions",
       "artist": "Frankfurt Radio Big Band & Jim McNeely",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/qqalbum-review-002rDQTa2CeGl1.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/qqalbum-review-002rDQTa2CeGl1.webp",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000002rDQTa2CeGl1.jpg",
+          "title": "Jim McNeely Expeditions",
+          "artist": "Frankfurt Radio Big band",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26101",
@@ -3950,9 +4404,22 @@
       "category": "最佳拉丁爵士专辑",
       "title": "El Arte Del Bolero Vol. 3",
       "artist": "Miguel Zenón & Luis Perdomo",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/qqalbum-review-003pZAqT2Hx2Kt.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/qqalbum-review-003pZAqT2Hx2Kt.webp",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000003pZAqT2Hx2Kt.jpg",
+          "title": "El Arte Del Bolero, Vol. 3",
+          "artist": "Miguel Zenón",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26108",
@@ -4392,27 +4859,69 @@
       "category": "最佳音乐剧专辑",
       "title": "CHESS the Musical",
       "artist": "Nicholas Christopher, Hannah Cruz, Bradley Dean, Lea Michele, Bryce Pinkham & Aaron Tveit, principal vocalists; Benny Andersson, Ludvig Andersson & Brian Usifer, producers (Benny Andersson & Björn Ulvaeus, composers; Tim Rice, lyricist) (2025 Broadway Cast)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-1889331531.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-1889331531.webp",
+          "source": "https://music.apple.com/us/album/chess-the-musical-2025-broadway-cast-recording/1889331531?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/ba/da/f5/badaf58f-fa9f-ddb3-364a-12b2512dd9be/791558462289.jpg/600x600bb.jpg",
+          "title": "CHESS the Musical (2025 Broadway Cast Recording)",
+          "artist": "Benny Andersson, Björn Ulvaeus & Tim Rice",
+          "verification": "Release identified by album ID and full credits, including Broadway cast and edition."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26129",
       "category": "最佳音乐剧专辑",
       "title": "The Lost Boys",
       "artist": "Shoshana Bean, LJ Benet, Ali Louis Bourzgui, Paul Alexander Nolan, Benjamin Pajak & Maria Wirries, principal vocalists; Kyler England, Adrianne Gonzalez, Gabriel Mann & Ethan Popp, producers; Kyler England, Adrianne Gonzalez & Gabriel Mann, composers/lyricists (Original Broadway Cast)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-6772352418.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-6772352418.webp",
+          "source": "https://music.apple.com/us/album/the-lost-boys-original-broadway-cast-recording/6772352418?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/94/fc/a1/94fca12c-b955-f69e-3f8d-6342faa67e58/075679574145.jpg/600x600bb.jpg",
+          "title": "The Lost Boys (Original Broadway Cast Recording)",
+          "artist": "Original Broadway Cast of The Lost Boys",
+          "verification": "Release identified by album ID and full credits, including Broadway cast and edition."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26130",
       "category": "最佳音乐剧专辑",
       "title": "Ragtime",
       "artist": "Colin Donnell, Joshua Henry, Caissie Levy, Nichelle Lewis, Ben Levi Ross & Brandon Uranowitz, principal vocalists; Lynn Ahrens, Sean Patrick Flahaven & Stephen Flaherty, producers (Stephen Flaherty, composer; Lynn Ahrens, lyricist) (2025 Broadway Cast)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-1859789897.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-1859789897.webp",
+          "source": "https://music.apple.com/us/album/ragtime-2025-broadway-cast-recording/1859789897?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/12/f7/e2/12f7e217-22ef-b1f6-e855-2ce73678acd7/25CRGIM52296.rgb.jpg/600x600bb.jpg",
+          "title": "Ragtime (2025 Broadway Cast Recording)",
+          "artist": "Lynn Ahrens & Stephen Flaherty",
+          "verification": "Release identified by album ID and full credits, including Broadway cast and edition."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26131",
@@ -4440,9 +4949,23 @@
       "category": "最佳音乐剧专辑",
       "title": "Two Strangers (Carry A Cake Across New York)",
       "artist": "Christiani Pitts & Sam Tutty, principal vocalists; Jim Barne, Nick Finlow, Tim Jackson & Lux Pyramid, producers; Jim Barne, composer; Kit Buchan, lyricist (Original Broadway Cast)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-1878424761.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-1878424761.webp",
+          "source": "https://music.apple.com/us/album/two-strangers-carry-a-cake-across-new-york-original/1878424761?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/e9/99/6f/e9996f37-b2fb-64e8-0258-597b6c86ea5f/190900.jpg/600x600bb.jpg",
+          "title": "Two Strangers (Carry A Cake Across New York) [Original Broadway Cast Recording]",
+          "artist": "Two Strangers (Carry A Cake Across New York), Kit Buchan & Jim Barne",
+          "verification": "Release identified by album ID and full credits, including Broadway cast and edition."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26133",
@@ -4473,7 +4996,17 @@
       "artist": "Ella Langley",
       "image": "/grammy-2027/works/qq-0019GJ9B2EmzB0.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "Choosin' Texas",
+          "artist": "Ella Langley",
+          "image": "/grammy-2027/works/qq-0019GJ9B2EmzB0.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M0000019GJ9B2EmzB0.jpg",
+          "matchedTitle": "Choosin' Texas",
+          "matchedArtist": "Ella Langley"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -4676,7 +5209,17 @@
       "artist": "Luke Dick, Miranda Lambert, Ella Langley & Joybeth Taylor, songwriters (Ella Langley)",
       "image": "/grammy-2027/works/qq-0019GJ9B2EmzB0.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "Choosin' Texas",
+          "artist": "Ella Langley",
+          "image": "/grammy-2027/works/qq-0019GJ9B2EmzB0.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M0000019GJ9B2EmzB0.jpg",
+          "matchedTitle": "Choosin' Texas",
+          "matchedArtist": "Ella Langley"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -4689,7 +5232,15 @@
       "artist": "Luke Laird, Shane McAnally, Kacey Musgraves & Josh Osborne, songwriters (Kacey Musgraves)",
       "image": "/grammy-2027/works/01b477a8-8065-4aa9-8ef1-5d6d38d4caca.webp",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-work-cover-sources.json",
+          "image": "/grammy-2027/works/01b477a8-8065-4aa9-8ef1-5d6d38d4caca.webp",
+          "source": "https://coverartarchive.org/release/01b477a8-8065-4aa9-8ef1-5d6d38d4caca/front-250",
+          "title": "Dry Spell",
+          "artist": "Kacey Musgraves"
+        }
+      ],
       "dimensions": [
         250,
         141
@@ -4893,7 +5444,17 @@
       "artist": "Ella Langley",
       "image": "/grammy-2027/works/qq-002EwUAC3TBlLW.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "Dandelion",
+          "artist": "Ella Langley",
+          "image": "/grammy-2027/works/qq-002EwUAC3TBlLW.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000002EwUAC3TBlLW.jpg",
+          "matchedTitle": "Dandelion",
+          "matchedArtist": "Ella Langley"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -4990,9 +5551,22 @@
       "category": "最佳美国根源音乐表演",
       "title": "Coyote",
       "artist": "Chuck Leah",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-1036647262.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-1036647262.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/5ab657668411930eb66b5034c3991d63/500x500-000000-80-0-0.jpg",
+          "title": "Coyote",
+          "artist": "Chuck Leah",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26161",
@@ -5087,7 +5661,16 @@
       "artist": "Mavis Staples",
       "image": "/grammy-2027/works/deezer-797368741.webp",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-work-cover-sources.json",
+          "image": "/grammy-2027/works/deezer-797368741.webp",
+          "source": "https://www.deezer.com/album/797368741",
+          "artwork": "https://cdn-images.dzcdn.net/images/cover/3fa9cfe70a1e5dd3edc71c42663e5f85/250x250-000000-80-0-0.jpg",
+          "title": "Sad And Beautiful World",
+          "artist": "Mavis Staples"
+        }
+      ],
       "dimensions": [
         250,
         250
@@ -5186,7 +5769,22 @@
       "artist": "Brandi Carlile, songwriter (Brandi Carlile)",
       "image": "/grammy-2027/works/362a3ace-7893-4090-808a-8ea1436506ff.webp",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-work-cover-sources.json",
+          "image": "/grammy-2027/works/362a3ace-7893-4090-808a-8ea1436506ff.webp",
+          "source": "https://coverartarchive.org/release/362a3ace-7893-4090-808a-8ea1436506ff/front-250",
+          "title": "Returning to Myself",
+          "artist": "Brandi Carlile"
+        },
+        {
+          "manifest": "grammy-2027-work-cover-sources.json",
+          "image": "/grammy-2027/works/362a3ace-7893-4090-808a-8ea1436506ff.webp",
+          "source": "https://coverartarchive.org/release/362a3ace-7893-4090-808a-8ea1436506ff/front-250",
+          "title": "Returning to Myself",
+          "artist": "Brandi Carlile"
+        }
+      ],
       "dimensions": [
         249,
         250
@@ -5558,9 +6156,22 @@
       "category": "最佳当代布鲁斯专辑",
       "title": "Alive! (Live)",
       "artist": "Fantastic Negrito",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-6768674873.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-6768674873.webp",
+          "source": "https://music.apple.com/us/album/alive-live/6768674873?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/72/53/7a/72537aaa-98c1-09e5-6ce5-e6947464a7d2/824296567999_cover.jpg/600x600bb.jpg",
+          "title": "Alive! (Live)",
+          "artist": "Fantastic Negrito"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26189",
@@ -5953,9 +6564,22 @@
       "category": "最佳地区根源音乐专辑",
       "title": "Tongva Songs We Are Here Ekwa Chem",
       "artist": "TONGVA ENSEMBLE Featuring Connor Chee & Geneviève Gros-Louis",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-6801443499.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-6801443499.webp",
+          "source": "https://music.apple.com/us/album/tongva-songs-we-are-here-ekwa-chem/6801443499?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/4e/42/fe/4e42fe9e-a004-3cb8-9b5c-ebcfb9a25b3d/060b56d9-885a-49e8-aee0-413a9283f9a7.jpg/600x600bb.jpg",
+          "title": "Tongva Songs We Are Here Ekwa Chem",
+          "artist": "Various Artists"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26208",
@@ -6304,9 +6928,23 @@
       "category": "最佳当代基督教音乐专辑",
       "title": "Shiloh",
       "artist": "DOE",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-6790844174.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-6790844174.webp",
+          "source": "https://music.apple.com/us/album/shiloh-live/6790844174?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/36/18/16/361816f2-0379-2165-d16c-60456155208d/196874583159.jpg/600x600bb.jpg",
+          "title": "Shiloh (Live)",
+          "artist": "DOE",
+          "verification": "Release identified by album ID and full credits, including Broadway cast and edition."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26225",
@@ -6399,18 +7037,44 @@
       "category": "最佳根源福音专辑",
       "title": "Through The Fire",
       "artist": "Jason Crabb",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/applealbum-review-6770625333.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/applealbum-review-6770625333.webp",
+          "source": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/30/17/b5/3017b5ec-cdde-5e5e-3c0f-176709c16de0/824296674222_cover.jpg/600x600bb.jpg",
+          "title": "Through The Fire",
+          "artist": "Jason Crabb",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26230",
       "category": "最佳根源福音专辑",
       "title": "On A Different Note",
       "artist": "Tim Lovelace",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-1024497761.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-1024497761.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/84bff94ff532f404682b161f08f984ac/500x500-000000-80-0-0.jpg",
+          "title": "On A Different Note",
+          "artist": "Tim Lovelace",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26231",
@@ -6438,9 +7102,22 @@
       "category": "最佳根源福音专辑",
       "title": "A Fireside Christmas",
       "artist": "Karen Peck & New River",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-842610602.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-842610602.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/6b4ff6d0de7a7b01b5e93b9af781df13/500x500-000000-80-0-0.jpg",
+          "title": "A Fireside Christmas",
+          "artist": "Karen Peck & New River",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26233",
@@ -6743,9 +7420,22 @@
       "category": "最佳拉丁都市音乐专辑",
       "title": "OMAKASE",
       "artist": "Alvaro Diaz",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-6771082594.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-6771082594.webp",
+          "source": "https://music.apple.com/us/album/omakase/6771082594?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/53/3a/bd/533abda9-b144-defd-84d8-bc203757c32a/26UMGIM52886.rgb.jpg/600x600bb.jpg",
+          "title": "OMAKASE",
+          "artist": "Álvaro Díaz"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26248",
@@ -6879,9 +7569,23 @@
       "category": "最佳拉丁摇滚或另类专辑",
       "title": "Shine",
       "artist": "Fito Paez",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/apple-verified-6762993129.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/apple-verified-6762993129.webp",
+          "source": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/65/f6/09/65f6090b-414b-6573-ad5d-2fc9451a6f52/196874229538.jpg/600x600bb.jpg",
+          "title": "Shine",
+          "artist": "Fito Páez",
+          "album": "Shine - Single",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26255",
@@ -6951,9 +7655,22 @@
       "category": "最佳墨西哥音乐专辑（含 Tejano）",
       "title": "DINASTÍA (DELUXE)",
       "artist": "Peso Pluma, Tito Double P",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-926648731.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-926648731.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/7e1090f42ada72f8ee6746edf03d0645/500x500-000000-80-0-0.jpg",
+          "title": "DINASTÍA (DELUXE)",
+          "artist": "Peso Pluma",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26259",
@@ -7128,9 +7845,23 @@
       "category": "最佳全球音乐表演",
       "title": "Bando [Orchestral]",
       "artist": "Angélique Kidjo Featuring Pharrell Williams & Quavo",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezer-verified-4155436732.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezer-verified-4155436732.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/5b1a13631d26a3e81a34f4abdd139a28/500x500-000000-80-0-0.jpg",
+          "title": "Bando (Orchestral)",
+          "artist": "Angelique Kidjo",
+          "album": "Bando (Orchestral)",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26268",
@@ -7453,9 +8184,22 @@
       "category": "最佳雷鬼专辑",
       "title": "The Art of Acceptance",
       "artist": "Protoje",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-913261421.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-913261421.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/2f13090a51a47aea4b864f09e15c477e/500x500-000000-80-0-0.jpg",
+          "title": "The Art of Acceptance",
+          "artist": "Protoje",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26284",
@@ -7525,27 +8269,66 @@
       "category": "最佳新世纪、氛围或吟唱专辑",
       "title": "Balance",
       "artist": "Paul Avgerinos",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-923693761.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-923693761.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/88ef46e88283de9eae54aed19d994bce/500x500-000000-80-0-0.jpg",
+          "title": "Balance",
+          "artist": "Paul Avgerinos",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26288",
       "category": "最佳新世纪、氛围或吟唱专辑",
       "title": "Liminal",
       "artist": "Brian Eno, Beatie Wolfe",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/applealbum-review-1833006238.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/applealbum-review-1833006238.webp",
+          "source": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/1a/02/92/1a0292af-eea8-3582-5501-87e910f442da/25UM1IM07236.rgb.jpg/600x600bb.jpg",
+          "title": "Liminal",
+          "artist": "Brian Eno & Beatie Wolfe",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26289",
       "category": "最佳新世纪、氛围或吟唱专辑",
       "title": "Unspoken Psalms",
       "artist": "Chris Redding",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-1053629492.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-1053629492.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/701cd8b35de0b00f859c1dc688e8169c/500x500-000000-80-0-0.jpg",
+          "title": "Unspoken Psalms",
+          "artist": "Chris Redding",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26290",
@@ -7615,9 +8398,22 @@
       "category": "最佳儿童音乐专辑",
       "title": "Little Birdie's Big Symphony",
       "artist": "Scott & Mark Hoying",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/applealbum-review-6803655936.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/applealbum-review-6803655936.webp",
+          "source": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/ef/33/86/ef3386f5-73c1-3fc7-4df2-17fafb74487a/823375386643_Cover.jpg/600x600bb.jpg",
+          "title": "Little Birdie’s Big Symphony",
+          "artist": "Scott & Mark Hoying",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26294",
@@ -7645,36 +8441,88 @@
       "category": "最佳儿童音乐专辑",
       "title": "Starchild, Vol. 1",
       "artist": "Divinity Roxx and Divi Roxx Kids",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/applealbum-review-6798126144.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/applealbum-review-6798126144.webp",
+          "source": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/72/bf/fe/72bffe3a-c8a2-d4bf-bdc3-a69f33f184b8/859743515926_cover.jpg/600x600bb.jpg",
+          "title": "Starchild, Vol. 1",
+          "artist": "Divinity Roxx & Divi Roxx Kids",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26296",
       "category": "最佳喜剧专辑",
       "title": "Good Girl",
       "artist": "Nikki Glaser",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-1047063612.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-1047063612.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/1ba2492ba35192103468a0c3bf477853/500x500-000000-80-0-0.jpg",
+          "title": "Good Girl",
+          "artist": "Nikki Glaser",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26297",
       "category": "最佳喜剧专辑",
       "title": "Joy in The Trenches",
       "artist": "Trevor Noah",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/applesong-review-6800559705.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/applesong-review-6800559705.webp",
+          "source": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/17/00/a1/1700a119-a28a-714f-56e5-7a49569315b1/810196500600.png/600x600bb.jpg",
+          "title": "Joy in the Trenches",
+          "artist": "Trevor Noah",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26298",
       "category": "最佳喜剧专辑",
       "title": "Legacy",
       "artist": "Wanda Sykes",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26298.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26298.webp",
+          "source": "https://www.rottentomatoes.com/m/wanda_sykes_legacy",
+          "imageSource": "https://resizing.flixster.com/86T5eM87lvSNWD7VHMqHJUsCWMk=/206x305/v2/https://resizing.flixster.com/o_63-G1XAEoQ4aj5UKz57rE1ayM=/ems.cHJkLWVtcy1hc3NldHMvbW92aWVzL2I0YTM3YzIwLTU0YjEtNDhhNi1hYzYzLTE2MTBmY2VjNjc5Yi5qcGc=",
+          "verification": "Matching release page and artwork title checked.",
+          "type": "release-artwork"
+        }
+      ],
+      "dimensions": [
+        206,
+        305
+      ]
     },
     {
       "id": "26299",
@@ -7702,45 +8550,112 @@
       "category": "最佳喜剧专辑",
       "title": "Take a Banana for the Ride",
       "artist": "Jeff Ross",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/applealbum-review-6823180749.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/applealbum-review-6823180749.webp",
+          "source": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/e0/31/e6/e031e6c0-905b-81af-11da-a632f9dd8652/4071576068066.jpg/600x600bb.jpg",
+          "title": "Take A Banana For The Ride",
+          "artist": "Jeff Ross",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26301",
       "category": "最佳喜剧专辑",
       "title": "The Unstoppable...",
       "artist": "Dave Chappelle",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26301.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26301.webp",
+          "source": "https://www.rottentomatoes.com/m/dave_chappelle_the_unstoppable",
+          "imageSource": "https://resizing.flixster.com/XVZqPtxcbJ2IAIlNNFiAMuMptmM=/206x305/v2/https://resizing.flixster.com/qDbsUurn8vjUZ4HPuDXJm_pfHTw=/ems.cHJkLWVtcy1hc3NldHMvbW92aWVzLzA4ODIzZTE2LWNjMzEtNDliZC1hZDk2LThjZWVjZDI5YjIwNi5qcGc=",
+          "type": "film-poster",
+          "verification": "Replaced general promotional image with the identified release cover or title poster."
+        }
+      ],
+      "dimensions": [
+        206,
+        305
+      ]
     },
     {
       "id": "26302",
       "category": "最佳有声书、朗读与叙事录音",
       "title": "Future Boy",
       "artist": "Michael J. Fox",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-1771863063.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-1771863063.webp",
+          "source": "https://books.apple.com/us/audiobook/future-boy/id1771863063?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/91/31/8f/91318fb4-49f6-d73b-d65f-dfcce1741597/9781250403230.jpg/600x600bb.jpg",
+          "title": "Future Boy",
+          "artist": "Michael J Fox & Nelle Fortenberry",
+          "verification": "Identified audiobook or soundtrack release; ID and edition checked."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26303",
       "category": "最佳有声书、朗读与叙事录音",
       "title": "The Look",
       "artist": "Michelle Obama",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-1818499265.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-1818499265.webp",
+          "source": "https://books.apple.com/us/audiobook/the-look-unabridged/id1818499265?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/db/ad/f6/dbadf684-8795-473a-b292-165b7ffb51da/9798217294435.d.jpg/600x600bb.jpg",
+          "title": "The Look (Unabridged)",
+          "artist": "Michelle Obama",
+          "verification": "Identified audiobook or soundtrack release; ID and edition checked."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26304",
       "category": "最佳有声书、朗读与叙事录音",
       "title": "The Man on the Run",
       "artist": "Paul McCartney, Morgan Neville",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26304.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26304.webp",
+          "source": "https://www.paulmccartney.com/discography/albums/man-on-the-run-music-from-the-motion-picture-soundtrack",
+          "imageSource": "https://eu-west-2.graphassets.com/A4WEZhR8eReCuFZel5SMSz/cmn5yvqgf1dw707mg0ukfcb1w",
+          "verification": "Matching release page and artwork title checked.",
+          "type": "release-artwork"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26305",
@@ -7768,54 +8683,136 @@
       "category": "最佳有声书、朗读与叙事录音",
       "title": "Star of the Show: My Life on Stage",
       "artist": "Dolly Parton",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-1805282724.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-1805282724.webp",
+          "source": "https://books.apple.com/us/audiobook/star-of-the-show-my-life-on-stage-unabridged/id1805282724?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/33/bf/6c/33bf6c55-4ee6-fcb3-eac4-16e17aea7c27/9798217165940.d.jpg/600x600bb.jpg",
+          "title": "Star of the Show: My Life on Stage (Unabridged)",
+          "artist": "Dolly Parton",
+          "verification": "Identified audiobook or soundtrack release; ID and edition checked."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26307",
       "category": "最佳有声书、朗读与叙事录音",
       "title": "Vagabond: A Memoir",
       "artist": "Tim Curry",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-1798507558.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-1798507558.webp",
+          "source": "https://books.apple.com/us/audiobook/vagabond/id1798507558?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/eb/3d/d1/eb3dd149-ebd7-2687-378e-7d401281ff43/9781668648896.jpg/600x600bb.jpg",
+          "title": "Vagabond",
+          "artist": "Tim Curry",
+          "verification": "Identified audiobook or soundtrack release; ID and edition checked."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26308",
       "category": "最佳视觉媒体原声合辑",
       "title": "The Devil Wears Prada 2",
       "artist": "(Various Artists)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26308.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26308.webp",
+          "source": "https://filmmusicreporter.com/2026/04/29/the-devil-wears-prada-2-soundtrack-album-details/",
+          "imageSource": "https://filmmusicreporter.com/wp-content/uploads/2026/04/vs-81-300x300.jpeg",
+          "verification": "Matching release, title and artwork visually reviewed.",
+          "type": "release-artwork"
+        }
+      ],
+      "dimensions": [
+        300,
+        300
+      ]
     },
     {
       "id": "26309",
       "category": "最佳视觉媒体原声合辑",
       "title": "Stranger Things Season 5",
       "artist": "(Various Artists)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-1862239251.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-1862239251.webp",
+          "source": "https://music.apple.com/us/album/stranger-things-soundtrack-from-the-netflix-series/1862239251?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/7a/d3/cf/7ad3cf5d-c594-ff05-f3ca-d7a9d2d123bb/196873833422.jpg/600x600bb.jpg",
+          "title": "Stranger Things: Soundtrack from the Netflix Series, Season 5",
+          "artist": "Various Artists",
+          "verification": "Identified audiobook or soundtrack release; ID and edition checked."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26310",
       "category": "最佳视觉媒体原声合辑",
       "title": "Wicked: For Good",
       "artist": "(Various Artists)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-1839569160.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-1839569160.webp",
+          "source": "https://music.apple.com/us/album/wicked-for-good-the-soundtrack/1839569160?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/e8/77/90/e87790f8-1dd6-d64b-3d5d-6083552aca7f/25UM1IM45249.rgb.jpg/600x600bb.jpg",
+          "title": "Wicked: For Good – The Soundtrack",
+          "artist": "Wicked Movie Cast, Cynthia Erivo & Ariana Grande",
+          "verification": "Identified audiobook or soundtrack release; ID and edition checked."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26311",
       "category": "最佳视觉媒体原声合辑",
       "title": "The Wizard of Oz at Sphere",
       "artist": "The Wizard of Oz at Sphere",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-1849019472.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-1849019472.webp",
+          "source": "https://music.apple.com/us/album/the-wizard-of-oz-at-sphere-the-soundtrack/1849019472?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/0e/58/cb/0e58cb57-ddb9-8376-8020-584fdc55b88a/794043226526.jpg/600x600bb.jpg",
+          "title": "The Wizard of Oz at Sphere: The Soundtrack",
+          "artist": "The Wizard of Oz at Sphere"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26312",
@@ -7885,9 +8882,23 @@
       "category": "最佳影视配乐专辑",
       "title": "Project Hail Mary",
       "artist": "Daniel Pemberton, composer",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-1884144779.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-1884144779.webp",
+          "source": "https://music.apple.com/us/album/project-hail-mary-original-motion-picture-score/1884144779?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/05/e1/19/05e1191c-c7e3-6ff2-11b2-6141413a640e/196874103975.jpg/600x600bb.jpg",
+          "title": "Project Hail Mary (Original Motion Picture Score)",
+          "artist": "Daniel Pemberton",
+          "verification": "Identified audiobook or soundtrack release; ID and edition checked."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26316",
@@ -7957,9 +8968,23 @@
       "category": "最佳游戏及其他互动媒体配乐",
       "title": "007: First Light",
       "artist": "Joe Henson & Alexis Leon Smith, composers",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-6795250385.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-6795250385.webp",
+          "source": "https://music.apple.com/us/album/007-first-light-original-video-game-soundtrack/6795250385?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/80/24/18/8024181f-ac07-7ca4-07b8-61fe96c70ba2/196874449875.jpg/600x600bb.jpg",
+          "title": "007 First Light (Original Video Game Soundtrack)",
+          "artist": "The Flight",
+          "verification": "Identified audiobook or soundtrack release; ID and edition checked."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26320",
@@ -8029,9 +9054,22 @@
       "category": "最佳视觉媒体原创歌曲",
       "title": "House [From \"Wuthering Heights\"]",
       "artist": "John Cale & Charli xcx, songwriters (Charli xcx Featuring John Cale)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-1852566185.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-1852566185.webp",
+          "source": "https://music.apple.com/us/album/house-featuring-john-cale/1852566184?i=1852566185&uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/a8/e6/66/a8e6669b-9028-900c-adb9-05d4ddee4625/075679591906.jpg/600x600bb.jpg",
+          "title": "House featuring John Cale",
+          "artist": "Charli xcx & John Cale"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26324",
@@ -8051,27 +9089,66 @@
       "category": "最佳视觉媒体原创歌曲",
       "title": "Need Someone [From \"The Pitt\"]",
       "artist": "Andrew Bird, songwriter (Andrew Bird, Gavin Brivik)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/qqalbum-review-004CIHOc0LeWya.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/qqalbum-review-004CIHOc0LeWya.webp",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000004CIHOc0LeWya.jpg",
+          "title": "Need Someone (From The MAX Original Series The Pitt)",
+          "artist": "Andrew Bird",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26326",
       "category": "最佳视觉媒体原创歌曲",
       "title": "No Place Like Home [From \"Wicked: For Good\"]",
       "artist": "Stephen Schwartz, songwriter (Cynthia Erivo)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/applesong-review-1839569160.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/applesong-review-1839569160.webp",
+          "source": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/e8/77/90/e87790f8-1dd6-d64b-3d5d-6083552aca7f/25UM1IM45249.rgb.jpg/600x600bb.jpg",
+          "title": "No Place Like Home",
+          "artist": "Cynthia Erivo",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26327",
       "category": "最佳视觉媒体原创歌曲",
       "title": "RUNWAY [From \"The Devil Wears Prada 2\"]",
       "artist": "Henry Walter, Jaylah Hickmon, Dernst \"D'Mile\" Emile II, Stefani Germanotta, Jayda Love, Bruno Mars & Andrew Watt, songwriters (Lady Gaga, Doechii)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/qqalbum-review-004I5FbN3ZWrVT.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/qqalbum-review-004I5FbN3ZWrVT.webp",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000004I5FbN3ZWrVT.jpg",
+          "title": "Runway (Explicit)",
+          "artist": "Lady Gaga",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26328",
@@ -8100,9 +9177,22 @@
       "category": "最佳音乐视频",
       "title": "STORM",
       "artist": "GENER8ION, Yung Lean",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/qqalbum-review-003wAhnk2yX8f6.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/qqalbum-review-003wAhnk2yX8f6.webp",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000003wAhnk2yX8f6.jpg",
+          "title": "STORM",
+          "artist": "GENER8ION",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26330",
@@ -8111,7 +9201,17 @@
       "artist": "Ariana Grande",
       "image": "/grammy-2027/works/qq-0014xj9b2cxvnZ.jpg",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-qq-cover-sources.json",
+          "title": "hate that i made you love me",
+          "artist": "Ariana Grande",
+          "image": "/grammy-2027/works/qq-0014xj9b2cxvnZ.jpg",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M0000014xj9b2cxvnZ.jpg",
+          "matchedTitle": "hate that i made you love me",
+          "matchedArtist": "Ariana Grande"
+        }
+      ],
       "dimensions": [
         500,
         500
@@ -8148,54 +9248,132 @@
       "category": "最佳音乐电影",
       "title": "To Be Celestial vs. That's the Weight of the World",
       "artist": "Earth, Wind & Fire",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26333.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26333.webp",
+          "source": "https://www.rottentomatoes.com/m/earth_wind_and_fire_to_be_celestial_vs_thats_the_weight_of_the_world",
+          "imageSource": "https://resizing.flixster.com/fZgEmuk88GqhFw5lzVGFZjrvNIs=/206x305/v2/https://resizing.flixster.com/9JuntuNLwI8JEJ-fbQ01wQ0ztsM=/ems.cHJkLWVtcy1hc3NldHMvbW92aWVzL2RiOGEwNTA0LTQ2NmQtNDE3Ni05ZTk5LTE3OTE2OWEzMGY4OC5qcGc=",
+          "type": "film-poster",
+          "verification": "Replaced general promotional image with the identified release cover or title poster."
+        }
+      ],
+      "dimensions": [
+        206,
+        305
+      ]
     },
     {
       "id": "26334",
       "category": "最佳音乐电影",
       "title": "Hit Me Hard and Soft: The Tour Live",
       "artist": "Billie Eilish",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26334.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26334.webp",
+          "source": "https://www.hitmehardandsoftmovie.com/",
+          "imageSource": "https://dx35vtwkllhj9.cloudfront.net/paramountpictures/billie-eilish-hit-me-hard-and-soft-the-tour-3d/images/regions/us/updates3/onesheet.jpg",
+          "type": "film-poster",
+          "verification": "Replaced general promotional image with the identified release cover or title poster."
+        }
+      ],
+      "dimensions": [
+        406,
+        600
+      ]
     },
     {
       "id": "26335",
       "category": "最佳音乐电影",
       "title": "Man on the Run",
       "artist": "Paul McCartney",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26304.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26304.webp",
+          "source": "https://www.paulmccartney.com/discography/albums/man-on-the-run-music-from-the-motion-picture-soundtrack",
+          "imageSource": "https://eu-west-2.graphassets.com/A4WEZhR8eReCuFZel5SMSz/cmn5yvqgf1dw707mg0ukfcb1w",
+          "verification": "Matching release page and artwork title checked.",
+          "type": "release-artwork"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26336",
       "category": "最佳音乐电影",
       "title": "EPiC: Elvis Presley in Concert",
       "artist": "(Elvis Presley)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26336.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26336.webp",
+          "source": "https://www.rottentomatoes.com/m/epic_elvis_presley_in_concert",
+          "imageSource": "https://resizing.flixster.com/hdsd_RZ39JF9t2Q66zNrfSbYAtE=/206x305/v2/https://resizing.flixster.com/e2JQN5dEmk7KC0nyc6wvHy1jf7k=/ems.cHJkLWVtcy1hc3NldHMvbW92aWVzLzE5OTI1OGZiLTI5YmUtNDUzMS1hMzFjLTI2ZDJhYTVmNzNiMy5qcGc=",
+          "verification": "Matching release page and artwork title checked.",
+          "type": "film-poster"
+        }
+      ],
+      "dimensions": [
+        206,
+        305
+      ]
     },
     {
       "id": "26337",
       "category": "最佳音乐电影",
       "title": "Lilith Fair: Building a Mystery – The Untold Story",
       "artist": "(Various Artists)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26337.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26337.webp",
+          "source": "https://www.rottentomatoes.com/m/lilith_fair_building_a_mystery",
+          "imageSource": "https://resizing.flixster.com/53JGI-3kIjvsw8xIr8aD8k6lU90=/206x305/v2/https://resizing.flixster.com/5dgX_wGrVALCx3bCl4dDNGoPgnc=/ems.cHJkLWVtcy1hc3NldHMvbW92aWVzLzgxMDZiMDVhLWIwMmEtNGI0NC05M2EyLWEyY2FkNjNiODM0Yy5qcGc=",
+          "verification": "Matching release page and artwork title checked.",
+          "type": "film-poster"
+        }
+      ],
+      "dimensions": [
+        206,
+        305
+      ]
     },
     {
       "id": "26338",
       "category": "最佳唱片包装",
       "title": "Coloring Book",
       "artist": "Alec Longstreth & Joe Spinelli, art directors (Weezer)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26338.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26338.webp",
+          "source": "https://www.alec-longstreth.com/news/weezer-coloring-book",
+          "imageSource": "https://www.alec-longstreth.com/uploads/WCB-01-BoxSet-Markers.jpg",
+          "verification": "Matching release, title and artwork visually reviewed.",
+          "type": "release-artwork"
+        }
+      ],
+      "dimensions": [
+        600,
+        354
+      ]
     },
     {
       "id": "26339",
@@ -8244,9 +9422,22 @@
       "category": "最佳唱片包装",
       "title": "Nothing's About to Happen to Me",
       "artist": "Mary Banas, Marc Burkhardt & Mitski Miyawaki, art directors (Mitski)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-891421532.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-891421532.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/d1bf640f97aec1447bcff6c81ab92d90/500x500-000000-80-0-0.jpg",
+          "title": "Nothing's About to Happen to Me",
+          "artist": "Mitski",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26342",
@@ -8276,7 +9467,15 @@
       "artist": "Patso Dimitrov & Darin Gilliam, art directors (Rapsody)",
       "image": "/grammy-2027/works/9ddfbb0f-4353-494a-8103-c0e5ad69d7d4.webp",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-work-cover-sources.json",
+          "image": "/grammy-2027/works/9ddfbb0f-4353-494a-8103-c0e5ad69d7d4.webp",
+          "source": "https://coverartarchive.org/release/9ddfbb0f-4353-494a-8103-c0e5ad69d7d4/front-250",
+          "title": "God Gotta Afro & Gold Hoops",
+          "artist": "Rapsody"
+        }
+      ],
       "dimensions": [
         250,
         250
@@ -8289,7 +9488,16 @@
       "artist": "Lauren N. Bailey, Trevor Hernandez & Elizabeth De La Piedra, art directors (Mavis Staples)",
       "image": "/grammy-2027/works/deezer-797368741.webp",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-work-cover-sources.json",
+          "image": "/grammy-2027/works/deezer-797368741.webp",
+          "source": "https://www.deezer.com/album/797368741",
+          "artwork": "https://cdn-images.dzcdn.net/images/cover/3fa9cfe70a1e5dd3edc71c42663e5f85/250x250-000000-80-0-0.jpg",
+          "title": "Sad And Beautiful World",
+          "artist": "Mavis Staples"
+        }
+      ],
       "dimensions": [
         250,
         250
@@ -8342,45 +9550,109 @@
       "category": "最佳专辑封面",
       "title": "WHAT HAPPENED TO THE STREETS?",
       "artist": "Tina Ibañez, art director (21 Savage)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/applealbum-review-1860789017.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/applealbum-review-1860789017.webp",
+          "source": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/de/61/31/de6131e2-a8ed-64c9-4904-f38b65b7f868/196873915715.jpg/600x600bb.jpg",
+          "title": "WHAT HAPPENED TO THE STREETS?",
+          "artist": "21 Savage",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26348",
       "category": "最佳专辑文案",
       "title": "Clifton Chenier: King of Louisiana Blues & Zydeco",
       "artist": "Adam Machado, album notes writer (Clifton Chenier)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26348.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26348.webp",
+          "source": "https://shorefire.com/releases/entry/smithsonian-folkways-clifton-chenier-king-of-louisiana-blues-and-zydeco",
+          "imageSource": "https://shorefire.com/images/made/df7576e3d6b04573/ARH600_Cover_900_400_400_s_c1.jpg",
+          "verification": "Matching release, title and artwork visually reviewed.",
+          "type": "release-artwork"
+        }
+      ],
+      "dimensions": [
+        400,
+        400
+      ]
     },
     {
       "id": "26349",
       "category": "最佳专辑文案",
       "title": "Guglielmi: Amalia e Carlo (Live)",
       "artist": "Mitchell Hutchings, album notes writer (Florida Atlantic University Opera Theatre)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-1033980862.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-1033980862.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/da74fdd9d94ccd651849f60a081adf3e/500x500-000000-80-0-0.jpg",
+          "title": "Guglielmi: Amalia e Carlo (Live)",
+          "artist": "Florida Atlantic University Opera Theatre",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26350",
       "category": "最佳专辑文案",
       "title": "Haydn: The Complete Decca Recordings",
       "artist": "Dominic Fyfe, album notes writer (Antal Dorati)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26350.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26350.webp",
+          "source": "https://store.deccaclassics.com/products/antal-dorati-the-complete-decca-haydn-recordings-41cd-box-set",
+          "imageSource": "https://store.deccaclassics.com/cdn/shop/files/Haydn-Complete4_533828f3-0167-421b-aee8-c04a3c5fd8f6.png?v=1771592106",
+          "verification": "Matching release, title and artwork visually reviewed.",
+          "type": "release-artwork"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26351",
       "category": "最佳专辑文案",
       "title": "Mother of the Blues: The Complete Paramount Recordings, 1923-1928",
       "artist": "David Sager, album notes writer (Ma Rainey)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26351.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26351.webp",
+          "source": "https://blackswanrecords.org/",
+          "imageSource": "https://www.blackswanrecords.org/assets/images/BSCD-44-Ma-Rainey-Cover.jpg",
+          "verification": "Cover identified on the matching artist/label release page."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26352",
@@ -8408,45 +9680,109 @@
       "category": "最佳历史专辑",
       "title": "The Bootleg Series Vol. 18: Through The Open Window, 1956-1963",
       "artist": "Steve Berkowitz & Sean Wilentz, compilation producers; Steve Addabbo & Michael Piacentini, mastering engineers; Steve Addabbo & Michael Piacentini, restoration engineers (Bob Dylan)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26353.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26353.webp",
+          "source": "https://www.bobdylan.com/news/the-bootleg-series-vol-18-bob-dylans-bootleg-series-volume-18-through-the-open-window-1956-1963-to-be-released-october-31/",
+          "imageSource": "https://cdn-p.smehost.net/sites/f6f0621f88184e56b557836255a6628a/wp-content/uploads/2025/09/BS18_CVR@3000x3000-300x300.jpg",
+          "verification": "Matching release, title and artwork visually reviewed.",
+          "type": "release-artwork"
+        }
+      ],
+      "dimensions": [
+        300,
+        300
+      ]
     },
     {
       "id": "26354",
       "category": "最佳历史专辑",
       "title": "Classic V-Disc Big Band Jazz Sessions Limited Edition Box Set",
       "artist": "Scott Wenzel, compilation producer; Shane Carroll & Nancy Conforti, mastering engineers (Various Artists)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26354.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26354.webp",
+          "source": "https://www.mosaicrecords.com/product/classic-v-disc-big-band-jazz-sessions/",
+          "imageSource": "https://www.mosaicrecords.com/wp-content/uploads/2025/12/284-V-Disc-Big-Band-Mini-4x4x300x300-Color-e1792933948493.jpg",
+          "verification": "Matching release page and artwork title checked.",
+          "type": "release-artwork"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26355",
       "category": "最佳历史专辑",
       "title": "Clifton Chenier: King of Louisiana Blues & Zydeco",
       "artist": "Adam Machado, compilation producer; Jessica Thompson, mastering engineer; Jessica Thompson, restoration engineer (Clifton Chenier)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26348.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26348.webp",
+          "source": "https://shorefire.com/releases/entry/smithsonian-folkways-clifton-chenier-king-of-louisiana-blues-and-zydeco",
+          "imageSource": "https://shorefire.com/images/made/df7576e3d6b04573/ARH600_Cover_900_400_400_s_c1.jpg",
+          "verification": "Matching release, title and artwork visually reviewed.",
+          "type": "release-artwork"
+        }
+      ],
+      "dimensions": [
+        400,
+        400
+      ]
     },
     {
       "id": "26356",
       "category": "最佳历史专辑",
       "title": "Ma Rainey: Mother Of The Blues, The Complete Paramount Recordings 1923-1928",
       "artist": "Lars Edegran, compilation producer; Doug Benson, mastering engineer; Doug Benson, restoration engineer (Ma Rainey)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26351.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26351.webp",
+          "source": "https://blackswanrecords.org/",
+          "imageSource": "https://www.blackswanrecords.org/assets/images/BSCD-44-Ma-Rainey-Cover.jpg",
+          "verification": "Cover identified on the matching artist/label release page."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26357",
       "category": "最佳历史专辑",
       "title": "Polish Radio Sessions 1970-1991",
       "artist": "Adam Domagala, compilation producer; Jacek Gawlowski, mastering engineer; Jacek Gawlowski, restoration engineer (Tomasz Stanko)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26357.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26357.webp",
+          "source": "https://stanko-polskieradio.bandcamp.com/album/polish-radio-sessions-1970-91",
+          "imageSource": "https://f4.bcbits.com/img/a1122119064_16.jpg",
+          "type": "album-cover",
+          "verification": "Replaced general promotional image with the identified release cover or title poster."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26358",
@@ -8481,7 +9817,16 @@
       "artist": "Bryce Bordone, Serban Ghenea, Konrad Snyder & Mike Stankiewicz, engineers; Adam Grover, mastering engineer (Kacey Musgraves)",
       "image": "/grammy-2027/works/apple-6764160788.webp",
       "status": "local-file-valid",
-      "sources": [],
+      "sources": [
+        {
+          "manifest": "grammy-2027-apple-cover-sources.json",
+          "image": "/grammy-2027/works/apple-6764160788.webp",
+          "source": "https://music.apple.com/us/album/middle-of-nowhere/6764160788?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/f4/e9/ec/f4e9eca8-2919-ae12-f423-18b26cbb1cf4/26UMGIM51354.rgb.jpg/600x600bb.jpg",
+          "title": "Middle of Nowhere",
+          "artist": "Kacey Musgraves"
+        }
+      ],
       "dimensions": [
         600,
         600
@@ -8492,9 +9837,22 @@
       "category": "最佳录音工程专辑（非古典）",
       "title": "Nine Inch Noize",
       "artist": "Boys Noize, Jacob Moreno, Trent Reznor & Atticus Ross, engineers; Boys Noize, Jacob Moreno, Trent Reznor & Atticus Ross, mastering engineers (Nine Inch Nails, Boys Noize)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-960784001.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-960784001.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/545a1b1da984abad5db3405db20c8e91/500x500-000000-80-0-0.jpg",
+          "title": "Nine Inch Noize",
+          "artist": "Nine Inch Nails",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26362",
@@ -8522,36 +9880,90 @@
       "category": "最佳录音工程专辑（古典）",
       "title": "Akiho: Beneath Lighted Coffers & Concerto for Steel Pans & Orchestra",
       "artist": "Mark Donahue, engineer; Mark Donahue, mastering engineer (Andy Akiho, David Danzmayr & Oregon Symphony)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-1895195519.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-1895195519.webp",
+          "source": "https://music.apple.com/us/album/andy-akiho-beneath-lighted-coffers-concerto-for-steel/1895195519?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/07/19/51/07195102-4e73-ddd8-73d1-4de10e22d7dd/030911276423.png/600x600bb.jpg",
+          "title": "Andy Akiho: Beneath Lighted Coffers & Concerto for Steel Pans & Orchestra",
+          "artist": "Oregon Symphony, David Danzmayr & Andy Akiho",
+          "verification": "Release identified by album ID and full credits, including Broadway cast and edition."
+        }
+      ],
+      "dimensions": [
+        600,
+        596
+      ]
     },
     {
       "id": "26364",
       "category": "最佳录音工程专辑（古典）",
       "title": "Dvorák: Symphony No. 9, 'From the New World'; Simon: Four Black American Dances",
       "artist": "Mark Donahue, engineer; Mark Donahue, mastering engineer (Manfred Honeck & Pittsburgh Symphony Orchestra)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-6768216884.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-6768216884.webp",
+          "source": "https://music.apple.com/us/album/dvo%C5%99%C3%A1k-symphony-no-9-in-e-minor-op-95-b-178-from-the/6768216884?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/a2/6c/e3/a26ce32e-3b55-a945-fe55-73a2ac2ac2d3/030911276928.png/600x600bb.jpg",
+          "title": "Dvořák: Symphony No. 9 in E Minor, Op. 95, B. 178 \"From the New World\" - Simon: Four Black American Dances",
+          "artist": "Pittsburgh Symphony Orchestra & Manfred Honeck"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26365",
       "category": "最佳录音工程专辑（古典）",
       "title": "Mahler: Symphony No. 2 'Resurrection'",
       "artist": "Jon Johannsen, Jason O'Connell & Mark Willsher, engineers; Mark Willsher, mastering engineer (Esa-Pekka Salonen & San Francisco Symphony)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-154984172.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-154984172.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/8b030573b1818ebcfb6e212307d510a0/500x500-000000-80-0-0.jpg",
+          "title": "Mahler: Symphony No. 2, \"Resurrection\"",
+          "artist": "San Francisco Symphony",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26366",
       "category": "最佳录音工程专辑（古典）",
       "title": "Puts: Emily - No Prisoner Be",
       "artist": "Silas Brown, engineer; Silas Brown, mastering engineer (Joyce DiDonato & Time For Three)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-1848842851.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-1848842851.webp",
+          "source": "https://music.apple.com/us/album/kevin-puts-emily-no-prisoner-be/1848842851?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/0e/4f/e2/0e4fe2cd-a09c-62e6-5ae6-50cb36c47b1a/5059449308531.png/600x600bb.jpg",
+          "title": "Kevin Puts: Emily — No Prisoner Be",
+          "artist": "Time for Three & Joyce DiDonato",
+          "verification": "Release identified by album ID and full credits, including Broadway cast and edition."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26367",
@@ -8607,11 +10019,12 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "Blanton Alspaugh",
           "image": "https://media.grammy.net/uploads/2026/02/blanton-alspaugh-119.avif",
-          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/"
+          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
-        384,
+        288,
         288
       ]
     },
@@ -8620,18 +10033,43 @@
       "category": "年度制作人（古典）",
       "title": "Silas Brown",
       "artist": "",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/portrait/26370.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-portrait-sources.json",
+          "name": "Silas Brown",
+          "source": "https://www.purchase.edu/live/profiles/260-silas-brown",
+          "image": "https://www.purchase.edu/live/image/gid/7/width/640/4640_Silas_2_Full.rev.1492804921.jpg",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+        }
+      ],
+      "dimensions": [
+        381,
+        381
+      ]
     },
     {
       "id": "26371",
       "category": "年度制作人（古典）",
       "title": "Dmitriy Lipay",
       "artist": "",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/portrait/26371.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-portrait-sources.json",
+          "name": "Dmitriy Lipay",
+          "source": "https://americanorchestras.org/wp-content/uploads/2021/02/Sounds-from-a-Distance.pdf",
+          "image": "embedded image on PDF page 5",
+          "verification": "Caption identifies Dmitriy Lipay, director of audio and recording at the Seattle Symphony; photo courtesy Seattle Symphony.",
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+        }
+      ],
+      "dimensions": [
+        328,
+        328
+      ]
     },
     {
       "id": "26372",
@@ -8645,12 +10083,17 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "Elaine Martone",
           "source": "https://www.elainemartone.com/about/biography",
-          "image": "https://static.wixstatic.com/media/ed80de_dcbab2481fd9436eb4baabd1966a7807~mv2.jpg"
+          "image": "https://static.wixstatic.com/media/ed80de_dcbab2481fd9436eb4baabd1966a7807~mv2.jpg",
+          "thumbnailCenter": [
+            0,
+            0
+          ],
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
-        384,
-        173
+        600,
+        600
       ]
     },
     {
@@ -8665,12 +10108,17 @@
           "manifest": "grammy-2027-portrait-sources.json",
           "name": "Dirk Sobotka",
           "image": "https://media.grammy.net/uploads/2024/11/dirk-sobotka-6489-1024x683.avif",
-          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/"
+          "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
+          "thumbnailCenter": [
+            1,
+            0
+          ],
+          "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
         }
       ],
       "dimensions": [
-        384,
-        256
+        600,
+        600
       ]
     },
     {
@@ -8741,9 +10189,23 @@
       "category": "最佳沉浸式音频专辑",
       "title": "One Size Fits All",
       "artist": "Karma Auger & Erich Gobel, immersive mix engineers; Joe Travers, immersive producer (Frank Zappa, The Mothers Of Invention)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-1820990891.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-1820990891.webp",
+          "source": "https://music.apple.com/us/album/one-size-fits-all-50th-anniversary-super-deluxe/1820990891?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/7b/d7/75/7bd775da-378e-e547-552c-64c656bbdec2/25UMGIM73364.rgb.jpg/600x600bb.jpg",
+          "title": "One Size Fits All (50th Anniversary Super Deluxe)",
+          "artist": "Frank Zappa & The Mothers of Invention",
+          "verification": "Release identified by album ID and full credits, including Broadway cast and edition."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26378",
@@ -8763,9 +10225,22 @@
       "category": "最佳器乐作曲",
       "title": "ÉPiLOGUE",
       "artist": "JD BECK, Noé Degalle & DOMi LOUNA, composers (DOMi & JD BECK)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezersong-review-4173620872.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezersong-review-4173620872.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/5bb762875cb929919e039b4ccda8e96b/500x500-000000-80-0-0.jpg",
+          "title": "ÉPiLOGUE",
+          "artist": "DOMi & JD BECK",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26380",
@@ -8814,9 +10289,22 @@
       "category": "最佳器乐作曲",
       "title": "listen… (from Disclosure Day)",
       "artist": "John Williams, composer (John Williams)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/applesong-review-6775576506.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/applesong-review-6775576506.webp",
+          "source": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/49/22/66/492266b2-8720-28fd-197e-9a7a42767216/956.jpg/600x600bb.jpg",
+          "title": "listen…",
+          "artist": "John Williams",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26383",
@@ -8844,9 +10332,22 @@
       "category": "最佳器乐或无伴奏合唱编曲",
       "title": "Blackbird",
       "artist": "Ben Bram & Blake Farfan, arrangers (New York Vocal Collective)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezersong-review-4125720151.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezersong-review-4125720151.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/80710d75c6d73838da2dd4446903c018/500x500-000000-80-0-0.jpg",
+          "title": "Blackbird",
+          "artist": "New York Vocal Collective",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26385",
@@ -8972,9 +10473,22 @@
       "category": "最佳器乐与人声编曲",
       "title": "Moon River",
       "artist": "Nan Schwartz, arranger (Studio Intensive Orchestra Featuring Nnenna Freelon)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-1859097832.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-1859097832.webp",
+          "source": "https://music.apple.com/us/album/moon-river-feat-nnenna-freelon-single/1859097832?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/e9/44/c1/e944c17a-c618-18cd-b926-62e325a21b89/artwork.jpg/600x600bb.jpg",
+          "title": "Moon River (feat. Nnenna Freelon) - Single",
+          "artist": "LAFCI Studio Intensive Orchestra"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26392",
@@ -9065,18 +10579,43 @@
       "category": "最佳管弦乐表演",
       "title": "Clyne: Color Field",
       "artist": "Marin Alsop, conductor (Baltimore Symphony Orchestra)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26396.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26396.webp",
+          "source": "https://www.annaclyne.com/abstractions",
+          "imageSource": "https://images.squarespace-cdn.com/content/v1/672788f64258b41a1dfc209d/1e55d584-4394-450a-8f0b-6343c7c0a692/8.574620_cover.jpg",
+          "verification": "Cover identified on the matching artist/label release page."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26397",
       "category": "最佳管弦乐表演",
       "title": "Cuong: Orbital",
       "artist": "David Alan Miller, conductor (Albany Symphony)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/applesong-review-1854810567.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/applesong-review-1854810567.webp",
+          "source": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/1d/b3/fa/1db3fa43-e48b-c559-b3b5-aec1dc5638a8/808857387929.jpg/600x600bb.jpg",
+          "title": "Orbital",
+          "artist": "Albany Symphony Orchestra & David Alan Miller",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26398",
@@ -9104,9 +10643,22 @@
       "category": "最佳管弦乐表演",
       "title": "Pájaros Mágicos",
       "artist": "Gustavo Dudamel, conductor (Los Angeles Philharmonic)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-898237442.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-898237442.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/12436e36efd0ff667827dd65d279f47f/500x500-000000-80-0-0.jpg",
+          "title": "Pájaros Mágicos",
+          "artist": "Los Angeles Philharmonic",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26400",
@@ -9134,18 +10686,44 @@
       "category": "最佳歌剧录音",
       "title": "Bates: The Amazing Adventures Of Kavalier & Clay",
       "artist": "Yannick Nézet-Séguin, conductor; Patrick Carfizzi, Craig Colclough, Andrzej Filonczyk, Miles Mykkanen, Edward Nelson, Sun-Ly Pierce & Lauren Snouffer; David Frost, producer (The Metropolitan Opera Orchestra; The Metropolitan Opera Chorus; Gene Scheer)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-6798683357.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-6798683357.webp",
+          "source": "https://music.apple.com/us/album/mason-bates-the-amazing-adventures-of-kavalier-clay-live/6798683357?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/75/7d/44/757d4460-8dda-d1ca-1792-522f96d3cd21/0810004204812_cover.jpg/600x600bb.jpg",
+          "title": "Mason Bates: The Amazing Adventures of Kavalier & Clay (Live)",
+          "artist": "Yannick Nézet-Séguin, The Metropolitan Opera Orchestra, The Metropolitan Opera Chorus, Andrzej Filończyk, Miles Mykkanen, Sun-Ly Pierce & Edward Nelson",
+          "verification": "Release identified by album ID and full credits, including Broadway cast and edition."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26402",
       "category": "最佳歌剧录音",
       "title": "Davis: The Central Park Five",
       "artist": "Anthony Parnther, conductor; Lacey Jo Benter, Cedric Berry, Ashley Faatoalia, Orson Van Gay, Bernard Holcomb, William Powell, III & Justin Ryan; Greg Curtis, Anthony Davis & Anthony Parnther, producers (Long Beach Opera; Richard Wesley)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26402.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26402.webp",
+          "source": "https://www.ashleyfaatoalia.com/news/news-title-01",
+          "imageSource": "https://static.wixstatic.com/media/5b8cdd_ea7b72066fa64d28b950e5f7c08fe07d~mv2.jpg",
+          "verification": "Cover identified on the matching artist/label release page."
+        }
+      ],
+      "dimensions": [
+        600,
+        363
+      ]
     },
     {
       "id": "26403",
@@ -9173,9 +10751,21 @@
       "category": "最佳歌剧录音",
       "title": "Mazzoli: Breaking The Waves",
       "artist": "Patrick Summers, conductor; Ryan McKinny & Lauren Snouffer; Blanton Alspaugh, producer (Houston Grand Opera Orchestra; Houston Grand Opera Chorus; Royce Vavrek)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26404.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26404.webp",
+          "source": "https://sacksco.com/pr/houston_grand_opera_071726.html",
+          "imageSource": "https://sacksco.com/photo/lo/houston_grand_opera_cover.jpg",
+          "verification": "Cover identified on the matching artist/label release page."
+        }
+      ],
+      "dimensions": [
+        300,
+        300
+      ]
     },
     {
       "id": "26405",
@@ -9203,36 +10793,87 @@
       "category": "最佳合唱表演",
       "title": "Here I Am",
       "artist": "Eric Holtan, conductor (Susanna Phillips; True Concord Orchestra; True Concord Voices & Tucson Girls Chorus)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-1019130801.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-1019130801.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/222788b2e60d13fc2ffe7c3e03f0262b/500x500-000000-80-0-0.jpg",
+          "title": "Here I Am",
+          "artist": "True Concord Voices & Orchestra",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26407",
       "category": "最佳合唱表演",
       "title": "Hopkins: My Fatherland",
       "artist": "Gustavo Dudamel, conductor (Gregorio Nieto; Philharmonia Orchestra; The Bach Choir & Boy Choristers of Winchester Cathedral)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/applesong-review-6786721802.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/applesong-review-6786721802.webp",
+          "source": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/5c/4e/39/5c4e3943-c42f-0296-0e6f-9eb6370d2992/26UMGIM77348.rgb.jpg/600x600bb.jpg",
+          "title": "My Fatherland",
+          "artist": "Anthony Hopkins, The Boy Choristers of Winchester Cathedral, The Bach Choir, Philharmonia Orchestra & Gustavo Dudamel",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26408",
       "category": "最佳合唱表演",
       "title": "Talbot: Piedra De Sol (Sunstone)",
       "artist": "Craig Hella Johnson, conductor (Conspirare)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26408.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26408.webp",
+          "source": "https://conspirare.org/recordings/piedra-de-sol/",
+          "imageSource": "https://conspirare.org/wp-content/uploads/2026/07/21140cover.jpg",
+          "verification": "Official artist or label album page explicitly identifies this release and its cover."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26409",
       "category": "最佳合唱表演",
       "title": "Yee: Trans Requiem",
       "artist": "Melissa Attebury, conductor (Katherine Goforth, Breanna Sinclairé & Andrew Yee; Novus NY; Trinity Choir & Trinity Youth Chorus)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-953304221.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-953304221.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/886cde305c3030689e77945a46ca8970/500x500-000000-80-0-0.jpg",
+          "title": "Trans Requiem",
+          "artist": "Andrew Yee",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26410",
@@ -9260,54 +10901,132 @@
       "category": "最佳室内乐／小型合奏表演",
       "title": "In Her Hands",
       "artist": "Neave Trio",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-860756172.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-860756172.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/d792cb7785a2aee0c641d3bef371ef2f/500x500-000000-80-0-0.jpg",
+          "title": "In Her Hands",
+          "artist": "Neave Trio",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26412",
       "category": "最佳室内乐／小型合奏表演",
       "title": "Kouyoumdjian: Paper Pianos",
       "artist": "Alan Pierson & Alarm Will Sound",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26412.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26412.webp",
+          "source": "https://paperpianos.com/album",
+          "imageSource": "https://www.paperpianos.com/images/support-refugees-cover-1x1.jpg",
+          "verification": "Cover identified on the matching artist/label release page."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26413",
       "category": "最佳室内乐／小型合奏表演",
       "title": "Puts: Emily - No Prisoner Be",
       "artist": "Joyce DiDonato & Time For Three",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-1848842851.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-1848842851.webp",
+          "source": "https://music.apple.com/us/album/kevin-puts-emily-no-prisoner-be/1848842851?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/0e/4f/e2/0e4fe2cd-a09c-62e6-5ae6-50cb36c47b1a/5059449308531.png/600x600bb.jpg",
+          "title": "Kevin Puts: Emily — No Prisoner Be",
+          "artist": "Time for Three & Joyce DiDonato",
+          "verification": "Release identified by album ID and full credits, including Broadway cast and edition."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26414",
       "category": "最佳室内乐／小型合奏表演",
       "title": "Rhythm Nation",
       "artist": "PUBLIQuartet",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/applealbum-review-6781675085.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/applealbum-review-6781675085.webp",
+          "source": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/47/cc/eb/47cceb6d-48d7-72a3-3298-1a5a382be639/822252286823.jpg/600x600bb.jpg",
+          "title": "Rhythm Nation",
+          "artist": "PUBLIQuartet",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26415",
       "category": "最佳古典器乐独奏",
       "title": "Akiho: Beneath Lighted Coffers & Concerto For Steel Pans & Orchestra",
       "artist": "Andy Akiho; David Danzmayr, conductor (Oregon Symphony)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-1895195519.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-1895195519.webp",
+          "source": "https://music.apple.com/us/album/andy-akiho-beneath-lighted-coffers-concerto-for-steel/1895195519?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/07/19/51/07195102-4e73-ddd8-73d1-4de10e22d7dd/030911276423.png/600x600bb.jpg",
+          "title": "Andy Akiho: Beneath Lighted Coffers & Concerto for Steel Pans & Orchestra",
+          "artist": "Oregon Symphony, David Danzmayr & Andy Akiho",
+          "verification": "Release identified by album ID and full credits, including Broadway cast and edition."
+        }
+      ],
+      "dimensions": [
+        600,
+        596
+      ]
     },
     {
       "id": "26416",
       "category": "最佳古典器乐独奏",
       "title": "Cuong: Re(new)al",
       "artist": "Sandbox Percussion; David Alan Miller, conductor (Albany Symphony)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/apple-extra-1854810567.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-extra-cover-sources.json",
+          "image": "/grammy-2027/works/apple-extra-1854810567.webp",
+          "source": "https://music.apple.com/us/album/renewal-music-of-viet-cuong/1854810567?uo=4",
+          "title": "Renewal: Music of Viet Cuong",
+          "artist": "Albany Symphony Orchestra, David Alan Miller & Sandbox Percussion"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26417",
@@ -9335,18 +11054,44 @@
       "category": "最佳古典器乐独奏",
       "title": "Stewart: 24 American Caprices",
       "artist": "Curtis Stewart",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-946698011.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-946698011.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/6a1442371996e3174a2ef34aff73d51d/500x500-000000-80-0-0.jpg",
+          "title": "24 American Caprices",
+          "artist": "Curtis Stewart",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26419",
       "category": "最佳古典器乐独奏",
       "title": "Thompson: Breathe/Burn: An Elegy",
       "artist": "Yo-Yo Ma; Michael Stern, conductor (Kansas City Symphony)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/applesong-review-6778829042.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/applesong-review-6778829042.webp",
+          "source": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/92/21/29/922129ac-d8fe-fed7-8107-c3e87c541131/030911176822.png/600x600bb.jpg",
+          "title": "breathe/burn: an elegy",
+          "artist": "Yo-Yo Ma, Kansas City Symphony & Michael Stern",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26420",
@@ -9374,18 +11119,44 @@
       "category": "最佳古典独唱专辑",
       "title": "Legends: Rebellion",
       "artist": "Laura Strickling, soloist; Joy Schreier, pianist",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-1004497091.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-1004497091.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/9ee8eb8f8375b607e11541d41fda8455/500x500-000000-80-0-0.jpg",
+          "title": "Legends: Rebellion",
+          "artist": "Laura Strickling",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26422",
       "category": "最佳古典独唱专辑",
       "title": "The Living Spiritual",
       "artist": "Kenneth Overton, soloist; Elizabeth Hill, pianist",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-823205991.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-823205991.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/c8c26c375967b2cd569d73081045ecaa/500x500-000000-80-0-0.jpg",
+          "title": "The Living Spiritual",
+          "artist": "Kenneth Overton",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26423",
@@ -9413,27 +11184,65 @@
       "category": "最佳古典独唱专辑",
       "title": "Solitude",
       "artist": "Reginald Mobley, soloist; Brandon J. Acker & Douglas Balliett, artists",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-789107721.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-789107721.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/248fb2a2087dc57d5d7e63d3dbd03509/500x500-000000-80-0-0.jpg",
+          "title": "Solitude",
+          "artist": "Reginald Mobley",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26425",
       "category": "最佳古典音乐精选",
       "title": "Black Mozart",
       "artist": "Jon Batiste; Jon Batiste, producer",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/deezeralbum-review-1048158692.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/deezeralbum-review-1048158692.webp",
+          "source": "https://cdn-images.dzcdn.net/images/cover/cfb773a0cd718b89d411e42aa10181ac/500x500-000000-80-0-0.jpg",
+          "title": "Black Mozart",
+          "artist": "Jon Batiste",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     },
     {
       "id": "26426",
       "category": "最佳古典音乐精选",
       "title": "My Brother's Keeper",
       "artist": "Steven Blier, Joshua Blue, Will Liverman, Joseph Parrish, Alan Williams, Chaz'men Williams-Ali & Jorell Williams; Justin Austin, Steven Blier & Jonathan Estabrooks, producers",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26426.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26426.webp",
+          "source": "https://nyfosrecords.limitedrun.com/products/854649-my-brothers-keeper",
+          "imageSource": "https://s9.limitedrun.com/images/1855981/v600_final_cover_square.jpg",
+          "verification": "Official artist or label album page explicitly identifies this release and its cover."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26427",
@@ -9461,45 +11270,110 @@
       "category": "最佳古典音乐精选",
       "title": "Rise",
       "artist": "Imani Winds; Silas Brown, Mark Dover & Doron Schachter, producers",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/apple-verified-6789355975.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/apple-verified-6789355975.webp",
+          "source": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/a1/95/5f/a1955ffa-7f51-42c8-ab70-e7c6b548b568/881453157455_cover.jpg/600x600bb.jpg",
+          "title": "Rise",
+          "artist": "Imani Winds",
+          "album": "Rise",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26429",
       "category": "最佳古典音乐精选",
       "title": "25x25",
       "artist": "So Percussion; Eric Cha-Beach, Matt Poirier, Josh Quillen, Adam Sliwinski & Jason Treuting, producers",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/applealbum-review-1842087128.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/applealbum-review-1842087128.webp",
+          "source": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/e3/ae/e3/e3aee30d-9666-5196-7208-ce0d43bbac47/713746321024.png/600x600bb.jpg",
+          "title": "25x25",
+          "artist": "Sō Percussion",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26430",
       "category": "最佳当代古典作曲",
       "title": "Bates: The Amazing Adventures Of Kavalier & Clay",
       "artist": "Mason Bates, composer (Yannick Nézet-Séguin, Lauren Snouffer, Andrzej Filonczyk, Craig Colclough, Miles Mykkanen, Patrick Carfizzi, Edward Nelson, Sun-Ly Pierce & The Metropolitan Opera)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/manual-apple-6798683357.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/manual-apple-6798683357.webp",
+          "source": "https://music.apple.com/us/album/mason-bates-the-amazing-adventures-of-kavalier-clay-live/6798683357?uo=4",
+          "imageSource": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/75/7d/44/757d4460-8dda-d1ca-1792-522f96d3cd21/0810004204812_cover.jpg/600x600bb.jpg",
+          "title": "Mason Bates: The Amazing Adventures of Kavalier & Clay (Live)",
+          "artist": "Yannick Nézet-Séguin, The Metropolitan Opera Orchestra, The Metropolitan Opera Chorus, Andrzej Filończyk, Miles Mykkanen, Sun-Ly Pierce & Edward Nelson",
+          "verification": "Release identified by album ID and full credits, including Broadway cast and edition."
+        }
+      ],
+      "dimensions": [
+        600,
+        600
+      ]
     },
     {
       "id": "26431",
       "category": "最佳当代古典作曲",
       "title": "Davis: The Central Park Five",
       "artist": "Anthony Davis, composer (Anthony Parnther, Lacey Jo Benter, Bernard Holcomb, Orson Van Gay, Ashley Faatoalia, Cedric Berry, William Powell, III & Justin Ryan)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26402.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26402.webp",
+          "source": "https://www.ashleyfaatoalia.com/news/news-title-01",
+          "imageSource": "https://static.wixstatic.com/media/5b8cdd_ea7b72066fa64d28b950e5f7c08fe07d~mv2.jpg",
+          "verification": "Cover identified on the matching artist/label release page."
+        }
+      ],
+      "dimensions": [
+        600,
+        363
+      ]
     },
     {
       "id": "26432",
       "category": "最佳当代古典作曲",
       "title": "Dennehy: Violin Concerto",
       "artist": "Donnacha Dennehy, composer (Stephen Waarts, Ryan McAdams & National Symphony Orchestra Ireland)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/official-26432.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-manual-cover-sources.json",
+          "image": "/grammy-2027/works/official-26432.webp",
+          "source": "https://www.nonesuch.com/albums/limina",
+          "imageSource": "https://www.nonesuch.com/sites/g/files/g2000014771/files/2026-06/donnacha-dennehy-limina-545_dk73d7an.jpg",
+          "verification": "Cover identified on the matching artist/label release page."
+        }
+      ],
+      "dimensions": [
+        545,
+        545
+      ]
     },
     {
       "id": "26433",
@@ -9527,9 +11401,22 @@
       "category": "最佳当代古典作曲",
       "title": "Stewart, C.: 24 American Caprices",
       "artist": "Curtis Stewart, composer (Curtis Stewart)",
-      "image": null,
-      "status": "missing",
-      "sources": []
+      "image": "/grammy-2027/works/qqalbum-review-002ZZZ8z10AN1p.webp",
+      "status": "local-file-valid",
+      "sources": [
+        {
+          "manifest": "grammy-2027-completed-cover-sources.json",
+          "image": "/grammy-2027/works/qqalbum-review-002ZZZ8z10AN1p.webp",
+          "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000002ZZZ8z10AN1p.jpg",
+          "title": "24 American Caprices",
+          "artist": "Curtis Stewart",
+          "status": "source-and-contact-sheet-reviewed"
+        }
+      ],
+      "dimensions": [
+        500,
+        500
+      ]
     }
   ]
 }

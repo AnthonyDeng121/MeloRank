@@ -124,6 +124,7 @@
 .grammy-picks > div + div { border-left: 1px solid var(--accent); }
 .grammy-picks h4 { font-size: 33px; color: var(--accent); font-style: italic; margin-bottom: 12px; }
 .grammy-art { border: 1px solid var(--accent); background: var(--base); }
+.grammy-art img[src*="/portrait/"] { object-position: center top; }
 .grammy-picks .grammy-art { width: 256px; height: 256px; margin: 0 auto 8px; }
 .grammy-picks strong { font-size: 25px; font-weight: 500; }
 .grammy-picks p { font-size: 20px; opacity: .8; }
