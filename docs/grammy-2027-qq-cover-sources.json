@@ -104,12 +104,10 @@
     "matchedArtist": "Olivia Rodrigo"
   },
   "25923": {
+    "image": "/grammy-2027/berghain.webp",
     "title": "LUX (Complete Works)",
     "artist": "ROSALÍA",
-    "image": "/grammy-2027/works/qq-001NQYrG0zK1ZZ.jpg",
-    "source": "https://y.gtimg.cn/music/photo_new/T002R500x500M000001NQYrG0zK1ZZ.jpg",
-    "matchedTitle": "Dios Es Un Stalker",
-    "matchedArtist": "ROSALÍA"
+    "verification": "User confirmed gold Complete Works edition; reuse verified local gold artwork rather than blue standard-edition image."
   },
   "25924": {
     "title": "The Life of a Showgirl",

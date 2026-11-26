@@ -3,97 +3,177 @@
     "name": "Angine de Poitrine",
     "image": "https://media.grammy.net/uploads/2026/11/angine-de-poitrine-1-1024x576.avif",
     "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      1024,
+      576
+    ],
+    "localImage": "/grammy-2027/portrait/25933-square-v2.webp"
   },
   "25934": {
     "name": "Geese",
     "image": "https://media.grammy.net/uploads/2026/11/geese-1-1024x683.avif",
     "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      1024,
+      683
+    ],
+    "localImage": "/grammy-2027/portrait/25934-square-v2.webp"
   },
   "25935": {
     "name": "Ella Langley",
     "image": "https://media.grammy.net/uploads/2026/11/ella-langley-1.avif",
     "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      640,
+      640
+    ],
+    "localImage": "/grammy-2027/portrait/25935-square-v2.webp"
   },
   "25936": {
     "name": "Slayyyter",
     "image": "https://media.grammy.net/uploads/2026/11/slayyyter-1-687x1024.avif",
     "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      687,
+      1024
+    ],
+    "localImage": "/grammy-2027/portrait/25936-square-v2.webp"
   },
   "25937": {
     "name": "SIENNA SPIRO",
     "image": "https://media.grammy.net/uploads/2026/11/sienna-spiro-1-1024x1024.avif",
     "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      1024,
+      1024
+    ],
+    "localImage": "/grammy-2027/portrait/25937-square-v2.webp"
   },
   "25938": {
     "name": "Don Toliver",
     "image": "https://media.grammy.net/uploads/2026/05/caleb-zackery-toliver_MI0004887424-MN0003746917-683x1024.avif",
     "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      683,
+      1024
+    ],
+    "localImage": "/grammy-2027/portrait/25938-square-v2.webp"
   },
   "25939": {
     "name": "Remi Wolf",
     "image": "https://media.grammy.net/uploads/2026/11/remi-wolf-1-692x1024.avif",
     "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      692,
+      1024
+    ],
+    "localImage": "/grammy-2027/portrait/25939-square-v2.webp"
   },
   "25940": {
     "name": "The Womack Sisters",
     "image": "https://media.grammy.net/uploads/2026/11/the-womack-sisters-1-1024x683.avif",
     "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      1024,
+      683
+    ],
+    "localImage": "/grammy-2027/portrait/25940-square-v2.webp"
   },
   "25942": {
     "name": "Dernst \"D'Mile\" Emile II",
     "image": "https://media.grammy.net/uploads/2024/11/dernst-emile-ii-32230-717x1024.avif",
     "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      717,
+      1024
+    ],
+    "localImage": "/grammy-2027/portrait/25942-square-v2.webp"
   },
   "25943": {
     "name": "Noah Goldstein",
     "image": "https://media.grammy.net/uploads/2024/01/noah-goldstein-16747-1024x576.avif",
     "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      1024,
+      576
+    ],
+    "localImage": "/grammy-2027/portrait/25943-square-v2.webp"
   },
   "25944": {
     "name": "Miranda Lambert",
     "image": "https://media.grammy.net/uploads/2025/11/miranda-lambert-4851.avif",
     "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      640,
+      640
+    ],
+    "localImage": "/grammy-2027/portrait/25944-square-v2.webp"
   },
   "25945": {
     "name": "Mike Sabath",
     "image": "https://media.grammy.net/uploads/2026/11/mike-sabath-1-1024x686.avif",
     "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      1024,
+      686
+    ],
+    "localImage": "/grammy-2027/portrait/25945-square-v2.webp"
   },
   "25946": {
     "name": "Amy Allen",
     "image": "https://media.grammy.net/uploads/2026/02/amy-allen-37881-1024x679.avif",
     "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      1024,
+      679
+    ],
+    "localImage": "/grammy-2027/portrait/25946-square-v2.webp"
   },
   "25947": {
     "name": "Edgar Barrera",
     "image": "https://media.grammy.net/uploads/2025/11/edgar-barrera-18854.avif",
     "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      500,
+      500
+    ],
+    "localImage": "/grammy-2027/portrait/25947-square-v2.webp"
   },
   "25948": {
     "name": "RAYE",
     "image": "https://media.grammy.net/uploads/2026/05/MI0005781060-MN0002593543.avif",
     "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      720,
+      720
+    ],
+    "localImage": "/grammy-2027/portrait/25948-square-v2.webp"
   },
   "26369": {
     "name": "Blanton Alspaugh",
     "image": "https://media.grammy.net/uploads/2026/02/blanton-alspaugh-119.avif",
     "source": "https://www.grammy.com/awards/69th-annual-grammy-awards-2027/",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      768,
+      576
+    ],
+    "localImage": "/grammy-2027/portrait/26369-square-v2.webp"
   },
   "26373": {
     "name": "Dirk Sobotka",
@@ -103,25 +183,45 @@
       1,
       0
     ],
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      1024,
+      683
+    ],
+    "localImage": "/grammy-2027/portrait/26373-square-v2.webp"
   },
   "25941": {
     "name": "Tony Berg",
     "image": "https://www.audeze.co.uk/cdn/shop/articles/TBerg.jpg?v=1595801191&width=384",
     "source": "https://www.audeze.co.uk/blogs/audeze-artists/audeze-speaks-with-producer-and-music-industry-guru-tony-berg",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      384,
+      282
+    ],
+    "localImage": "/grammy-2027/portrait/25941-square-v2.webp"
   },
   "25949": {
     "name": "Joybeth Taylor",
     "source": "https://bluebirdcafe.com/tm-attraction/joybeth-taylor/",
     "image": "https://i.ticketweb.com/i/00/13/45/60/73_Original.jpg?v=5",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      960,
+      958
+    ],
+    "localImage": "/grammy-2027/portrait/25949-square-v2.webp"
   },
   "25950": {
     "name": "Theron Thomas",
     "source": "https://www.lenoxandparker.com/theron-thomas-is-music-the-songwriter-behind-the-soundtrack-of-our-lives/",
     "image": "https://storage.ghost.io/c/8a/e7/8ae7c292-92b8-4748-b97c-a2619b00b576/content/images/size/w600/2026/11/WEBSITE-COVER-IMAGE-2-4.jpg",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      600,
+      291
+    ],
+    "localImage": "/grammy-2027/portrait/25950-square-v2.webp"
   },
   "26372": {
     "name": "Elaine Martone",
@@ -131,19 +231,30 @@
       0,
       0
     ],
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      2000,
+      900
+    ],
+    "localImage": "/grammy-2027/portrait/26372-square-v2.webp"
   },
   "26370": {
     "name": "Silas Brown",
     "source": "https://www.purchase.edu/live/profiles/260-silas-brown",
     "image": "https://www.purchase.edu/live/image/gid/7/width/640/4640_Silas_2_Full.rev.1492804921.jpg",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "Square crop from original source at original aspect ratio; never stretch width or height independently.",
+    "originalDimensions": [
+      640,
+      1008
+    ],
+    "localImage": "/grammy-2027/portrait/26370-square-v2.webp"
   },
   "26371": {
     "name": "Dmitriy Lipay",
     "source": "https://americanorchestras.org/wp-content/uploads/2021/02/Sounds-from-a-Distance.pdf",
     "image": "embedded image on PDF page 5",
     "verification": "Caption identifies Dmitriy Lipay, director of audio and recording at the Seattle Symphony; photo courtesy Seattle Symphony.",
-    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export"
+    "thumbnailGeometry": "square thumbnail; keep full head visible; same dimensions in preview and PNG export",
+    "localImage": "/grammy-2027/portrait/26371-square-v2.webp"
   }
 }
