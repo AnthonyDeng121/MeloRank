@@ -397,7 +397,7 @@ export function Player({ selection, onSelectionChange, mvSelection, onMVChange }
               {parsedLyrics.length > 0 && <div className="full-lyrics-progress">
                 <button type="button" className="full-lyrics-toggle" aria-label={isPlaying ? "暂停" : "播放"} disabled={!currentSong} onClick={togglePlay}>{isPlaying ? "⏸" : "▶"}</button>
                 <span>{formatTime(currentTime)}</span>
-                <input type="range" aria-label="完整歌词播放进度" min={0} max={duration || 0} step={0.1} value={Math.min(currentTime, duration || 0)} disabled={duration <= 0} onChange={event => seekTo(Number(event.target.value))} />
+                <input type="range" aria-label="完整歌词播放进度" style={{ background: `linear-gradient(to right, #8b5cf6 0%, #8b5cf6 ${duration > 0 ? Math.max(0, Math.min(100, currentTime / duration * 100)) : 0}%, #ffffff33 ${duration > 0 ? Math.max(0, Math.min(100, currentTime / duration * 100)) : 0}%, #ffffff33 100%)` }} min={0} max={duration || 0} step={0.1} value={Math.min(currentTime, duration || 0)} disabled={duration <= 0} onChange={event => seekTo(Number(event.target.value))} />
                 <span>{formatTime(duration)}</span>
               </div>}
               <div className="full-lyrics-content" ref={fullLyricsViewport} tabIndex={0} aria-label="完整歌词，可滚动查看">
