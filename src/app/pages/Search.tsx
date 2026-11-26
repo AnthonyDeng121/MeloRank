@@ -86,10 +86,10 @@ export function Search({ onOpenCatalog, onOpenMV }: { onOpenCatalog: (item: Cata
     try {
       console.log('开始搜索:', searchQuery, '页码:', page);
       // 使用本次请求的类型，避免切换标签时读取旧状态。
-      const searchLimit = activeProvider === 'qq' ? 50 : 10;
+      const searchLimit = 10;
       const searchResponse = activeProvider === 'qq' && (kind === 'songs' || kind === 'albums') ? await searchQQVersions(query.trim(), kind, searchLimit, page).then(result => {
         if (kind === 'songs') return result;
-        const data = result.response?.data || result.data || result;
+        const data = result.response.data;
         return { items: (data.album?.list || []).map((item: any) => catalogItem('qq', 'albums', item)), total: Number(data.album?.totalnum || 0) };
       }) : kind === 'mvs' ? await searchMVs(activeProvider, query.trim(), page) : kind === 'songs' ? await searchPlatform(activeProvider, query.trim(), searchLimit, page) : await searchCatalog(activeProvider, kind, query.trim(), searchLimit, page);
       console.log('搜索响应:', searchResponse);
