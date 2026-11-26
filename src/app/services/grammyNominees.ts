@@ -9,7 +9,7 @@ export interface GrammyCategory {
   english: string;
   field: string;
   kind: string;
-  nominees: [id: string, title: string, artist: string][];
+  nominees: [id: string, title: string, artist: string, image?: string][];
 }
 
 export async function loadGrammyCategories(year: string, signal: AbortSignal): Promise<GrammyCategory[]> {

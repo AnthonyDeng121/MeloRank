@@ -29,8 +29,8 @@ const newAward = (title: string, category: Category): Award => ({
 function officialEdition(categories: GrammyCategory[], year: string, previous?: Edition): Edition {
   const awards: Award[] = categories.map(official => {
     const saved = previous?.year === year ? previous.awards.find(item => item.id === official.id) : undefined;
-    const works: Work[] = official.nominees.map(([id, title, artist]) => ({
-      id, title, artist, credits: {}, cover: year === grammyYear ? grammyCover(title) : '',
+    const works: Work[] = official.nominees.map(([id, title, artist, image]) => ({
+      id, title, artist, credits: {}, cover: image || (year === grammyYear ? grammyCover(title) : ''),
     }));
     const restore = (value?: string) => works.find(work => work.id === value ||
       work.title.toLowerCase() === value?.toLowerCase())?.id ?? '';
@@ -141,7 +141,7 @@ export function YearlyAwards() {
     setArtwork({});
     setArtworkLoading(false);
     if (!official || official.kind === '艺人与个人') return;
-    const missing = official.nominees.filter(([, title, artist]) => artist && (editionYear !== grammyYear || !grammyCover(title)));
+    const missing = official.nominees.filter(([, title, artist, image]) => !image && artist && (editionYear !== grammyYear || !grammyCover(title)));
     if (!missing.length) return;
     const controller = new AbortController();
     const urls: string[] = [];

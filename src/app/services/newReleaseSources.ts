@@ -4,13 +4,13 @@ export const regions = ['华语', 'K-pop', '欧美', '日语', '其他／待确�
 export type Region = typeof regions[number];
 export const formats = ['专辑', 'EP', '单曲', '原声带', '精选', '现场', '豪华版／再版', '其他发行', '未分类'] as const;
 export type Format = typeof formats[number];
-export type ReleaseSource = 'qq' | 'apple' | 'musicbrainz';
+export type ReleaseSource = 'qq' | 'apple' | 'musicbrainz' | 'listenbrainz';
 export type Release = {
   provider: ReleaseSource; kind: 'albums'; id: string; title: string; artist: string; image: string;
   date?: string; dateHint?: string; format: Format; genre: string; region?: Region;
   externalUrl?: string; manual?: boolean; ai?: boolean; chartRank?: number; quality?: '明确标注' | '按曲目推断';
 };
-export const sourceNames: Record<ReleaseSource, string> = { qq: 'QQ 音乐', apple: 'Apple Music', musicbrainz: 'MusicBrainz' };
+export const sourceNames: Record<ReleaseSource, string> = { qq: 'QQ 音乐', apple: 'Apple Music', musicbrainz: 'MusicBrainz', listenbrainz: 'ListenBrainz' };
 export const releaseKey = (item: Release) => item.provider + ':' + item.id;
 export const normalize = (value: string) => value.normalize('NFKC').toLowerCase().replace(/[\s\p{P}]/gu, '');
 const baseTitle = (title: string) => title.replace(/\s*[-–—]\s*(EP|Single)\s*$/i, '');
@@ -122,7 +122,13 @@ export async function qqRegionReleases(region: Region | '', page: number, signal
         const response = (result.body ?? result).response ?? result;
         const info = response.data ?? response;
         const durations = Array.isArray(info.list) ? info.list.map((song: { interval?: number }) => Number(song.interval)) : [];
-        item.format = inferFormat(item.title, Number(info.total_song_num), durations);
+        const titles: string[] = Array.isArray(info.list) ? info.list.map((song: { songname?: string }) => song.songname?.trim() ?? '') : [];
+        const count = Number(info.total_song_num);
+        const versions = /[（(]\s*(?:和声)?伴奏(?:版)?\s*[）)]$|[（(]\s*(?:instrumental|karaoke|backing track)\s*[）)]$/i;
+        const main = titles.filter(name => name && !versions.test(name));
+        const singleWithBacking = titles.length === count && count > 1 && main.length === 1 &&
+          titles.every(name => normalize(name.replace(versions, '')) === normalize(main[0]));
+        item.format = singleWithBacking ? '单曲' : inferFormat(item.title, count, durations);
         if (item.format !== '未分类') item.quality = '按曲目推断';
         item.genre = info.genre?.trim() || item.genre;
       } catch { /* Keep uncertain metadata out of the primary shelf. */ }
@@ -233,4 +239,43 @@ export async function pitchforkReviews(signal: AbortSignal) {
     const image = item.getElementsByTagNameNS('http://search.yahoo.com/mrss/', 'thumbnail')[0]?.getAttribute('url');
     return [{ title, url, image: image?.startsWith('https://media.pitchfork.com/') ? image : undefined }];
   });
+}
+
+interface ListenBrainzRelease {
+  release_group_mbid: string;
+  release_group_primary_type: string;
+  release_group_secondary_type?: string;
+  release_name: string;
+  artist_credit_name: string;
+  release_date: string;
+  caa_release_mbid?: string;
+  release_tags?: string[];
+}
+
+export async function listenBrainzNewReleases(week: number, signal: AbortSignal): Promise<Release[]> {
+  const { start, through } = releaseWeek(week);
+  const params = new URLSearchParams({ release_date: start, days: '7' });
+  const response = await fetch('https://api.listenbrainz.org/1/explore/fresh-releases/?' + params, { signal: withTimeout(signal) });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const rows: ListenBrainzRelease[] = (await response.json()).payload?.releases;
+  if (!Array.isArray(rows)) throw new Error('Missing ListenBrainz releases');
+  const releases = rows.flatMap((item): Release[] => {
+    if (!item.release_group_mbid || !item.release_name || !/^\d{4}-\d{2}-\d{2}$/.test(item.release_date) ||
+        item.release_date < start || item.release_date > through) return [];
+    const primary = ({ Album: '专辑', EP: 'EP', Single: '单曲' } as const)[item.release_group_primary_type as 'Album' | 'EP' | 'Single'];
+    if (!primary) return [];
+    const titleType = titleFormat(item.release_name);
+    const secondary = item.release_group_secondary_type ?? '';
+    const format = /soundtrack/i.test(secondary) ? '原声带' : /compilation/i.test(secondary) ? '精选' :
+      /live/i.test(secondary) ? '现场' : /remix/i.test(secondary) ? '其他发行' : titleType === '未分类' ? primary : titleType;
+    const tags = item.release_tags ?? [];
+    return [{ id: item.release_group_mbid, title: item.release_name, artist: item.artist_credit_name,
+      date: item.release_date, kind: 'albums', provider: 'listenbrainz', format, genre: tags[0] ?? '未分类',
+      region: tags.map(tag => inferredRegion(tag)).find(Boolean), quality: '明确标注',
+      ai: tags.some(tag => /^(ai.generated|ai music|ai-generated music)$/i.test(tag)),
+      image: item.caa_release_mbid ? `https://coverartarchive.org/release/${item.caa_release_mbid}/front-250` : '',
+      externalUrl: `https://musicbrainz.org/release-group/${item.release_group_mbid}`,
+    }];
+  });
+  return [...new Map(releases.map(item => [item.id, item])).values()];
 }

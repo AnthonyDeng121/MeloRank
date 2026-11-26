@@ -1,5 +1,6 @@
+import * as Popover from '@radix-ui/react-popover';
 import { ArrowUpRight, Bookmark, Disc3, ListMusic, Play, SlidersHorizontal } from 'lucide-react';
-import { appleNewReleases, formats, genreBucket, releaseWeek, currentReleaseYear, musicBrainzNewReleases, normalize, pitchforkReviews, qqRegionReleases,
+import { appleNewReleases, formats, genreBucket, releaseWeek, currentReleaseYear, listenBrainzNewReleases, musicBrainzNewReleases, normalize, pitchforkReviews, qqRegionReleases,
   regions, releaseIdentity, releaseKey as keyOf, sourceNames, titleFormat, verifiedReleases, type Format, type Region, type Release,
 } from '../services/newReleaseSources';
 import React, { useEffect, useState } from 'react';
@@ -61,6 +62,7 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
   const [trackNotice, setTrackNotice] = useState<{ id: string; text: string }>();
   const [applePreviews, setApplePreviews] = useState<{ id: string; tracks: { trackId: number; trackName: string; previewUrl: string }[] }>();
   const [previewTrack, setPreviewTrack] = useState<number>();
+  const [trackPanel, setTrackPanel] = useState('');
   const [pending, setPending] = useState('');
   const [preview, setPreview] = useState<Awaited<ReturnType<typeof getCatalogDetail>>>();
   const [message, setMessage] = useState('');
@@ -87,7 +89,10 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
        ...(week >= 0 ? (['专辑', 'EP'] as const).filter(type => !formatsKey || formatsKey.split('|').includes(type))
          .map(type => ['MusicBrainz ' + type, musicBrainzNewReleases(page, type, week, signal)] as [string, Promise<Release[]>]) : []),
     ];
-    if (page === 1) tasks.push(['Apple 地区榜', appleNewReleases(region, signal)]);
+    if (page === 1) {
+      tasks.push(['Apple 地区榜', appleNewReleases(region, signal)]);
+      if (week >= 0) tasks.push(['ListenBrainz', listenBrainzNewReleases(week, signal)]);
+    }
     void Promise.all(tasks.map(async ([name, task]) => {
       try {
         const entries = await task;
@@ -100,10 +105,6 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
     })).then(() => { if (!signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [page, retry, region, formatsKey, week]);
-
-  useEffect(() => {
-    if (preview) document.getElementById('release-tracks')?.scrollIntoView({ block: 'nearest' });
-  }, [preview]);
 
   const all = [...new Map([...library.items.filter(item => !item.manual), ...verifiedReleases, ...feed, ...library.items.filter(item => item.manual)].map(item => [keyOf(item), item])).values()].map(item =>
     library.tags[keyOf(item)] ? { ...item, ...library.tags[keyOf(item)] } : item);
@@ -118,6 +119,7 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
     const identity = releaseIdentity(item);
     sightings.set(identity, [...(sightings.get(identity) ?? []), item]);
   }
+  const exactCatalogDates = new Map(all.filter(item => item.provider === 'listenbrainz' && item.date).map(item => [item.id, item.date]));
   const candidates = all.map(item => {
     const same = item.artist ? sightings.get(releaseIdentity(item)) ?? [item] : [item];
     const verified = verifiedReleases.find(entry => item.artist && releaseIdentity(entry) === releaseIdentity(item));
@@ -126,7 +128,8 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
     const review = hasReview(item);
     const preferredArt = same.find(entry => entry.provider !== 'musicbrainz' && entry.image)?.image;
     return {
-      ...item, image: preferredArt || review?.image || item.image, format: library.tags[keyOf(item)]?.format ?? known?.format ?? item.format,
+      ...item, date: item.date ?? (item.provider === 'musicbrainz' ? exactCatalogDates.get(item.id) : undefined),
+      image: preferredArt || review?.image || item.image, format: library.tags[keyOf(item)]?.format ?? known?.format ?? item.format,
       genre: library.tags[keyOf(item)]?.genre ?? (item.genre !== '未分类' ? item.genre : known?.genre ?? item.genre),
       region: library.tags[keyOf(item)]?.region ?? known?.region ?? item.region ?? same.find(entry => entry.region)?.region,
       ai: same.some(entry => entry.ai),
@@ -177,6 +180,33 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
     });
   }
 
+  async function findPlayerAlbum(item: Release): Promise<CatalogItem | undefined> {
+    if (item.provider === 'qq') return { ...item, provider: 'qq' };
+    const fromFeed = sightings.get(releaseIdentity(item))?.find(entry => entry.provider === 'qq');
+    if (fromFeed) return { ...fromFeed, provider: 'qq' };
+    const title = item.title.replace(/\s*[-–—]\s*(EP|Single)\s*$/i, '');
+    const { items } = await searchCatalog('qq', 'albums', title, 12, 1);
+    return items.find((candidate: CatalogItem) => normalize(candidate.title) === normalize(title) &&
+      !!item.artist && normalize(candidate.artist) === normalize(item.artist));
+  }
+
+  async function openRelease(item: Release) {
+    const id = keyOf(item);
+    if (item.provider === 'qq') { onOpen({ ...item, provider: 'qq' }); return; }
+    setTrackPanel(id);
+    setPending(id);
+    setTrackNotice(undefined);
+    setApplePreviews(undefined);
+    setPreview(undefined);
+    try {
+      const catalog = await findPlayerAlbum(item);
+      if (catalog) { onOpen(catalog); return; }
+      setTrackNotice({ id, text: '站内曲库未找到同名同艺人的专辑，可打开来源查看曲目。' });
+    } catch {
+      setTrackNotice({ id, text: '暂时无法匹配站内曲库，可打开来源查看曲目。' });
+    } finally { setPending(''); }
+  }
+
   async function loadTracks(item: Release) {
     setPending(keyOf(item));
     setPreview(undefined);
@@ -196,16 +226,8 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
           if (tracks?.length) { setApplePreviews({ id, tracks }); return; }
         } catch { /* The QQ catalogue is an independent fallback. */ }
       }
-      let catalog: CatalogItem;
-      if (item.provider !== 'qq') {
-        const { items } = await searchCatalog('qq', 'albums', item.title, 12, 1);
-        const match = items.find((entry: CatalogItem) => normalize(entry.title) === normalize(item.title) &&
-          !!item.artist && normalize(entry.artist) === normalize(item.artist));
-        if (!match) { setTrackNotice({ id, text: '未找到可试听曲目，可在发行资料打开原平台。' }); return; }
-        catalog = match;
-      } else {
-        catalog = { ...item, provider: item.provider };
-      }
+      const catalog = await findPlayerAlbum(item);
+      if (!catalog) { setTrackNotice({ id, text: '未找到可试听曲目，可打开发行资料。' }); return; }
       const detail = await getCatalogDetail(catalog);
       if (!detail.songs.length) throw new Error('Empty tracks');
       setPreview(detail);
@@ -285,18 +307,13 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
       <h3>{selectedFormats.length === 1 ? selectedFormats[0] : '发行列表'} <small>{visible.length}</small></h3>
       <p role="status">{loading ? '正在补全发行资料…' : ''}{failed.length ? ` ${failed.join('、')}暂不可用。` : ''}</p>
     </div>}
-    {preview && <section id="release-tracks" className="release-tracks" aria-label="试听曲目">
-      <header><strong>{preview.item.title} · 试听曲目</strong><button onClick={() => setPreview(undefined)}>收起</button></header>
-      <div className="release-toolbar">{preview.songs.map(song => <button key={song.songmid} onClick={() => setCurrentSong(song)}>▶ {song.songname}</button>)}</div>
-      <p className="release-muted">使用站内播放器。音源及试听片段由平台提供。</p>
-    </section>}
-    <div className="release-grid">{visible.map(item => {
+    <div className="release-grid">{(saved ? visible : visible.slice(0, page * 60)).map(item => {
       const id = keyOf(item);
       const decision = saved ? library.decisions[id] : decisionFor(item);
       return <article key={id} className="release-card">
-        <div className="release-art"><Disc3 size={40} aria-hidden="true" />
+        <button type="button" className="release-art" disabled={!!pending} aria-label={`打开 ${item.title} 的专辑曲目`} onClick={() => void openRelease(item)}><Disc3 size={40} aria-hidden="true" />
           {item.image && <img key={item.image} src={item.image} alt="" loading="lazy" onError={event => { event.currentTarget.hidden = true; }} />}
-        </div>
+        </button>
         <div className="release-meta">
           <small className="release-origin">{item.manual ? '手动补录' : sourceNames[item.provider]} · {item.date || (item.dateHint ? item.dateHint + ' · 日期待确认' : '日期待确认')}</small>
           <h3 title={item.title}>{item.title}</h3><p title={item.artist}>{item.artist}</p>
@@ -309,23 +326,37 @@ export function NewReleases({ onOpen }: { onOpen: (item: CatalogItem) => void })
           </div>
         </div>
         <div className="release-toolbar release-card-actions">
-          <button className="release-play" disabled={!!pending} onClick={() => void loadTracks(item)}>
-            <Play size={13} /> {pending === id ? '读取中' : item.provider !== 'qq' ? '找试听' : '试听'}
-          </button>
+          <Popover.Root open={trackPanel === id} onOpenChange={open => {
+            if (open) { setTrackPanel(id); void loadTracks(item); }
+            else setTrackPanel(value => value === id ? '' : value);
+          }}>
+            <Popover.Trigger asChild><button className="release-play" disabled={!!pending}>
+              <Play size={13} /> 试听
+            </button></Popover.Trigger>
+            <Popover.Portal><Popover.Content className="release-preview-popover" side="right" align="start" sideOffset={8}
+              collisionPadding={12} aria-label={`${item.title} · 试听曲目`} onOpenAutoFocus={event => event.preventDefault()}>
+              <div className="release-preview-heading"><div><strong>{item.title}</strong><p>选择试听曲目</p></div>
+                <Popover.Close aria-label="关闭试听">×</Popover.Close></div>
+              {pending === id && <p role="status">正在读取曲目…</p>}
+              {trackNotice?.id === id && <p role="status">{trackNotice.text}</p>}
+              {preview && <ol>{preview.songs.map(song => <li key={song.songmid}>
+                <button onClick={() => setCurrentSong(song)}>▶ {song.songname}</button>
+              </li>)}</ol>}
+              {applePreviews?.id === id && <>
+                <ol>{applePreviews.tracks.map(track => <li key={track.trackId}>
+                  <button onClick={() => setPreviewTrack(track.trackId)}>▶ {track.trackName}</button>
+                </li>)}</ol>
+                {previewTrack && <audio key={previewTrack} controls autoPlay src={applePreviews.tracks.find(track => track.trackId === previewTrack)?.previewUrl} />}
+              </>}
+              {item.externalUrl && <a href={item.externalUrl} target="_blank" rel="noreferrer">打开发行资料 ↗</a>}
+            </Popover.Content></Popover.Portal>
+          </Popover.Root>
           {!saved && !decision && <><button className="release-quiet" onClick={() => decide(item, '想听')}><Bookmark size={15} /> 想听</button><button className="release-quiet" onClick={() => decide(item, '跳过')}>跳过</button></>}
           {saved && (item.provider !== 'qq'
             ? <a href={item.externalUrl} target="_blank" rel="noreferrer"><ArrowUpRight size={15} /> 发行资料</a>
             : <button className="release-quiet" onClick={() => onOpen({ ...item, provider: 'qq' })}><ListMusic size={15} /> 详情</button>)}
           {decision && <button className="release-quiet" onClick={() => decide(item)}>{decision} · 撤销</button>}
         </div>
-        {pending === id && <p className="release-track-feedback" role="status">正在查找可试听曲目…</p>}
-        {trackNotice?.id === id && <p className="release-track-feedback" role="status">{trackNotice.text}</p>}
-        {applePreviews?.id === id && <div className="release-track-feedback">
-          <div className="release-toolbar">{applePreviews.tracks.map(track => <button key={track.trackId}
-            onClick={() => setPreviewTrack(track.trackId)}>▶ {track.trackName}</button>)}</div>
-          {previewTrack && <audio key={previewTrack} controls autoPlay src={applePreviews.tracks.find(track => track.trackId === previewTrack)?.previewUrl} />}
-          {item.externalUrl && <a href={item.externalUrl} target="_blank" rel="noreferrer">在 Apple Music 查看</a>}
-        </div>}
         {!saved && <details className="release-classify"><summary>分类与来源</summary>
           <div className="release-toolbar">
           {item.provider !== 'qq'
