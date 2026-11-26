@@ -801,8 +801,8 @@
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 20px;
-  height: 20px;
+  width: 12px;
+  height: 12px;
   background: #667eea;
   border-radius: 50%;
   cursor: pointer;
@@ -816,8 +816,8 @@
 }
 
 .slider::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
+  width: 12px;
+  height: 12px;
   background: #667eea;
   border-radius: 50%;
   cursor: pointer;

@@ -395,6 +395,7 @@ export function Player({ selection, onSelectionChange, mvSelection, onMVChange }
               {(showTranslation && !translatedLines.some(line => line.text) || showRomanization && !romanizedLines.some(line => line.text)) && <span>该歌曲暂无{showTranslation && !translatedLines.some(line => line.text) ? '翻译' : ''}{showTranslation && !translatedLines.some(line => line.text) && showRomanization && !romanizedLines.some(line => line.text) ? '及' : ''}{showRomanization && !romanizedLines.some(line => line.text) ? '音译' : ''}</span>}
             </div>
               {parsedLyrics.length > 0 && <div className="full-lyrics-progress">
+                <button type="button" className="full-lyrics-toggle" aria-label={isPlaying ? "暂停" : "播放"} disabled={!currentSong} onClick={togglePlay}>{isPlaying ? "⏸" : "▶"}</button>
                 <span>{formatTime(currentTime)}</span>
                 <input type="range" aria-label="完整歌词播放进度" min={0} max={duration || 0} step={0.1} value={Math.min(currentTime, duration || 0)} disabled={duration <= 0} onChange={event => seekTo(Number(event.target.value))} />
                 <span>{formatTime(duration)}</span>
