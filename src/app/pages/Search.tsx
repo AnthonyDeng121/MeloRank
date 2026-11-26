@@ -1,5 +1,6 @@
+import { searchQQVersions } from '../services/searchVersions';
 import { searchMVs, type MVItem } from '../components/MVBrowser';
-import { searchCatalog, type CatalogItem } from '../services/catalog';
+import { searchCatalog, catalogItem, type CatalogItem } from '../services/catalog';
 import { usePlatformAccounts, platformNames } from '../contexts/PlatformAccountsContext';
 import { toast } from 'sonner';
 import { searchPlatform, songCover } from '../services/platformSongs';
@@ -85,7 +86,12 @@ export function Search({ onOpenCatalog, onOpenMV }: { onOpenCatalog: (item: Cata
     try {
       console.log('开始搜索:', searchQuery, '页码:', page);
       // 使用本次请求的类型，避免切换标签时读取旧状态。
-      const searchResponse = kind === 'mvs' ? await searchMVs(activeProvider, query.trim(), page) : kind === 'songs' ? await searchPlatform(activeProvider, query.trim(), 10, page) : await searchCatalog(activeProvider, kind, query.trim(), 10, page);
+      const searchLimit = activeProvider === 'qq' ? 50 : 10;
+      const searchResponse = activeProvider === 'qq' && (kind === 'songs' || kind === 'albums') ? await searchQQVersions(query.trim(), kind, searchLimit, page).then(result => {
+        if (kind === 'songs') return result;
+        const data = result.response?.data || result.data || result;
+        return { items: (data.album?.list || []).map((item: any) => catalogItem('qq', 'albums', item)), total: Number(data.album?.totalnum || 0) };
+      }) : kind === 'mvs' ? await searchMVs(activeProvider, query.trim(), page) : kind === 'songs' ? await searchPlatform(activeProvider, query.trim(), searchLimit, page) : await searchCatalog(activeProvider, kind, query.trim(), searchLimit, page);
       console.log('搜索响应:', searchResponse);
       
       // 处理API响应
@@ -93,7 +99,7 @@ export function Search({ onOpenCatalog, onOpenMV }: { onOpenCatalog: (item: Cata
       console.log('处理后的搜索结果数据:', searchResultsData);
       
       if (id !== requestId.current) return;
-      setPageSize(kind === 'mvs' ? 20 : 10);
+      setPageSize(kind === 'mvs' ? 20 : searchLimit);
       setSearchResults(searchResultsData);
       setCurrentPage(page);
       

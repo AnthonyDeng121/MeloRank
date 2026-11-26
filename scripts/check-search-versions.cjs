@@ -1,0 +1,22 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const ts = require('typescript');
+const source = fs.readFileSync('src/app/services/searchVersions.ts', 'utf8').replace(/import .*?;\s*/, '');
+const sandbox = { exports: {}, qqMusicService: { searchWithType: async (query) => ({ response: { data: { album: { totalnum: 90, list: query === 'Manchild' ? [clean] : [explicit, unrelated] } } } }) } };
+const clean = { mid: 'clean', name: 'Manchild', singer: [{ name: 'Sabrina Carpenter' }] };
+const explicit = { mid: 'explicit', name: 'Manchild (Explicit)', singer: [{ name: 'Sabrina Carpenter' }] };
+const unrelated = { mid: 'other', name: 'Manchild (Explicit)', singer: [{ name: 'Other Artist' }] };
+vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, sandbox);
+(async () => {
+  const merged = sandbox.exports.mergeSearchVersions([clean], [explicit, clean], 'albums');
+  assert.deepEqual(Array.from(merged, item => item.mid), ['explicit', 'clean']);
+  const songs = sandbox.exports.mergeSearchVersions([{ songmid: 'a', songname: 'Song', albumname: 'Album', singer: [] }], [{ songmid: 'b', songname: 'Song', albumname: 'Album (Explicit)', singer: [] }], 'songs');
+  assert.deepEqual(Array.from(songs, item => item.songmid), ['b', 'a']);
+  const result = await sandbox.exports.searchQQVersions('Manchild', 'albums', 50, 1);
+  assert.deepEqual(Array.from(result.response.data.album.list, item => item.mid), ['explicit', 'clean']);
+  assert.equal(result.response.data.album.totalnum, 90);
+  sandbox.qqMusicService.searchWithType = async query => { if (query !== 'Manchild') throw new Error('offline'); return { response: { data: { album: { list: [clean] } } } }; };
+  assert.equal((await sandbox.exports.searchQQVersions('Manchild', 'albums', 50, 1)).response.data.album.list[0].mid, 'clean');
+  console.log('PASS release ID deduplication, Explicit priority, artist isolation, totals and supplementary request failure');
+})().catch(error => { console.error(error); process.exitCode = 1; });
