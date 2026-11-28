@@ -104,6 +104,8 @@ export function YearlyRanking({
   const rankingModes = ["年度艺人榜", "年度专辑榜", "年度单曲榜", "年度MV榜"];
 
   // 搜索相关状态管理
+  const [rankingKeyword, setRankingKeyword] = useState("");
+  const matchesKeyword = (item: { title: string; artist: string }) => rankingKeyword.trim().toLocaleLowerCase().split(/\s+/).every(word => `${item.title} ${item.artist}`.toLocaleLowerCase().includes(word));
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<any>(null);
   const [isSearching, setIsSearching] = useState<boolean>(false);
@@ -1482,9 +1484,11 @@ export function YearlyRanking({
             </p>
             {!coverProgress.loading && missingCoverItems.length > 0 && <button className="export-btn" onClick={() => fillImportedCovers(missingCoverItems, rankingMode, rankingList, true)}>重试未匹配封面</button>}
           </div>}
+          <div className="ranking-keyword-search"><input aria-label="检索年度榜单" placeholder="搜索歌手、歌曲 / 专辑名" value={rankingKeyword} onChange={event => setRankingKeyword(event.target.value)} /><button className="export-btn" onClick={() => setRankingKeyword("")}>清空检索</button><span role="status">找到 {rankingDrag.items.filter(matchesKeyword).length} / {rankingDrag.items.length} 项</span></div>
           <div className="user-ranking-list">
+            {!rankingDrag.items.some(matchesKeyword) && <p>没有匹配的条目，请尝试其他关键词。</p>}
             {scoringMode === "non-scoring"
-              ? rankingDrag.items.map((Ne, je) => (
+              ? rankingDrag.items.map((Ne, je) => matchesKeyword(Ne) && (
                   <div {...rankingDrag.bind(Ne.id)} className={`user-rank-item ranking-draggable ${rankingDrag.activeId === Ne.id ? 'ranking-item-dragging' : ''}`} key={Ne.id}>
                     <div className="user-rank-number">{je + 1}</div>
                     <div className="user-rank-cover">
@@ -1559,7 +1563,7 @@ export function YearlyRanking({
                     </div>
                   </div>
                 ))
-              : rankingDrag.items.map((Ne, je) => (
+              : rankingDrag.items.map((Ne, je) => matchesKeyword(Ne) && (
                   <div {...rankingDrag.bind(Ne.id)} className={`user-rank-item ranking-draggable ${rankingDrag.activeId === Ne.id ? 'ranking-item-dragging' : ''}`} key={Ne.id}>
                     <div className="user-rank-number">{je + 1}</div>
                     <div className="user-rank-cover">

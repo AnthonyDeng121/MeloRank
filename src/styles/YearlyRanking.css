@@ -1552,3 +1552,8 @@
 @media (max-width: 380px) {
   .ranking-bonus-fields { grid-template-columns: 1fr; gap: 0; }
 }
+
+.control-waiting:disabled, .control-waiting:disabled * { cursor: progress !important; }
+.ranking-keyword-search { display:flex; align-items:center; flex-wrap:wrap; gap:12px; margin:16px 0; }
+.ranking-keyword-search input { flex:1; min-width:180px; padding:10px 14px; border:1px solid #555; border-radius:8px; background:#24242c; color:#fff; font:inherit; }
+.ranking-keyword-search span { color:#aaa; font-size:14px; }
